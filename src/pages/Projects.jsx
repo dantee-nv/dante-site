@@ -4,7 +4,7 @@ import usePageTitle from "../hooks/usePageTitle";
 
 export default function Projects() {
 
-  usePageTitle("Home");
+  usePageTitle("Projects");
   
   return (
     <motion.section

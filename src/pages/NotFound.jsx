@@ -5,7 +5,7 @@ import usePageTitle from "../hooks/usePageTitle";
 
 export default function NotFound() {
 
-  usePageTitle("Home");
+  usePageTitle("404");
   
   return (
     <motion.section
