@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import usePageTitle from "../hooks/usePageTitle";
 
 const page = {
   initial: { opacity: 0, y: 14, filter: "blur(6px)" },
@@ -9,6 +10,9 @@ const page = {
 };
 
 export default function Home() {
+  
+  usePageTitle("Home");
+  
   return (
     <motion.section
       className="hero"

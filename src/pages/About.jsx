@@ -1,7 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function About() {
+
+  usePageTitle("Home");
+
   return (
     <motion.section
       className="page"

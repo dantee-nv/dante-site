@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function NotFound() {
+
+  usePageTitle("Home");
+  
   return (
     <motion.section
       className="page"
