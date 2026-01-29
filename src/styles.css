@@ -445,7 +445,6 @@ max-width: 100%;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-/* shared hover state */
 .company-link-group:hover .company-name{
   text-decoration: underline;
 }
