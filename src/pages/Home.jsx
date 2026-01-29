@@ -61,8 +61,8 @@ export default function Home() {
           <Link className="btn primary" to="/projects">
             View Projects
           </Link>
-          <Link className="btn ghost" to="/about">
-            About Me
+          <Link className="btn ghost" to="/resume">
+            Resume
           </Link>
         </motion.div>
 
@@ -79,7 +79,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link to="/about" className="card">
+          <Link to="/resume" className="card">
             <div className="card-title">Background</div>
             <div className="card-desc">
               R&D + verification mindset, applied to software and systems.
