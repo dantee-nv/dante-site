@@ -363,8 +363,8 @@ a{ color: inherit; text-decoration:none; }
 }
 
 .company-role:hover{
-  color: var(--text);
-  text-decoration: underline;
+  color: var(--muted);
+  text-decoration: none;
 }
 
 .company-sep{
@@ -453,4 +453,27 @@ max-width: 100%;
   background: rgba(255,255,255,0.10);
   border-color: var(--line);
   color: var(--text);
+}
+
+.skills-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 8px;
+}
+
+.skills-column h4{
+  margin-top: 0;
+}
+
+.skills-column h4:not(:first-child){
+  margin-top: 20px;
+}
+
+/* Mobile fallback */
+@media (max-width: 768px){
+  .skills-grid{
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
