@@ -1227,14 +1227,24 @@ export default function Resume() {
             
 
             <div className="skills-actions">
-              <button
-                type="button"
-                className="btn ghst"
+              <span
+                className="company-link-group"
+                role="button"
+                tabIndex={0}
                 onClick={() => setSkillsArcadeOpen(true)}
-                style={{ cursor: "pointer", listStyle: "none" }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSkillsArcadeOpen(true);
+                  }
+                }}
+                style={{ cursor: "pointer" }}
               >
-                Skills Challenge ↗
-              </button>
+                <span className="company-name">Skills Challenge</span>
+                <span className="company-link-icon" aria-hidden="true">
+                  ↗
+                </span>
+              </span>
             </div>
           </AccordionItem>
         </motion.div>
