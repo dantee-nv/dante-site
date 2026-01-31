@@ -477,3 +477,174 @@ max-width: 100%;
     gap: 20px;
   }
 }
+
+.skills-actions{
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.skills-actions-note{
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* overlay */
+.arcade-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 999;
+}
+
+.arcade-modal{
+  width: min(920px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(11,13,18,0.85);
+  box-shadow: 0 20px 70px rgba(0,0,0,0.45);
+  overflow: hidden;
+}
+
+.arcade-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+}
+
+.arcade-title{
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.arcade-close{
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.arcade-close:hover{
+  border-color: var(--line);
+  background: rgba(255,255,255,0.10);
+}
+
+.arcade-body{
+  padding: 16px;
+}
+
+.arcade-arena{
+  width: 100%;
+  height: min(440px, 45vh);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.arcade-hint{
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.arcade-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+}
+
+.arcade-modal{
+  width: min(920px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(11,13,18,0.86);
+  overflow: hidden;
+  box-shadow: 0 20px 70px rgba(0,0,0,0.45);
+}
+
+.arcade-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+}
+
+.arcade-title{
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.arcade-close{
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.arcade-close:hover{
+  border-color: var(--line);
+  background: rgba(255,255,255,0.10);
+}
+
+.arcade-body{
+  padding: 16px;
+}
+
+.arcade-arena{
+  height: 420px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(600px 300px at 50% 10%, rgba(255,255,255,0.10), transparent 60%),
+    rgba(255,255,255,0.04);
+}
+
+.arcade-hint{
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.arcade-hud{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.arcade-canvas{
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.arcade-hud{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
