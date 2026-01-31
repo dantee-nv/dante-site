@@ -117,7 +117,7 @@ function mulberry32(seed) {
   };
 }
 
-// Build a stable crack pattern once per block. Points are normalized 0..1.
+// stable crack paths, generated once per child block
 function buildCrackPattern(label, count = 3) {
   const seed = hashString(label || "block");
   const rand = mulberry32(seed);
@@ -155,7 +155,7 @@ function buildCrackPattern(label, count = 3) {
       const px = sx + (ex - sx) * tt;
       const py = sy + (ey - sy) * tt;
 
-      const j = 0.1;
+      const j = 0.10;
       const jx = (rand() - 0.5) * j;
       const jy = (rand() - 0.5) * j;
 
@@ -189,7 +189,7 @@ function drawCracksStable(ctx, block, damage) {
   ctx.save();
   ctx.lineWidth = 1.6;
 
-  ctx.strokeStyle = "rgba(255,255,255,0.70)";
+  ctx.strokeStyle = "rgba(255,255,255,0.85)";
   ctx.globalAlpha = 0.18 + 0.34 * damage;
 
   for (let i = 0; i < revealCount; i++) {
@@ -246,9 +246,8 @@ export default function Resume() {
   usePageTitle("Resume");
 
   const [skillsArcadeOpen, setSkillsArcadeOpen] = useState(false);
-
-  // HUD state only
   const [score, setScore] = useState(0);
+  const [levelTitle, setLevelTitle] = useState("AI and Data Systems");
 
   const skillsData = useMemo(() => {
     return [
@@ -301,16 +300,69 @@ export default function Resume() {
     speed: 420,
   });
 
-  const bulletsRef = useRef([]); // {x,y,vy,r}
+  const bulletsRef = useRef([]);
   const fireCooldownRef = useRef(0);
 
-  const blocksRef = useRef([]); // boss or child blocks
+  const blocksRef = useRef([]);
   const scoreRef = useRef(0);
 
-  const phaseRef = useRef("boss"); // boss | children | win
+  // Phase machine
+  const phaseRef = useRef("boss"); // boss | children | transition | complete
   const categoryIndexRef = useRef(0);
+  const advanceAtRef = useRef(0);
 
-  const createBossBlocks = (cw) => {
+  // Effects and camera shake
+  const effectsRef = useRef([]);
+  const shakeRef = useRef({ t: 0, mag: 0 });
+
+  const spawnPop = (block, now) => {
+    effectsRef.current.push({
+      type: "pop",
+      x: block.x,
+      y: block.y,
+      w: block.w,
+      h: block.h,
+      t: now,
+      dur: 180,
+    });
+  };
+
+  const spawnBurst = (block, now) => {
+    const seed = hashString(block.label || "block");
+    const rand = mulberry32(seed ^ (now | 0));
+
+    const cx = block.x + block.w / 2;
+    const cy = block.y + block.h / 2;
+
+    const parts = [];
+    const count = block.isBoss ? 28 : 18;
+
+    for (let i = 0; i < count; i++) {
+      const a = rand() * Math.PI * 2;
+      const sp = (block.isBoss ? 240 : 175) * (0.55 + rand() * 0.9);
+      parts.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        r: block.isBoss ? 3 + rand() * 3 : 2 + rand() * 2,
+      });
+    }
+
+    effectsRef.current.push({
+      type: "burst",
+      t: now,
+      dur: block.isBoss ? 520 : 380,
+      parts,
+    });
+  };
+
+  const kickShake = (mag, now) => {
+    shakeRef.current.t = now;
+    shakeRef.current.mag = Math.max(shakeRef.current.mag, mag);
+  };
+
+  const createBossBlocks = (cw, categoryIndex) => {
     const marginX = 22;
     const top = 26;
 
@@ -322,16 +374,19 @@ export default function Resume() {
 
     const maxHp = 20;
 
+    const title = skillsData[categoryIndex]?.title || "Skills";
+
     return [
       {
         x,
         y,
         w,
         h,
-        label: skillsData[0]?.title || "AI and Data Systems",
+        label: title,
         hp: maxHp,
         maxHp,
         isBoss: true,
+        hitAt: 0,
       },
     ];
   };
@@ -359,7 +414,8 @@ export default function Resume() {
     const textMaxW = blockW - pad * 2;
 
     if (ctx) {
-      ctx.font = `600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
+      ctx.font =
+        "600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
     }
 
     const wrapLines = (text) => {
@@ -380,9 +436,11 @@ export default function Resume() {
       }
       if (line) lines.push(line);
 
-      // hard cut very long single tokens
       for (let i = 0; i < lines.length; i++) {
-        while (ctx.measureText(lines[i]).width > textMaxW && lines[i].length > 0) {
+        while (
+          ctx.measureText(lines[i]).width > textMaxW &&
+          lines[i].length > 0
+        ) {
           lines[i] = lines[i].slice(0, -1);
         }
       }
@@ -408,14 +466,13 @@ export default function Resume() {
         hp: 10,
         maxHp: 10,
         isBoss: false,
-        crackPaths: buildCrackPattern(items[i], 15),
+        crackPaths: buildCrackPattern(items[i], 3),
+        hitAt: 0,
       });
     }
 
-    // normalize heights so the row looks clean
     for (const b of blocks) b.h = maxH;
 
-    // keep row above ship zone
     const maxBottom = ch * 0.62;
     const bottom = top + maxH;
     if (bottom > maxBottom) {
@@ -424,6 +481,22 @@ export default function Resume() {
     }
 
     return blocks;
+  };
+
+  const startLevel = (idx, cw, ch) => {
+    categoryIndexRef.current = idx;
+    phaseRef.current = "boss";
+    advanceAtRef.current = 0;
+
+    bulletsRef.current = [];
+    fireCooldownRef.current = 0;
+
+    blocksRef.current = createBossBlocks(cw, idx);
+
+    effectsRef.current = [];
+    shakeRef.current = { t: 0, mag: 0 };
+
+    setLevelTitle(skillsData[idx]?.title || "Skills");
   };
 
   const resetGame = () => {
@@ -437,16 +510,10 @@ export default function Resume() {
     shipRef.current.x = cw / 2;
     shipRef.current.y = ch - shipRef.current.h / 2 - 10;
 
-    bulletsRef.current = [];
-    fireCooldownRef.current = 0;
-
-    phaseRef.current = "boss";
-    categoryIndexRef.current = 0;
-
-    blocksRef.current = createBossBlocks(cw);
-
     scoreRef.current = 0;
     setScore(0);
+
+    startLevel(0, cw, ch);
   };
 
   // Esc-to-close
@@ -541,7 +608,6 @@ export default function Resume() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillsArcadeOpen]);
 
-  // Render loop
   useEffect(() => {
     if (!skillsArcadeOpen) return;
 
@@ -565,6 +631,8 @@ export default function Resume() {
       const dt = Math.min(0.033, (t - last) / 1000);
       last = t;
 
+      const now = performance.now();
+
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       const cw = canvas.width / dpr;
       const ch = canvas.height / dpr;
@@ -572,29 +640,62 @@ export default function Resume() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, cw, ch);
 
+      // screen shake
+      const st = shakeRef.current.t;
+      if (st) {
+        const age = now - st;
+        const dur = 140;
+        if (age < dur) {
+          const p = 1 - age / dur;
+          const m = shakeRef.current.mag * p;
+          const sx = (Math.random() - 0.5) * m;
+          const sy = (Math.random() - 0.5) * m;
+          ctx.translate(sx, sy);
+        } else {
+          shakeRef.current.t = 0;
+          shakeRef.current.mag = 0;
+        }
+      }
+
+      // auto advance between levels
+      if (phaseRef.current === "transition" && advanceAtRef.current > 0) {
+        if (now >= advanceAtRef.current) {
+          const nextIdx = categoryIndexRef.current + 1;
+          if (nextIdx < skillsData.length) {
+            startLevel(nextIdx, cw, ch);
+          } else {
+            phaseRef.current = "complete";
+            blocksRef.current = [];
+            bulletsRef.current = [];
+            fireCooldownRef.current = 0;
+          }
+        }
+      }
+
       const ship = shipRef.current;
       const k = keysRef.current;
 
-      // ship
-      if (k.left) ship.x -= ship.speed * dt;
-      if (k.right) ship.x += ship.speed * dt;
+      if (phaseRef.current !== "complete") {
+        if (k.left) ship.x -= ship.speed * dt;
+        if (k.right) ship.x += ship.speed * dt;
 
-      const minX = ship.w / 2 + 10;
-      const maxX = cw - ship.w / 2 - 10;
-      ship.x = Math.max(minX, Math.min(maxX, ship.x));
+        const minX = ship.w / 2 + 10;
+        const maxX = cw - ship.w / 2 - 10;
+        ship.x = Math.max(minX, Math.min(maxX, ship.x));
 
-      // fire
-      fireCooldownRef.current = Math.max(0, fireCooldownRef.current - dt);
-      if (k.fire && fireCooldownRef.current === 0) {
-        if (bulletsRef.current.length < 10) {
-          bulletsRef.current.push({
-            x: ship.x,
-            y: ship.y - 14,
-            vy: -720,
-            r: 3,
-          });
+        // fire
+        fireCooldownRef.current = Math.max(0, fireCooldownRef.current - dt);
+        if (k.fire && fireCooldownRef.current === 0) {
+          if (bulletsRef.current.length < 10) {
+            bulletsRef.current.push({
+              x: ship.x,
+              y: ship.y - 14,
+              vy: -720,
+              r: 3,
+            });
+          }
+          fireCooldownRef.current = 0.12;
         }
-        fireCooldownRef.current = 0.12;
       }
 
       // bullets update
@@ -618,9 +719,24 @@ export default function Resume() {
 
           didHit = true;
           block.hp -= 1;
+          block.hitAt = now;
 
           if (block.hp <= 0) {
-            const wasBoss = !!block.isBoss;
+            const dead = block;
+            const wasBoss = !!dead.isBoss;
+
+            // death effects
+            effectsRef.current.push({
+              type: "pop",
+              x: dead.x,
+              y: dead.y,
+              w: dead.w,
+              h: dead.h,
+              t: now,
+              dur: 180,
+            });
+            spawnBurst(dead, now);
+            kickShake(wasBoss ? 10 : 5, now);
 
             blocks.splice(wi, 1);
             scoredThisFrame += wasBoss ? 150 : 25;
@@ -657,18 +773,36 @@ export default function Resume() {
         ctx.fill();
         ctx.stroke();
 
+        // hit flash
+        const hitAge = block.hitAt ? now - block.hitAt : 9999;
+        if (hitAge < 90) {
+          const p = 1 - hitAge / 90;
+          ctx.save();
+          ctx.globalAlpha = 0.18 * p;
+          ctx.fillStyle = "rgba(255,255,255,0.95)";
+          roundRect(
+            ctx,
+            block.x + 2,
+            block.y + 2,
+            block.w - 4,
+            block.h - 4,
+            Math.max(0, radius - 2)
+          );
+          ctx.fill();
+          ctx.restore();
+        }
+
         const pad = 10;
 
         if (block.isBoss) {
-          // boss title
           ctx.fillStyle = "rgba(255,255,255,0.92)";
-          ctx.font = `700 15px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
+          ctx.font =
+            "700 15px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
 
           const titleMaxW = block.w - pad * 2;
           const title = clampSingleLine(ctx, block.label, titleMaxW);
           ctx.fillText(title, block.x + pad, block.y + 28);
 
-          // hp bar
           const barH = 8;
           const barX = block.x + pad;
           const barY = block.y + block.h - pad - barH;
@@ -683,20 +817,24 @@ export default function Resume() {
           roundRect(ctx, barX, barY, barW * pct, barH, 6);
           ctx.fill();
 
-          // hp text
           ctx.fillStyle = "rgba(255,255,255,0.70)";
-          ctx.font = `600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
-          ctx.fillText(`HP ${block.hp}/${block.maxHp}`, block.x + pad, block.y + 48);
+          ctx.font =
+            "600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+          ctx.fillText(
+            `HP ${block.hp}/${block.maxHp}`,
+            block.x + pad,
+            block.y + 48
+          );
         } else {
-          // stable cracks
           const damage = block.maxHp ? 1 - block.hp / block.maxHp : 0;
           drawCracksStable(ctx, block, damage);
 
-          // wrapped text
           ctx.fillStyle = "rgba(255,255,255,0.90)";
-          ctx.font = `600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
+          ctx.font =
+            "600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
 
-          const lines = block.lines && block.lines.length ? block.lines : [block.label];
+          const lines =
+            block.lines && block.lines.length ? block.lines : [block.label];
           const lineH = 14;
           const textH = lines.length * lineH;
 
@@ -707,39 +845,121 @@ export default function Resume() {
         }
       }
 
-      // ship draw
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.beginPath();
-      ctx.moveTo(ship.x, ship.y - ship.h);
-      ctx.lineTo(ship.x - ship.w / 2, ship.y + ship.h / 2);
-      ctx.lineTo(ship.x + ship.w / 2, ship.y + ship.h / 2);
-      ctx.closePath();
-      ctx.fill();
+      // effects update and draw
+      const fx = effectsRef.current;
+      for (let i = fx.length - 1; i >= 0; i--) {
+        const e = fx[i];
+        const age = now - e.t;
+        const p = Math.max(0, Math.min(1, age / e.dur));
 
-      ctx.fillStyle = "rgba(255,255,255,0.55)";
-      ctx.fillRect(ship.x - ship.w / 4, ship.y + ship.h / 2, ship.w / 2, 3);
+        if (p >= 1) {
+          fx.splice(i, 1);
+          continue;
+        }
 
-      // bullets draw
-      ctx.fillStyle = "rgba(255,255,255,0.85)";
-      for (let i = 0; i < bullets.length; i++) {
-        ctx.beginPath();
-        ctx.arc(bullets[i].x, bullets[i].y, bullets[i].r, 0, Math.PI * 2);
-        ctx.fill();
+        if (e.type === "pop") {
+          const scale = 1 + 0.10 * Math.sin(p * Math.PI);
+          const alpha = (1 - p) * 0.40;
+
+          const cx = e.x + e.w / 2;
+          const cy = e.y + e.h / 2;
+          const w = e.w * scale;
+          const h = e.h * scale;
+
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(255,255,255,0.90)";
+          ctx.lineWidth = 2;
+
+          roundRect(ctx, cx - w / 2, cy - h / 2, w, h, 14);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        if (e.type === "burst") {
+          ctx.save();
+          ctx.globalAlpha = (1 - p) * 0.90;
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+
+          for (let k2 = 0; k2 < e.parts.length; k2++) {
+            const part = e.parts[k2];
+            const tt = age / 1000;
+            const gy = 540;
+
+            const px = part.x + part.vx * tt;
+            const py = part.y + part.vy * tt + gy * tt * tt * 0.5;
+
+            ctx.beginPath();
+            ctx.arc(px, py, part.r * (1 - p * 0.25), 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
       }
 
-      // win state
-      if (blocksRef.current.length === 0 && phaseRef.current !== "boss") {
-        phaseRef.current = "win";
+      // draw ship and bullets even during transition
+      if (phaseRef.current !== "complete") {
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.beginPath();
+        ctx.moveTo(ship.x, ship.y - ship.h);
+        ctx.lineTo(ship.x - ship.w / 2, ship.y + ship.h / 2);
+        ctx.lineTo(ship.x + ship.w / 2, ship.y + ship.h / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.55)";
+        ctx.fillRect(ship.x - ship.w / 4, ship.y + ship.h / 2, ship.w / 2, 3);
+
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        for (let i = 0; i < bullets.length; i++) {
+          ctx.beginPath();
+          ctx.arc(bullets[i].x, bullets[i].y, bullets[i].r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Level completion detection
+      if (blocksRef.current.length === 0 && phaseRef.current === "children") {
+        phaseRef.current = "transition";
+        advanceAtRef.current = now + 900;
+      }
+
+      // transition message
+      if (phaseRef.current === "transition") {
+        const nextIdx = categoryIndexRef.current + 1;
+        const nextTitle =
+          nextIdx < skillsData.length ? skillsData[nextIdx].title : "Complete";
 
         ctx.fillStyle = "rgba(255,255,255,0.92)";
-        ctx.font = `700 22px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
-        const msg = "Level cleared";
+        ctx.font =
+          "700 20px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+        const msg = nextIdx < skillsData.length ? "Skill cleared" : "All skills cleared";
+        const tw = ctx.measureText(msg).width;
+        ctx.fillText(msg, (cw - tw) / 2, ch * 0.52);
+
+        ctx.fillStyle = "rgba(255,255,255,0.70)";
+        ctx.font =
+          "600 14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+        const msg2 =
+          nextIdx < skillsData.length ? `Next: ${nextTitle}` : "Hit Reset to replay";
+        const tw2 = ctx.measureText(msg2).width;
+        ctx.fillText(msg2, (cw - tw2) / 2, ch * 0.52 + 26);
+      }
+
+      // complete message
+      if (phaseRef.current === "complete") {
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.font =
+          "800 22px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+        const msg = "All categories cleared";
         const tw = ctx.measureText(msg).width;
         ctx.fillText(msg, (cw - tw) / 2, ch * 0.55);
 
         ctx.fillStyle = "rgba(255,255,255,0.70)";
-        ctx.font = `500 14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
-        const msg2 = "Hit Reset to play again";
+        ctx.font =
+          "600 14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+        const msg2 = "Hit Reset to replay";
         const tw2 = ctx.measureText(msg2).width;
         ctx.fillText(msg2, (cw - tw2) / 2, ch * 0.55 + 26);
       }
@@ -777,7 +997,7 @@ export default function Resume() {
               aria-label="Skills arcade"
             >
               <div className="arcade-header">
-                <div className="arcade-title">Skills Arcade</div>
+                <div className="arcade-title">Skills Challenge</div>
                 <button
                   type="button"
                   className="arcade-close"
@@ -791,9 +1011,14 @@ export default function Resume() {
               <div className="arcade-body">
                 <div className="arcade-hud">
                   <div className="arcade-hint">
-                    A/D or ←/→ move • Space shoot • Esc close • Score: {score}
+                    Skill: {levelTitle} • A/D or ←/→ move • Space shoot
                   </div>
-                  <button type="button" className="btn primary" onClick={resetGame}>
+                  <button
+                    type="button"
+                    className="btn primary"
+                    onClick={resetGame}
+                    style={{ color: "rgba(255,255,255,0.95)" }}
+                  >
                     Reset
                   </button>
                 </div>
@@ -841,10 +1066,10 @@ export default function Resume() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        I am a biomedical engineer working at the intersection of data systems, medical
-        device development and regulated engineering environments. My work focuses on
-        building analytical and AI-enabled tools that accelerate verification, decision
-        making and regulatory outcomes without sacrificing rigor.
+        I am a biomedical engineer working at the intersection of data systems,
+        medical device development and regulated engineering environments. My work
+        focuses on building analytical and AI-enabled tools that accelerate verification,
+        decision making and regulatory outcomes without sacrificing rigor.
       </motion.p>
 
       <motion.div
@@ -868,21 +1093,22 @@ export default function Resume() {
             <ul>
               <li>
                 Apply large language models (LLMs) within engineering analysis workflows to
-                synthesize DV data, compare historical results and accelerate technical reporting
-                under regulatory constraints
+                synthesize DV data, compare historical results and accelerate technical
+                reporting under regulatory constraints
               </li>
               <li>
                 Design and deploy Python-based data aggregation and automation pipelines to
-                process large verification datasets, reducing manual processing and accelerating
-                engineering analysis throughput
+                process large verification datasets, reducing manual processing and
+                accelerating engineering analysis throughput
               </li>
               <li>
-                Re-architected a one-year critical-path DV strategy by leveraging legacy data and
-                risk-based test rationales, enabling FDA submission two months ahead of schedule
+                Re-architected a one-year critical-path DV strategy by leveraging legacy data
+                and risk-based test rationales, enabling FDA submission two months ahead of
+                schedule
               </li>
               <li>
-                Lead cross-site, cross-disciplinary engineering teams to plan and execute DV studies
-                supporting global market expansion
+                Lead cross-site, cross-disciplinary engineering teams to plan and execute DV
+                studies supporting global market expansion
               </li>
               <li>
                 Design and fabricate rapid 3D-printed fixtures and test components in SolidWorks
@@ -890,13 +1116,12 @@ export default function Resume() {
                 to improve hydrodynamic test realism
               </li>
               <li>
-                Author formal technical rationales and test justifications incorporated into
-                regulatory submissions to eliminate redundant testing while preserving traceability
-                and risk posture
+                Author formal technical rationales and test justifications incorporated into regulatory
+                submissions to eliminate redundant testing while preserving traceability and risk posture
               </li>
               <li>
-                Manage and mentor direct reports while defining technical hiring criteria to scale
-                verification and data-focused teams
+                Manage and mentor direct reports while defining technical hiring criteria to scale verification
+                and data-focused teams
               </li>
             </ul>
 
@@ -909,8 +1134,8 @@ export default function Resume() {
             <ul>
               <li>
                 Developed and deployed patient-facing iOS applications for secure collection,
-                visualization and longitudinal tracking of physiological data used by clinicians for
-                monitoring trends and outcomes
+                visualization and longitudinal tracking of physiological data used by clinicians
+                for monitoring trends and outcomes
               </li>
               <li>
                 Integrated Bluetooth-enabled medical devices to stream real-time physiological
@@ -926,16 +1151,13 @@ export default function Resume() {
             />
             <ul>
               <li>
-                Created an automated testing system implemented on algorithms to examine
-                sensitivity and false positive rates
+                Created an automated testing system implemented on algorithms to examine sensitivity and false positive rates
               </li>
               <li>
-                Built a custom analytics system to assess the significance of circadian disruption in
-                predicting adverse outcomes
+                Built a custom analytics system to assess the significance of circadian disruption in predicting adverse outcomes
               </li>
               <li>
-                Developed an algorithm to identify cardiac preload to non-invasively manage HVAD
-                controller speed
+                Developed an algorithm to identify cardiac preload to non-invasively manage HVAD controller speed
               </li>
             </ul>
 
@@ -947,20 +1169,16 @@ export default function Resume() {
             />
             <ul>
               <li>
-                Designed and developed an iOS application to securely ingest and visualize
-                physiological data from a clinical grade wearable prototype
+                Designed and developed an iOS application to securely ingest and visualize physiological data from a clinical grade wearable prototype
               </li>
               <li>
-                Enabled contextual interpretation of stress trends from physiological stress signals
-                in relation to geolocation and time based patterns
+                Enabled contextual interpretation of stress trends from physiological stress signals in relation to geolocation and time based patterns
               </li>
               <li>
-                Implemented server communication pipelines to deliver real time derived stress
-                metrics within the mobile application
+                Implemented server communication pipelines to deliver real time derived stress metrics within the mobile application
               </li>
               <li>
-                Independently owned project execution end to end, defining milestones and
-                checkpoints to meet delivery timelines
+                Independently owned project execution end to end, defining milestones and checkpoints to meet delivery timelines
               </li>
             </ul>
           </AccordionItem>
@@ -1006,21 +1224,17 @@ export default function Resume() {
               </div>
             </div>
 
-            <p className="skills-note">
-              This section is structured so a future interactive skills game can live here.
-            </p>
+            
 
             <div className="skills-actions">
               <button
                 type="button"
-                className="btn primary"
+                className="btn ghst"
                 onClick={() => setSkillsArcadeOpen(true)}
+                style={{ cursor: "pointer", listStyle: "none" }}
               >
-                Interact
+                Skills Challenge ↗
               </button>
-              <span className="skills-actions-note">
-                Launch a mini game version of the skills section
-              </span>
             </div>
           </AccordionItem>
         </motion.div>
@@ -1039,8 +1253,7 @@ export default function Resume() {
             />
             <ul>
               <li>
-                Hydrodynamic Assessment of Explanted Degenerated Transcatheter Aortic Valves:
-                Novel Insights Into Noncalcific and Calcific Mechanisms
+                Hydrodynamic Assessment of Explanted Degenerated Transcatheter Aortic Valves: Novel Insights Into Noncalcific and Calcific Mechanisms
               </li>
             </ul>
 
@@ -1052,16 +1265,16 @@ export default function Resume() {
             />
             <ul>
               <li>
-                Built machine learning models, including random forest classifiers, to predict patient
-                outcomes using ambulatory and physiological datasets collected in clinical settings
+                Built machine learning models, including random forest classifiers, to predict patient outcomes using
+                ambulatory and physiological datasets collected in clinical settings
               </li>
               <li>
-                Developed iOS and watchOS applications to support remote collection of patient-reported
-                pain metrics and physiological signals, enabling analysis of trends and temporal patterns
+                Developed iOS and watchOS applications to support remote collection of patient-reported pain metrics
+                and physiological signals, enabling analysis of trends and temporal patterns
               </li>
               <li>
-                Led hospital-based clinical studies under a funded Research Award, coordinating
-                multidisciplinary teams and ensuring adherence to approved clinical protocol
+                Led hospital-based clinical studies under a funded Research Award, coordinating multidisciplinary
+                teams and ensuring adherence to approved clinical protocol
               </li>
             </ul>
 
@@ -1073,13 +1286,11 @@ export default function Resume() {
             />
             <ul>
               <li>
-                Integrated IMUs and flex sensors to capture wrist and hand kinematics and wirelessly
-                control an actuated 3D printed hand with embedded tactile sensing using conductive traces
-                and piezoresistive fabric
+                Integrated IMUs and flex sensors to capture wrist and hand kinematics and wirelessly control an actuated
+                3D printed hand with embedded tactile sensing using conductive traces and piezoresistive fabric
               </li>
               <li>
-                Developed a Python based graphical interface to visualize tactile sensor activation and
-                monitor system performance in real time
+                Developed a Python based graphical interface to visualize tactile sensor activation and monitor system performance in real time
               </li>
             </ul>
           </AccordionItem>
@@ -1091,12 +1302,7 @@ export default function Resume() {
           transition={{ delay: 0.72, duration: 0.5 }}
         >
           <AccordionItem id="education" title="Education">
-            <CompanyHeader
-              company="Johns Hopkins University"
-              companyUrl="https://www.bme.jhu.edu"
-              role="Degrees (2020)"
-              meta=""
-            />
+            <CompanyHeader company="Johns Hopkins University" companyUrl="https://www.bme.jhu.edu" role="Degrees (2020)" meta="" />
             <ul>
               <li>M.S.E. in Biomedical Engineering – Imaging and Medical Devices</li>
               <li>B.S. in Biomedical Engineering – Minor: Computer Integrated Surgery</li>
@@ -1109,9 +1315,7 @@ export default function Resume() {
               meta=""
             />
             <ul>
-              <li>
-                Applied Generative AI Specialization – Building LLM Applications and Agentic Frameworks
-              </li>
+              <li>Applied Generative AI Specialization – Building LLM Applications and Agentic Frameworks</li>
             </ul>
           </AccordionItem>
         </motion.div>
@@ -1119,7 +1323,7 @@ export default function Resume() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
+          transition={{ delay: 0.80, duration: 0.5 }}
         >
           <div className="accordion-item" id="resume">
             <a
