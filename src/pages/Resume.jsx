@@ -952,7 +952,7 @@ export default function Resume() {
         ctx.fillStyle = "rgba(255,255,255,0.92)";
         ctx.font =
           "800 22px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-        const msg = "All categories cleared";
+        const msg = "All skills cleared";
         const tw = ctx.measureText(msg).width;
         ctx.fillText(msg, (cw - tw) / 2, ch * 0.55);
 
