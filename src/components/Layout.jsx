@@ -38,11 +38,11 @@ export default function Layout({ children }) {
         <div className="footer-inner">
           <span>© {new Date().getFullYear()} Dante Navarro</span>
           <span className="footer-dot">•</span>
-          <a className="footer-link" href="https://www.linkedin.com" target="_blank" rel="noreferrer">
+          <a className="footer-link" href="https://www.linkedin.com/in/dante-navarro/" target="_blank" rel="noreferrer">
             LinkedIn
           </a>
           <span className="footer-dot">•</span>
-          <a className="footer-link" href="https://github.com" target="_blank" rel="noreferrer">
+          <a className="footer-link" href="https://github.com/dantee-nv" target="_blank" rel="noreferrer">
             GitHub
           </a>
         </div>

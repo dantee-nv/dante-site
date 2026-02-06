@@ -18,7 +18,7 @@ export default function Contact() {
       <p>Put email + links here. Later we can add a real form (Lambda).</p>
       <div className="contact-row">
         <a className="btn primary" href="mailto:you@domain.com">Email Me</a>
-        <a className="btn ghost" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+        <a className="btn ghost" href="https://github.com/dantee-nv" target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </motion.section>
   );

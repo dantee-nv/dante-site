@@ -49,8 +49,7 @@ export default function Home() {
           transition={{ delay: 0.35, duration: 0.5 }}
         >
           I create clean, high-impact software and automation, then ship it fast.
-          This site is a hub for my projects, experiments, and future work. Recent
-          work: RAG Agent, Crexi Scraper, AMC Newsletter.
+          This site is a hub for my projects, experiments, and future work.
         </motion.p>
 
         <motion.div
