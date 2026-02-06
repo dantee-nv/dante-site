@@ -15,9 +15,9 @@ export default function Contact() {
       transition={{ duration: 0.35 }}
     >
       <h2>Contact</h2>
-      <p>Put email + links here. Later we can add a real form (Lambda).</p>
       <div className="contact-row">
-        <a className="btn primary" href="mailto:you@domain.com">Email Me</a>
+        <a className="btn primary" href="mailto:contact@dantenavarro.com?subject=Website%20Inquiry">Email Me</a>
+        <a className="btn ghost" href="https://www.linkedin.com/in/dante-navarro/" target="_blank" rel="noreferrer">LinkedIn</a>
         <a className="btn ghost" href="https://github.com/dantee-nv" target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </motion.section>
