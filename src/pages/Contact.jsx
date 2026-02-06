@@ -84,6 +84,9 @@ export default function Contact() {
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const apiUrl = resolveContactApiUrl(import.meta.env.VITE_CONTACT_API_URL);
+  const emailActionHref = `mailto:contact@dantenavarro.com?subject=${encodeURIComponent(
+    "Website Inquiry"
+  )}`;
 
   usePageTitle("Contact");
 
@@ -295,7 +298,7 @@ export default function Contact() {
         </div>
 
         <div className="contact-form-actions">
-          <button className="btn primary" type="submit" disabled={isSending}>
+          <button className="btn ghost" type="submit" disabled={isSending}>
             {isSending ? "Sending..." : "Send Message"}
           </button>
           <span className="contact-helper">All fields are required.</span>
@@ -311,6 +314,7 @@ export default function Contact() {
       <div className="contact-row">
         <a className="btn ghost" href="https://www.linkedin.com/in/dante-navarro/" target="_blank" rel="noreferrer">LinkedIn</a>
         <a className="btn ghost" href="https://github.com/dantee-nv" target="_blank" rel="noreferrer">GitHub</a>
+        <a className="btn ghost" href={emailActionHref}>Email</a>
       </div>
     </Motion.section>
   );
