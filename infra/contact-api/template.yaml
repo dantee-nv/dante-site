@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Contact form API for dantenavarro.com (HTTP API -> Lambda -> SES)
+
+Parameters:
+  SesFromEmail:
+    Type: String
+    Description: SES-verified sender email address.
+  ContactToEmail:
+    Type: String
+    Description: Destination inbox for contact form submissions.
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Description: CORS allowlist origins for browser requests.
+
+Resources:
+  ContactApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: !Ref AllowedOrigins
+        AllowMethods:
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 5
+        ThrottlingRateLimit: 2
+
+  ContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handler.handler
+      Runtime: nodejs20.x
+      Timeout: 10
+      MemorySize: 128
+      Environment:
+        Variables:
+          SES_FROM_EMAIL: !Ref SesFromEmail
+          CONTACT_TO_EMAIL: !Ref ContactToEmail
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: SesSendFromVerifiedIdentity
+              Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource:
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesFromEmail}
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ContactToEmail}
+                - !Sub
+                    - arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesFromDomain}
+                    - SesFromDomain: !Select [1, !Split ["@", !Ref SesFromEmail]]
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+      Events:
+        ContactPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ContactApi
+            Path: /contact
+            Method: POST
+
+Outputs:
+  ContactApiBaseUrl:
+    Description: Base URL for the contact API.
+    Value: !Sub https://${ContactApi}.execute-api.${AWS::Region}.amazonaws.com
+  ContactApiUrl:
+    Description: Contact endpoint URL.
+    Value: !Sub https://${ContactApi}.execute-api.${AWS::Region}.amazonaws.com/contact

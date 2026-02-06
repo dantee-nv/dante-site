@@ -1,0 +1,9 @@
+{
+  "name": "dante-contact-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.750.0"
+  }
+}
