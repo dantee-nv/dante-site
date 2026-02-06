@@ -48,23 +48,10 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
         >
-          I create clean, high-impact software and automation—then ship it fast.
-          This site is a hub for my projects, experiments, and future work.
+          I create clean, high-impact software and automation, then ship it fast.
+          This site is a hub for my projects, experiments, and future work. Recent
+          work: RAG Agent, Crexi Scraper, AMC Newsletter.
         </motion.p>
-
-        <motion.div
-          className="cta-row"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.5 }}
-        >
-          <Link className="btn primary" to="/projects">
-            View Projects
-          </Link>
-          <Link className="btn ghost" to="/resume">
-            Resume
-          </Link>
-        </motion.div>
 
         <motion.div
           className="cards"
