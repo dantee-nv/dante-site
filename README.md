@@ -1,6 +1,6 @@
 # dante-site
 
-Personal portfolio site built with React + Vite.
+Personal site built with React + Vite.
 
 ## Local frontend setup
 

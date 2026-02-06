@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import Resume from "./pages/Resume";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
@@ -18,6 +19,7 @@ export default function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:projectSlug" element={<ProjectDetail />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />

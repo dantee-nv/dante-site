@@ -1,5 +1,8 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { motion as Motion } from "framer-motion";
+
+import { projectCardList } from "../data/projects";
 import usePageTitle from "../hooks/usePageTitle";
 
 const page = {
@@ -21,11 +24,21 @@ const tile = {
 };
 
 export default function Projects() {
-
   usePageTitle("Projects");
-  
+
+  function formatStatus(status) {
+    if (!status) {
+      return "";
+    }
+
+    return status
+      .split("-")
+      .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+      .join(" ");
+  }
+
   return (
-    <motion.section
+    <Motion.section
       className="page"
       variants={page}
       initial="initial"
@@ -33,31 +46,45 @@ export default function Projects() {
       exit="exit"
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
-      <motion.h2
+      <Motion.h2
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.45 }}
       >
         Projects
-      </motion.h2>
-      <motion.p
+      </Motion.h2>
+      <Motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        Add cards here for your apps, automations, and experiments.
-      </motion.p>
-      <motion.div className="grid" variants={grid} initial="initial" animate="animate">
-        <motion.div className="tile" variants={tile} transition={{ duration: 0.35 }}>
-          Project 1
-        </motion.div>
-        <motion.div className="tile" variants={tile} transition={{ duration: 0.35 }}>
-          Project 2
-        </motion.div>
-        <motion.div className="tile" variants={tile} transition={{ duration: 0.35 }}>
-          Project 3
-        </motion.div>
-      </motion.div>
-    </motion.section>
+        Explore shipped work, in-progress builds, and upcoming experiments.
+      </Motion.p>
+
+      <Motion.div className="grid" variants={grid} initial="initial" animate="animate">
+        {projectCardList.map((project) => (
+          <Motion.div key={project.slug} variants={tile} transition={{ duration: 0.35 }}>
+            <Link className="tile tile-link" to={`/projects/${project.slug}`}>
+              <div className="tile-top">
+                <h3 className="tile-title">{project.title}</h3>
+                <span className={`project-status ${project.status}`}>
+                  {formatStatus(project.status)}
+                </span>
+              </div>
+              <p className="tile-summary">{project.summary}</p>
+              {project.tags.length > 0 ? (
+                <div className="project-tags">
+                  {project.tags.map((tag) => (
+                    <span className="project-tag" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </Link>
+          </Motion.div>
+        ))}
+      </Motion.div>
+    </Motion.section>
   );
 }
