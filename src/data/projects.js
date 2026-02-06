@@ -102,23 +102,122 @@ const baseProjects = [
   },
   {
     slug: "project-2",
-    title: "Project 2",
+    title: "Crexi Broker Pipeline",
     summary:
-      "Planned build focused on automation and workflow leverage. This page is a live placeholder while scope is finalized.",
-    status: "in-progress",
-    tags: ["Automation", "Planning"],
-    template: "stub",
+      "Built a repeatable pipeline that filters raw Crexi listings, deduplicates brokers, and enriches broker records with active listing totals for outreach and market analysis.",
+    status: "live",
+    tags: ["Python", "Data Pipeline", "Playwright", "Async Scraping", "Data Quality", "Automation"],
+    template: "case-study",
+    meta: {
+      timeline: "2026 (Idaho territory snapshot run)",
+      role: "Data + Automation Engineer",
+      stack: "Python, JSON, CSV, Playwright, Asyncio, Regex, Apify Actor output",
+    },
     sections: [
       {
-        heading: "Planned Scope",
+        heading: "Project Snapshot",
         body:
-          "This project will focus on reducing repetitive work with a practical operator-first workflow.",
+          "I built a data pipeline that turns raw Crexi listing data into a clean broker dataset, then enriches each broker with total active listings from their public Crexi profile.",
         bullets: [
-          "Define end-to-end user flow and constraints.",
-          "Ship an initial version with measurable time savings.",
-          "Document rollout and improvement checkpoints.",
+          "Designed for speed, accuracy, and repeatability.",
+          "Combined backend parsing with browser automation in one workflow.",
+          "Created a reusable process for outreach and market analysis datasets.",
         ],
       },
+      {
+        heading: "Problem and Goal",
+        body:
+          "SDR workflows required manual territory searches, listing checks, broker profile reviews, and outreach qualification one broker at a time.",
+        bullets: [
+          "Reduce manual profile-by-profile research for identified territories.",
+          "Apply business logic around PRO versus non-PRO broker targeting.",
+          "Prioritize lead quality signals including active listing volume and recent activity context.",
+          "Produce a reliable broker dataset for outreach and analysis.",
+        ],
+      },
+      {
+        heading: "What I Built",
+        body:
+          "I implemented a three-stage pipeline from raw listing export to enrichment-ready and analysis-ready broker output.",
+        bullets: [
+          "API Parse.py handled data filtering and broker extraction from 1,243 raw asset records.",
+          "Generated normalized broker profile URLs and deduplicated to 200 unique brokers.",
+          "Crexi Scraper.py enriched broker rows with Active Listings Total using layered fallback selectors.",
+        ],
+      },
+      {
+        heading: "Results and Impact (One Territory Snapshot)",
+        body:
+          "These metrics are from a single Idaho territory export run and represent one repeatable snapshot of the workflow.",
+        bullets: [
+          "Input scope: 1,243 raw assets.",
+          "Final target set: 200 unique broker profiles.",
+          "Enriched successfully: 197 / 200 (98.5% coverage).",
+          "Unresolved: 3 rows marked N/A.",
+        ],
+      },
+      {
+        heading: "Challenges and Engineering Decisions",
+        body:
+          "Dynamic pages and inconsistent structures required reliability-focused extraction logic instead of one brittle selector.",
+        bullets: [
+          "Used layered fallback extraction to handle dynamic profile layouts.",
+          "Prioritized direct text signals before broader DOM heuristics to avoid overcounting.",
+          "Blocked heavy resources and used targeted timeouts to reduce scraping overhead.",
+          "Added retries and exponential backoff to recover from transient failures.",
+        ],
+      },
+      {
+        heading: "Skills Matrix",
+        body: "How project skills translated into measurable outcomes.",
+        bullets: [
+          "Python scripting - Built end-to-end pipeline scripts - Automated a manual workflow.",
+          "JSON processing - Parsed and iterated 1,243 raw assets - Structured ingestion at scale.",
+          "CSV pipeline design - Produced filtered and enriched outputs - Clean stage-to-stage handoff.",
+          "Business-rule filtering - Excluded PRO brokers by logic - Improved lead targeting quality.",
+          "Deduplication strategy - Removed duplicate broker URLs - Delivered 200 unique broker rows.",
+          "Async Playwright scraping - Ran worker concurrency for profile enrichment - Increased throughput and coverage.",
+          "Reliability engineering - Implemented retry and backoff - Improved resilience on dynamic pages.",
+          "Regex and text extraction - Parsed Active Listings Total via fallbacks - More robust enrichment.",
+          "Data quality controls - Skipped already-filled rows and normalized N/A values - Safer reruns.",
+        ],
+      },
+      {
+        heading: "Step-by-Step Timeline",
+        body:
+          "Execution moved from raw ingestion through hardened enrichment and final metric validation.",
+        bullets: [
+          "1. Loaded Idaho JSON export and validated record structure for broker extraction.",
+          "2. Implemented business filters for non-PRO targeting across single- and multi-broker assets.",
+          "3. Generated normalized broker URLs and deduplicated records by profile URL.",
+          "4. Produced enrichment-ready broker CSV with stable handoff fields.",
+          "5. Implemented async Playwright workers to scrape Active Listings Total from broker profiles.",
+          "6. Added layered fallbacks, request blocking, retries, and backoff for extraction stability.",
+          "7. Validated final coverage at 197/200 enriched profiles (98.5%) with 3 rows marked N/A.",
+        ],
+      },
+      {
+        heading: "What This Demonstrates",
+        body:
+          "The project demonstrates full-stack automation execution from business logic translation to production-usable output quality.",
+        bullets: [
+          "Converted outreach requirements into explicit, testable filtering logic.",
+          "Handled edge cases in dynamic web extraction with resilient fallback strategies.",
+          "Optimized runtime through concurrency and selective request blocking.",
+          "Delivered analysis-ready output that reduces manual research effort.",
+        ],
+      },
+    ],
+    highlights: [
+      "Built a repeatable broker enrichment workflow from raw export to outreach-ready output.",
+      "Achieved 98.5% enrichment coverage on the 200-profile target set.",
+      "Implemented robust fallback extraction for dynamic profile page variance.",
+      "Reduced manual SDR research workload with automated filtering and enrichment.",
+      "Produced a clean dataset suitable for both outreach execution and market analysis.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
     ],
   },
   {
