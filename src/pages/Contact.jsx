@@ -187,7 +187,7 @@ export default function Contact() {
       transition={{ duration: 0.35 }}
     >
       <h2>Contact</h2>
-      <p>Send a message and I&apos;ll get back to you as soon as possible.</p>
+      <p>Send a message and let&apos;s connect!</p>
 
       <form className="contact-form" onSubmit={handleSubmit} noValidate>
         <div className="contact-field">

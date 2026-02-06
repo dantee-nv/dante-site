@@ -3,15 +3,15 @@ const baseProjects = [
     slug: "dante-site",
     title: "This Site",
     summary:
-      "A personal site built to ship quickly, look polished, and support real outreach through a production contact pipeline.",
+      "An AWS Amplify-hosted personal site built to ship quickly, look polished, and support real outreach through a production contact pipeline.",
     status: "live",
-    tags: ["React", "Vite", "React Router", "Framer Motion", "AWS"],
+    tags: ["React", "Vite", "React Router", "Framer Motion", "AWS", "Amplify"],
     template: "case-study",
     meta: {
       timeline: "January 2026 - Ongoing",
       role: "Design + Frontend + Backend Integration",
       stack:
-        "React, Vite, React Router, Framer Motion, AWS API Gateway, Lambda, SES, SAM",
+        "React, Vite, React Router, Framer Motion, AWS Amplify Hosting, AWS API Gateway, Lambda, SES, SAM",
     },
     sections: [
       {
@@ -45,6 +45,16 @@ const baseProjects = [
         ],
       },
       {
+        heading: "Skills Challenge Development",
+        body:
+          "A skills challenge experience was developed directly into the site to make technical ability more tangible than static bullets alone.",
+        bullets: [
+          "Designed an interactive challenge flow that aligns with the existing visual system.",
+          "Integrated challenge development into the broader resume and projects narrative.",
+          "Used the feature as a proving ground for iterative UX and frontend implementation decisions.",
+        ],
+      },
+      {
         heading: "Contact Pipeline Architecture",
         body:
           "Contact submissions flow from the frontend to API Gateway, then into a Lambda function that sends mail through SES with validation and response handling.",
@@ -57,8 +67,9 @@ const baseProjects = [
       {
         heading: "Deployment and Environment Strategy",
         body:
-          "Infrastructure is defined under the SAM template and deployed with AWS tooling. Frontend deployment is configured to consume the API output URL without hardcoding runtime secrets.",
+          "The frontend is hosted on AWS Amplify, while infrastructure for the contact API is defined under SAM and deployed with AWS tooling. Frontend deployment is configured to consume the API output URL without hardcoding runtime secrets.",
         bullets: [
+          "Amplify handles hosting and frontend deployment workflow.",
           "Contact API stack deploys via SAM.",
           "Allowed origins are restricted for production and localhost.",
           "Environment variable wiring keeps client and backend decoupled.",
@@ -70,12 +81,15 @@ const baseProjects = [
           "The site is live and now transitioning from scaffolding into richer project storytelling. Next iterations focus on deeper project case studies and long-term maintainability.",
         bullets: [
           "Convert all project cards into full detail pages.",
+          "Continue expanding the skills challenge development experience.",
           "Expand project metadata and comparison-friendly structure.",
           "Continue improving content depth while keeping performance tight.",
         ],
       },
     ],
     highlights: [
+      "Hosted on AWS Amplify with a production-ready frontend deployment flow.",
+      "Built and integrated a skills challenge development experience into the site narrative.",
       "Shipped with a live contact form pipeline instead of placeholder interactions.",
       "Uses one shared layout and style system to keep page additions predictable.",
       "Ready for incremental project growth through a data-driven project model.",

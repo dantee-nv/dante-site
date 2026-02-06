@@ -13,7 +13,12 @@ export default function Layout({ children }) {
       <header className="header">
         <div className="header-inner">
           <Link className="logo" to="/" aria-label="Home">
-            Dante Navarro
+            <img className="logo-mark" src="/favicon.svg" alt="" aria-hidden="true" />
+            <span className="logo-name">Dante Navarro</span>
+            <span className="logo-sep" aria-hidden="true">
+              |
+            </span>
+            <span className="logo-home">Home</span>
           </Link>
 
           <nav className="nav">
