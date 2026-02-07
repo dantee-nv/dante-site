@@ -413,6 +413,178 @@ a{ color: inherit; text-decoration:none; }
   color: var(--muted);
 }
 
+.project-at-glance{
+  display: grid;
+  gap: 14px;
+}
+
+.project-at-glance h4{
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.project-at-glance > div{
+  display: grid;
+  gap: 8px;
+}
+
+.project-skill-list{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-section .project-skill-list{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-skill-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.project-section .project-skill-chip{
+  margin-top: 0;
+}
+
+.project-skill-lane{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.26);
+  background: rgba(0,0,0,0.18);
+  color: inherit;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+}
+
+.project-skill-chip.lane-frontend{
+  color: #c7e9ff;
+  border-color: rgba(117,200,255,0.42);
+  background: rgba(87,170,255,0.14);
+}
+
+.project-skill-chip.lane-backend{
+  color: #d5f7d9;
+  border-color: rgba(126,226,148,0.38);
+  background: rgba(98,206,122,0.14);
+}
+
+.project-skill-chip.lane-data{
+  color: #ffdcb7;
+  border-color: rgba(255,190,122,0.38);
+  background: rgba(255,163,72,0.14);
+}
+
+.project-skill-chip.lane-ai{
+  color: #ddccff;
+  border-color: rgba(187,154,255,0.38);
+  background: rgba(150,108,255,0.15);
+}
+
+.project-skill-chip.lane-automation{
+  color: #f6d4ff;
+  border-color: rgba(230,146,255,0.36);
+  background: rgba(207,100,245,0.14);
+}
+
+.project-skill-chip.lane-cloud{
+  color: #caf8ef;
+  border-color: rgba(116,233,210,0.38);
+  background: rgba(72,205,178,0.14);
+}
+
+.project-skill-chip.lane-general{
+  color: #dce3ef;
+  border-color: rgba(165,179,199,0.34);
+  background: rgba(124,139,161,0.15);
+}
+
+.project-metric-row{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-section .project-metric-row{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-metric-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  min-width: 0;
+  padding: 7px 10px;
+}
+
+.project-section .project-metric-pill{
+  margin-top: 0;
+}
+
+.project-metric-label{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.16);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 3px 7px;
+}
+
+.project-metric-value{
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.25;
+}
+
+.project-metric-pill.tone-neutral{
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+}
+
+.project-metric-pill.tone-info{
+  border-color: rgba(121,206,255,0.42);
+  background: rgba(92,174,255,0.13);
+}
+
+.project-metric-pill.tone-success{
+  border-color: rgba(124,232,159,0.44);
+  background: rgba(86,212,126,0.14);
+}
+
 .project-highlights{
   margin-top: 14px;
   border: 1px solid var(--line);
@@ -677,6 +849,32 @@ a{ color: inherit; text-decoration:none; }
   .tile-top{
     flex-direction: column;
     align-items: flex-start;
+  }
+  .project-metric-pill{
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px){
+  .project-skill-chip{
+    font-size: 0.78rem;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .project-skill-lane{
+    font-size: 0.62rem;
+    padding: 2px 5px;
+  }
+  .project-metric-pill{
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .project-metric-label{
+    font-size: 0.62rem;
+    padding: 2px 6px;
+  }
+  .project-metric-value{
+    font-size: 0.78rem;
   }
 }
 

@@ -23,6 +23,18 @@ const tile = {
   animate: { opacity: 1, y: 0, filter: "blur(0px)" },
 };
 
+function formatSkillLane(lane) {
+  if (lane === "ai") {
+    return "AI";
+  }
+
+  if (!lane) {
+    return "General";
+  }
+
+  return `${lane.charAt(0).toUpperCase()}${lane.slice(1)}`;
+}
+
 export default function Projects() {
   usePageTitle("Projects");
 
@@ -62,28 +74,53 @@ export default function Projects() {
       </Motion.p>
 
       <Motion.div className="grid" variants={grid} initial="initial" animate="animate">
-        {projectCardList.map((project) => (
-          <Motion.div key={project.slug} variants={tile} transition={{ duration: 0.35 }}>
-            <Link className="tile tile-link" to={`/projects/${project.slug}`}>
-              <div className="tile-top">
-                <h3 className="tile-title">{project.title}</h3>
-                <span className={`project-status ${project.status}`}>
-                  {formatStatus(project.status)}
-                </span>
-              </div>
-              <p className="tile-summary">{project.summary}</p>
-              {project.tags.length > 0 ? (
-                <div className="project-tags">
-                  {project.tags.map((tag) => (
-                    <span className="project-tag" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
+        {projectCardList.map((project) => {
+          const skills = project.atGlance?.skills || [];
+          const metrics = project.atGlance?.metrics || [];
+
+          return (
+            <Motion.div key={project.slug} variants={tile} transition={{ duration: 0.35 }}>
+              <Link className="tile tile-link" to={`/projects/${project.slug}`}>
+                <div className="tile-top">
+                  <h3 className="tile-title">{project.title}</h3>
+                  <span className={`project-status ${project.status}`}>
+                    {formatStatus(project.status)}
+                  </span>
                 </div>
-              ) : null}
-            </Link>
-          </Motion.div>
-        ))}
+
+                <p className="tile-summary">{project.summary}</p>
+
+                {metrics.length > 0 ? (
+                  <ul className="project-metric-row" aria-label={`${project.title} project signals`}>
+                    {metrics.map((metric, index) => (
+                      <li
+                        className={`project-metric-pill tone-${metric.tone}`}
+                        key={`${project.slug}-metric-${metric.label}-${index}`}
+                      >
+                        <span className="project-metric-label">{metric.label}</span>
+                        <span className="project-metric-value">{metric.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {skills.length > 0 ? (
+                  <ul className="project-skill-list" aria-label={`${project.title} skills`}>
+                    {skills.map((skill, index) => (
+                      <li
+                        className={`project-skill-chip lane-${skill.lane}`}
+                        key={`${project.slug}-skill-${skill.label}-${index}`}
+                      >
+                        <span className="project-skill-lane">{formatSkillLane(skill.lane)}</span>
+                        <span>{skill.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </Link>
+            </Motion.div>
+          );
+        })}
       </Motion.div>
     </Motion.section>
   );

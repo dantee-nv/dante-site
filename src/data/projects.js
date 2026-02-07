@@ -1,3 +1,64 @@
+const validSkillLanes = new Set([
+  "frontend",
+  "backend",
+  "data",
+  "ai",
+  "automation",
+  "cloud",
+  "general",
+]);
+
+const validMetricTones = new Set(["neutral", "info", "success"]);
+
+function normalizeAtGlanceSkills(rawSkills, fallbackTags) {
+  const skills = Array.isArray(rawSkills)
+    ? rawSkills
+        .map((skill) => {
+          const label = typeof skill?.label === "string" ? skill.label.trim() : "";
+          if (!label) {
+            return null;
+          }
+
+          const lane = validSkillLanes.has(skill.lane) ? skill.lane : "general";
+          return { label, lane };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (skills.length > 0) {
+    return skills;
+  }
+
+  if (!Array.isArray(fallbackTags)) {
+    return [];
+  }
+
+  return fallbackTags
+    .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
+    .filter(Boolean)
+    .map((label) => ({ label, lane: "general" }));
+}
+
+function normalizeAtGlanceMetrics(rawMetrics) {
+  if (!Array.isArray(rawMetrics)) {
+    return [];
+  }
+
+  return rawMetrics
+    .map((metric) => {
+      const label = typeof metric?.label === "string" ? metric.label.trim() : "";
+      const value = typeof metric?.value === "string" ? metric.value.trim() : "";
+
+      if (!label || !value) {
+        return null;
+      }
+
+      const tone = validMetricTones.has(metric.tone) ? metric.tone : "neutral";
+      return { label, value, tone };
+    })
+    .filter(Boolean);
+}
+
 const baseProjects = [
   {
     slug: "dante-site",
@@ -6,6 +67,21 @@ const baseProjects = [
       "An AWS Amplify-hosted personal site built to ship quickly, look polished, and support real outreach through a production contact pipeline.",
     status: "live",
     tags: ["React", "Vite", "React Router", "Framer Motion", "AWS", "Amplify"],
+    atGlance: {
+      skills: [
+        { label: "React", lane: "frontend" },
+        { label: "Vite", lane: "frontend" },
+        { label: "React Router", lane: "frontend" },
+        { label: "Framer Motion", lane: "frontend" },
+        { label: "AWS", lane: "cloud" },
+        { label: "Amplify", lane: "cloud" },
+      ],
+      metrics: [
+        { label: "Hosting", value: "Live on AWS Amplify", tone: "info" },
+        { label: "Contact API", value: "Production contact API", tone: "success" },
+        { label: "Phase", value: "Ongoing iteration", tone: "neutral" },
+      ],
+    },
     template: "case-study",
     meta: {
       timeline: "January 2026 - Ongoing",
@@ -107,6 +183,21 @@ const baseProjects = [
       "Built a repeatable pipeline that filters raw Crexi listings, deduplicates brokers, and enriches broker records with active listing totals for outreach and market analysis.",
     status: "live",
     tags: ["Python", "Data Pipeline", "Playwright", "Async Scraping", "Data Quality", "Automation"],
+    atGlance: {
+      skills: [
+        { label: "Python", lane: "data" },
+        { label: "Data Pipeline", lane: "data" },
+        { label: "Playwright", lane: "automation" },
+        { label: "Async Scraping", lane: "automation" },
+        { label: "Data Quality", lane: "data" },
+        { label: "Automation", lane: "automation" },
+      ],
+      metrics: [
+        { label: "Input", value: "1,243 assets parsed", tone: "info" },
+        { label: "Targets", value: "200 unique brokers", tone: "neutral" },
+        { label: "Coverage", value: "98.5% enriched", tone: "success" },
+      ],
+    },
     template: "case-study",
     meta: {
       timeline: "2026 (Idaho territory snapshot run)",
@@ -227,6 +318,21 @@ const baseProjects = [
       "A Retrieval-Augmented Generation chatbot that answers Nestle HR policy questions with concise, policy-grounded responses while minimizing hallucinations.",
     status: "live",
     tags: ["RAG", "LangChain", "OpenAI", "FAISS", "Gradio", "GPT-4.1-nano"],
+    atGlance: {
+      skills: [
+        { label: "RAG", lane: "ai" },
+        { label: "LangChain", lane: "ai" },
+        { label: "OpenAI", lane: "ai" },
+        { label: "FAISS", lane: "ai" },
+        { label: "Gradio", lane: "frontend" },
+        { label: "GPT-4.1-nano", lane: "ai" },
+      ],
+      metrics: [
+        { label: "Quality", value: "Policy-grounded answers", tone: "success" },
+        { label: "Retrieval", value: "FAISS semantic retrieval", tone: "info" },
+        { label: "Observability", value: "Latency/token/cost stats", tone: "neutral" },
+      ],
+    },
     template: "case-study",
     meta: {
       role: "LLM + Retrieval Engineer",
@@ -301,11 +407,18 @@ const baseProjects = [
 ];
 
 function normalizeProject(project) {
+  const tags = Array.isArray(project.tags) ? project.tags : [];
+  const atGlance = project.atGlance || {};
+
   return {
     ...project,
     status: project.status || "planned",
     template: project.template || "case-study",
-    tags: Array.isArray(project.tags) ? project.tags : [],
+    tags,
+    atGlance: {
+      skills: normalizeAtGlanceSkills(atGlance.skills, tags),
+      metrics: normalizeAtGlanceMetrics(atGlance.metrics),
+    },
     sections: Array.isArray(project.sections) ? project.sections : [],
     highlights: Array.isArray(project.highlights) ? project.highlights : [],
     cta: Array.isArray(project.cta) ? project.cta : [],
@@ -315,13 +428,14 @@ function normalizeProject(project) {
 export const projects = baseProjects.map(normalizeProject);
 
 export const projectCardList = projects.map(
-  ({ slug, title, summary, status, tags, template }) => ({
+  ({ slug, title, summary, status, tags, template, atGlance }) => ({
     slug,
     title,
     summary,
     status,
     tags,
     template,
+    atGlance,
   })
 );
 

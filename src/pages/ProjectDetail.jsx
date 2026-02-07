@@ -24,6 +24,18 @@ function formatStatus(status) {
     .join(" ");
 }
 
+function formatSkillLane(lane) {
+  if (lane === "ai") {
+    return "AI";
+  }
+
+  if (!lane) {
+    return "General";
+  }
+
+  return `${lane.charAt(0).toUpperCase()}${lane.slice(1)}`;
+}
+
 function renderMetaRows(meta) {
   if (!meta) {
     return null;
@@ -86,6 +98,8 @@ export default function ProjectDetail() {
   }
 
   const ctaActions = project.cta.filter((action) => action?.label && action?.to);
+  const atGlanceSkills = project.atGlance?.skills || [];
+  const atGlanceMetrics = project.atGlance?.metrics || [];
 
   return (
     <Motion.section
@@ -121,6 +135,46 @@ export default function ProjectDetail() {
         </div>
         {renderMetaRows(project.meta)}
       </header>
+
+      {atGlanceSkills.length > 0 || atGlanceMetrics.length > 0 ? (
+        <section className="project-section project-at-glance">
+          <h3>At a Glance</h3>
+
+          {atGlanceSkills.length > 0 ? (
+            <div>
+              <h4>Skills Used</h4>
+              <ul className="project-skill-list" aria-label={`${project.title} skills used`}>
+                {atGlanceSkills.map((skill, index) => (
+                  <li
+                    className={`project-skill-chip lane-${skill.lane}`}
+                    key={`${project.slug}-detail-skill-${skill.label}-${index}`}
+                  >
+                    <span className="project-skill-lane">{formatSkillLane(skill.lane)}</span>
+                    <span>{skill.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {atGlanceMetrics.length > 0 ? (
+            <div>
+              <h4>Project Signals</h4>
+              <ul className="project-metric-row" aria-label={`${project.title} project signals`}>
+                {atGlanceMetrics.map((metric, index) => (
+                  <li
+                    className={`project-metric-pill tone-${metric.tone}`}
+                    key={`${project.slug}-detail-metric-${metric.label}-${index}`}
+                  >
+                    <span className="project-metric-label">{metric.label}</span>
+                    <span className="project-metric-value">{metric.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {project.template === "stub" ? (
         <section className="project-section">
