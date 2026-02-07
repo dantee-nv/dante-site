@@ -435,6 +435,122 @@ a{ color: inherit; text-decoration:none; }
   color: var(--muted);
 }
 
+.project-demo-panel{
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.project-demo-panel h3{
+  margin: 0 0 10px;
+}
+
+.project-demo-panel p{
+  margin: 0;
+  max-width: none;
+}
+
+.project-demo-form{
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.project-demo-label{
+  font-weight: 650;
+}
+
+.project-demo-textarea{
+  width: 100%;
+  min-height: 120px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+  resize: vertical;
+}
+
+.project-demo-textarea:focus{
+  outline: none;
+  border-color: rgba(255,255,255,0.30);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+}
+
+.project-demo-actions{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.project-demo-count{
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.project-demo-error{
+  margin-top: 10px;
+  color: #ffb4b4;
+}
+
+.project-demo-answer{
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.project-demo-answer h4{
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.project-demo-answer p{
+  margin: 0;
+}
+
+.project-demo-stats{
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  overflow: hidden;
+}
+
+.project-demo-stats summary{
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 14px;
+  font-weight: 650;
+}
+
+.project-demo-stats summary::-webkit-details-marker{
+  display: none;
+}
+
+.project-demo-stats-grid{
+  border-top: 1px solid var(--line);
+  padding: 10px 14px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.project-demo-stats-grid p{
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.project-demo-stats-grid span{
+  color: var(--text);
+  font-weight: 650;
+}
+
 .project-cta-row{
   margin-top: 16px;
   display: flex;

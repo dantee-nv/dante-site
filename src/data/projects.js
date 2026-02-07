@@ -222,23 +222,80 @@ const baseProjects = [
   },
   {
     slug: "project-3",
-    title: "Project 3",
+    title: "Nestle HR Policy RAG Chatbot",
     summary:
-      "Planned experiment in progress. The detail page is live now and will be expanded as implementation begins.",
-    status: "planned",
-    tags: ["Experiment", "Product Development"],
-    template: "stub",
+      "A Retrieval-Augmented Generation chatbot that answers Nestle HR policy questions with concise, policy-grounded responses while minimizing hallucinations.",
+    status: "live",
+    tags: ["RAG", "LangChain", "OpenAI", "FAISS", "Gradio", "GPT-4.1-nano"],
+    template: "case-study",
+    meta: {
+      role: "LLM + Retrieval Engineer",
+      stack:
+        "Python, LangChain, OpenAI text-embedding-3-small, FAISS, GPT-4.1-nano, Gradio",
+    },
     sections: [
       {
-        heading: "Expected Direction",
+        heading: "Project Goal",
         body:
-          "This project is reserved for the next product experiment and will include a full case study once development starts.",
+          "This project implements a Retrieval-Augmented Generation chatbot for Nestle Human Resources policy support, with answers constrained to approved HR documents.",
         bullets: [
-          "Capture the problem statement and success metrics.",
-          "Prototype quickly and validate with small iterations.",
-          "Promote to a full case-study format after first release.",
+          "Provide accurate, concise, and policy-grounded responses.",
+          "Minimize hallucinations through context-constrained generation.",
+          "Acknowledge when requested information is not present in source policy content.",
         ],
       },
+      {
+        heading: "Technical Overview",
+        body:
+          "A Nestle HR Policy PDF is ingested and processed with LangChain. The document is chunked into semantically meaningful passages, embedded, and indexed for semantic retrieval.",
+        bullets: [
+          "Text chunks are embedded with OpenAI text-embedding-3-small.",
+          "Embeddings are stored in a FAISS vector database for efficient similarity search.",
+          "User questions trigger retrieval of the most relevant policy excerpts.",
+          "Retrieved context is injected into a custom prompt template before generation.",
+        ],
+      },
+      {
+        heading: "Model and Prompting Strategy",
+        body:
+          "Response generation uses GPT-4.1-nano with a prompt that frames the assistant as Nestle's Human Resources Policy Assistant.",
+        bullets: [
+          "Prompt constraints enforce context-only answers and no speculation.",
+          "Responses are kept to one or two short sentences for clarity.",
+          "Assistant tone is professional and HR-focused.",
+          "Prompt explicitly prevents legal-advice style responses.",
+        ],
+      },
+      {
+        heading: "User Interface",
+        body:
+          "A lightweight Gradio frontend provides a chat-style experience for policy Q&A.",
+        bullets: [
+          "Users submit questions through a text input and receive concise answers.",
+          "An Answer Stats section displays latency, token usage, and estimated cost.",
+          "Performance details are collapsible to keep primary responses uncluttered.",
+        ],
+      },
+      {
+        heading: "Outcome",
+        body:
+          "The project demonstrates a reliable, transparent, and cost-aware way to apply RAG to internal policy documentation.",
+        bullets: [
+          "Shows how retrieval grounding improves trust in HR policy responses.",
+          "Provides a modular base for adding more policy documents.",
+          "Supports future upgrades in retrieval strategy and production deployment.",
+        ],
+      },
+    ],
+    highlights: [
+      "Built a policy-grounded RAG flow using LangChain, OpenAI embeddings, and FAISS.",
+      "Implemented prompt constraints that prioritize concise, context-only answers.",
+      "Delivered a Gradio chat interface with built-in latency/token/cost visibility.",
+      "Designed with modular structure for multi-document and production-ready expansion.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
     ],
   },
 ];

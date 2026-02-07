@@ -1,0 +1,5 @@
+faiss-cpu==1.12.0
+langchain-text-splitters==0.3.11
+numpy==2.3.3
+openai==1.109.1
+pypdf==6.0.0

@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: RAG demo API for dantenavarro.com (HTTP API -> Python Lambda)
+
+Parameters:
+  OpenAIApiKey:
+    Type: String
+    NoEcho: true
+    Description: OpenAI API key used for embeddings and response generation.
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Description: CORS allowlist origins for browser requests.
+  ChatModel:
+    Type: String
+    Default: gpt-4.1-nano
+    Description: Chat model used for answer generation.
+  EmbeddingModel:
+    Type: String
+    Default: text-embedding-3-small
+    Description: Embedding model used for vector retrieval.
+
+Resources:
+  RagDemoApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: !Ref AllowedOrigins
+        AllowMethods:
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 8
+        ThrottlingRateLimit: 4
+
+  RagDemoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 20
+      MemorySize: 1024
+      Environment:
+        Variables:
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          CHAT_MODEL: !Ref ChatModel
+          EMBEDDING_MODEL: !Ref EmbeddingModel
+          TOP_K: 4
+          POLICY_TEXT_PATH: /var/task/data/nestle_hr_policy.txt
+      Events:
+        RagDemoPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RagDemoApi
+            Path: /rag-demo
+            Method: POST
+
+Outputs:
+  RagDemoApiBaseUrl:
+    Description: Base URL for the rag demo API.
+    Value: !Sub https://${RagDemoApi}.execute-api.${AWS::Region}.amazonaws.com
+  RagDemoApiUrl:
+    Description: Rag demo endpoint URL.
+    Value: !Sub https://${RagDemoApi}.execute-api.${AWS::Region}.amazonaws.com/rag-demo

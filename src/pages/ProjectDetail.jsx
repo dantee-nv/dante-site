@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
+import ProjectDemoPanel from "../components/ProjectDemoPanel";
 import { getProjectBySlug } from "../data/projects";
 import usePageTitle from "../hooks/usePageTitle";
 import NotFound from "./NotFound";
@@ -149,6 +150,8 @@ export default function ProjectDetail() {
           ))}
         </div>
       ) : null}
+
+      {project.slug === "project-3" ? <ProjectDemoPanel /> : null}
 
       {project.highlights.length > 0 ? (
         <section className="project-highlights">

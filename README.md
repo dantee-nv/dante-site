@@ -18,6 +18,7 @@ npm run dev
 ```
 
 The contact page reads `VITE_CONTACT_API_URL` and posts JSON to that endpoint.
+The Project 3 demo panel reads `VITE_RAG_DEMO_API_URL` and calls the Python RAG demo endpoint.
 
 ## Contact API architecture
 
@@ -60,11 +61,55 @@ After deploy, use the `ContactApiUrl` stack output as:
 
 - `VITE_CONTACT_API_URL=<ContactApiUrl>`
 
+## RAG demo API architecture
+
+The Project 3 in-page demo pipeline is:
+
+`React demo panel -> API Gateway (HTTP API) -> Python Lambda (RAG handler)`
+
+Infrastructure and Lambda code live in:
+
+- `infra/rag-demo-api/template.yaml`
+- `infra/rag-demo-api/src/handler.py`
+- `infra/rag-demo-api/src/rag_engine.py`
+
+The Lambda loads policy text (or PDF if provided), chunks content with LangChain text splitters, embeds with `text-embedding-3-small`, retrieves context with FAISS when available, and generates final answers with `gpt-4.1-nano`.
+
+## Deploy RAG demo API (AWS SAM)
+
+Prerequisites:
+
+1. AWS SAM CLI installed.
+2. AWS CLI profile `dante_nv` configured.
+3. OpenAI API key available for deployment parameter input.
+4. Approved policy document in `infra/rag-demo-api/data/` (replace sample file before production use).
+
+Deploy:
+
+```bash
+cd infra/rag-demo-api
+sam build
+sam deploy \
+  --stack-name dante-rag-demo-api \
+  --region us-east-2 \
+  --profile dante_nv \
+  --capabilities CAPABILITY_IAM \
+  --resolve-s3 \
+  --parameter-overrides \
+    OpenAIApiKey=<OPENAI_API_KEY> \
+    AllowedOrigins="https://dantenavarro.com,https://www.dantenavarro.com,http://localhost:5173"
+```
+
+After deploy, use the `RagDemoApiUrl` stack output as:
+
+- `VITE_RAG_DEMO_API_URL=<RagDemoApiUrl>`
+
 ## Amplify configuration
 
 In Amplify environment variables, set:
 
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
+- `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
 
 Then trigger a redeploy.
 

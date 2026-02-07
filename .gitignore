@@ -28,3 +28,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Python artifacts
+__pycache__/
+*.pyc

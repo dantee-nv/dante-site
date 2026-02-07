@@ -1,0 +1,16 @@
+Nestle HR Policy Reference (Sample for Demo)
+
+This sample policy text is included for local validation and infrastructure testing.
+Replace with approved Nestle HR policy documentation before production use.
+
+Leave and Attendance
+Employees must follow manager approval workflows for planned leave.
+Unplanned absences should be reported as soon as practical according to team guidelines.
+
+Code of Conduct
+Employees are expected to maintain professional behavior and comply with workplace standards.
+Concerns should be reported through approved HR or ethics channels.
+
+Benefits Questions
+Benefits eligibility and enrollment windows are determined by official HR policy documents.
+If a topic is not covered in approved policy materials, employees should contact HR.
