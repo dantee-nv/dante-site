@@ -438,6 +438,10 @@ a{ color: inherit; text-decoration:none; }
   gap: 8px;
 }
 
+.project-skill-list-outline{
+  gap: 6px;
+}
+
 .project-section .project-skill-list{
   margin: 0;
   padding: 0;
@@ -455,6 +459,19 @@ a{ color: inherit; text-decoration:none; }
   font-size: 0.82rem;
   line-height: 1;
   padding: 7px 10px;
+}
+
+.project-skill-chip-outline{
+  background: transparent;
+  border-color: rgba(255,255,255,0.18);
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 6px 9px;
+}
+
+.tile-link:hover .project-skill-chip-outline{
+  border-color: rgba(255,255,255,0.26);
+  color: var(--text);
 }
 
 .project-section .project-skill-chip{

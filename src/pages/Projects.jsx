@@ -23,18 +23,6 @@ const tile = {
   animate: { opacity: 1, y: 0, filter: "blur(0px)" },
 };
 
-function formatSkillLane(lane) {
-  if (lane === "ai") {
-    return "AI";
-  }
-
-  if (!lane) {
-    return "General";
-  }
-
-  return `${lane.charAt(0).toUpperCase()}${lane.slice(1)}`;
-}
-
 export default function Projects() {
   usePageTitle("Projects");
 
@@ -76,7 +64,6 @@ export default function Projects() {
       <Motion.div className="grid" variants={grid} initial="initial" animate="animate">
         {projectCardList.map((project) => {
           const skills = project.atGlance?.skills || [];
-          const metrics = project.atGlance?.metrics || [];
 
           return (
             <Motion.div key={project.slug} variants={tile} transition={{ duration: 0.35 }}>
@@ -90,29 +77,17 @@ export default function Projects() {
 
                 <p className="tile-summary">{project.summary}</p>
 
-                {metrics.length > 0 ? (
-                  <ul className="project-metric-row" aria-label={`${project.title} project signals`}>
-                    {metrics.map((metric, index) => (
-                      <li
-                        className={`project-metric-pill tone-${metric.tone}`}
-                        key={`${project.slug}-metric-${metric.label}-${index}`}
-                      >
-                        <span className="project-metric-label">{metric.label}</span>
-                        <span className="project-metric-value">{metric.value}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-
                 {skills.length > 0 ? (
-                  <ul className="project-skill-list" aria-label={`${project.title} skills`}>
+                  <ul
+                    className="project-skill-list project-skill-list-outline"
+                    aria-label={`${project.title} skills`}
+                  >
                     {skills.map((skill, index) => (
                       <li
-                        className={`project-skill-chip lane-${skill.lane}`}
+                        className="project-skill-chip project-skill-chip-outline"
                         key={`${project.slug}-skill-${skill.label}-${index}`}
                       >
-                        <span className="project-skill-lane">{formatSkillLane(skill.lane)}</span>
-                        <span>{skill.label}</span>
+                        {skill.label}
                       </li>
                     ))}
                   </ul>

@@ -317,7 +317,7 @@ const baseProjects = [
     summary:
       "A Retrieval-Augmented Generation chatbot that answers Nestle HR policy questions with concise, policy-grounded responses while minimizing hallucinations.",
     status: "live",
-    tags: ["RAG", "LangChain", "OpenAI", "FAISS", "Gradio", "GPT-4.1-nano"],
+    tags: ["RAG", "LangChain", "OpenAI", "FAISS", "Gradio"],
     atGlance: {
       skills: [
         { label: "RAG", lane: "ai" },
@@ -364,7 +364,7 @@ const baseProjects = [
       {
         heading: "Model and Prompting Strategy",
         body:
-          "Response generation uses GPT-4.1-nano with a prompt that frames the assistant as Nestle's Human Resources Policy Assistant.",
+          "Response generation uses GPT-4.1-nano (efficient token usage) with a prompt that frames the assistant as Nestle's Human Resources Policy Assistant.",
         bullets: [
           "Prompt constraints enforce context-only answers and no speculation.",
           "Responses are kept to one or two short sentences for clarity.",

@@ -61,7 +61,7 @@ export default function Home() {
           <Link to="/projects" className="card">
             <div className="card-title">Featured Builds</div>
             <div className="card-desc">
-              Automation, dashboards, and “small tools with big leverage.”
+              Automation, dashboards and “small tools with big leverage.”
             </div>
           </Link>
 
