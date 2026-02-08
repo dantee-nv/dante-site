@@ -13,6 +13,18 @@ const page = {
   exit: { opacity: 0, y: -10, filter: "blur(6px)" },
 };
 
+const flow = {
+  initial: {},
+  animate: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const pop = {
+  initial: { opacity: 0, y: 12, filter: "blur(6px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+};
+
 function formatStatus(status) {
   if (!status) {
     return "";
@@ -110,119 +122,152 @@ export default function ProjectDetail() {
       exit="exit"
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Link className="btn ghost" to="/projects">
-        Back to Projects
-      </Link>
+      <Motion.div variants={flow} initial="initial" animate="animate">
+        <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+          <Link className="btn ghost" to="/projects">
+            Back to Projects
+          </Link>
+        </Motion.div>
 
-      <header className="project-detail-hero">
-        <h2>{project.title}</h2>
-        <p>{project.summary}</p>
-        <div className="project-detail-meta">
-          {project.status ? (
-            <span className={`project-status ${project.status}`}>
-              {formatStatus(project.status)}
-            </span>
-          ) : null}
-          {project.tags.length > 0 ? (
-            <div className="project-tags">
-              {project.tags.map((tag) => (
-                <span className="project-tag" key={tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        {renderMetaRows(project.meta)}
-      </header>
-
-      {atGlanceSkills.length > 0 || atGlanceMetrics.length > 0 ? (
-        <section className="project-section project-at-glance">
-          <h3>At a Glance</h3>
-
-          {atGlanceSkills.length > 0 ? (
-            <div>
-              <h4>Skills Used</h4>
-              <ul className="project-skill-list" aria-label={`${project.title} skills used`}>
-                {atGlanceSkills.map((skill, index) => (
-                  <li
-                    className={`project-skill-chip lane-${skill.lane}`}
-                    key={`${project.slug}-detail-skill-${skill.label}-${index}`}
-                  >
-                    <span className="project-skill-lane">{formatSkillLane(skill.lane)}</span>
-                    <span>{skill.label}</span>
-                  </li>
+        <Motion.header
+          className="project-detail-hero"
+          variants={pop}
+          transition={{ duration: 0.35 }}
+        >
+          <h2>{project.title}</h2>
+          <p>{project.summary}</p>
+          <div className="project-detail-meta">
+            {project.status ? (
+              <span className={`project-status ${project.status}`}>
+                {formatStatus(project.status)}
+              </span>
+            ) : null}
+            {project.tags.length > 0 ? (
+              <div className="project-tags">
+                {project.tags.map((tag) => (
+                  <span className="project-tag" key={tag}>
+                    {tag}
+                  </span>
                 ))}
-              </ul>
-            </div>
-          ) : null}
+              </div>
+            ) : null}
+          </div>
+          {renderMetaRows(project.meta)}
+        </Motion.header>
 
-          {atGlanceMetrics.length > 0 ? (
-            <div>
-              <h4>Project Signals</h4>
-              <ul className="project-metric-row" aria-label={`${project.title} project signals`}>
-                {atGlanceMetrics.map((metric, index) => (
-                  <li
-                    className={`project-metric-pill tone-${metric.tone}`}
-                    key={`${project.slug}-detail-metric-${metric.label}-${index}`}
-                  >
-                    <span className="project-metric-label">{metric.label}</span>
-                    <span className="project-metric-value">{metric.value}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
+        {atGlanceSkills.length > 0 || atGlanceMetrics.length > 0 ? (
+          <Motion.section
+            className="project-section project-at-glance"
+            variants={pop}
+            transition={{ duration: 0.35 }}
+          >
+            <h3>At a Glance</h3>
 
-      {project.template === "stub" ? (
-        <section className="project-section">
-          <h3>In Progress</h3>
-          <p>
-            This page is intentionally lightweight while the project is being
-            defined and built. It will expand into a full case study as work
-            ships.
-          </p>
-        </section>
-      ) : null}
-
-      {project.sections.length > 0 ? (
-        <div className="project-sections">
-          {project.sections.map((section) => (
-            <section className="project-section" key={section.heading}>
-              <h3>{section.heading}</h3>
-              {section.body ? <p>{section.body}</p> : null}
-              {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
-                <ul>
-                  {section.bullets.map((bullet) => (
-                    <li key={bullet}>{bullet}</li>
+            {atGlanceSkills.length > 0 ? (
+              <div>
+                <h4>Skills Used</h4>
+                <ul className="project-skill-list" aria-label={`${project.title} skills used`}>
+                  {atGlanceSkills.map((skill, index) => (
+                    <li
+                      className={`project-skill-chip lane-${skill.lane}`}
+                      key={`${project.slug}-detail-skill-${skill.label}-${index}`}
+                    >
+                      <span className="project-skill-lane">{formatSkillLane(skill.lane)}</span>
+                      <span>{skill.label}</span>
+                    </li>
                   ))}
                 </ul>
-              ) : null}
-            </section>
-          ))}
-        </div>
-      ) : null}
+              </div>
+            ) : null}
 
-      {project.slug === "project-3" ? <ProjectDemoPanel /> : null}
+            {atGlanceMetrics.length > 0 ? (
+              <div>
+                <h4>Project Signals</h4>
+                <ul className="project-metric-row" aria-label={`${project.title} project signals`}>
+                  {atGlanceMetrics.map((metric, index) => (
+                    <li
+                      className={`project-metric-pill tone-${metric.tone}`}
+                      key={`${project.slug}-detail-metric-${metric.label}-${index}`}
+                    >
+                      <span className="project-metric-label">{metric.label}</span>
+                      <span className="project-metric-value">{metric.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </Motion.section>
+        ) : null}
 
-      {project.highlights.length > 0 ? (
-        <section className="project-highlights">
-          <h3>Highlights</h3>
-          <ul>
-            {project.highlights.map((highlight) => (
-              <li key={highlight}>{highlight}</li>
+        {project.template === "stub" ? (
+          <Motion.section
+            className="project-section"
+            variants={pop}
+            transition={{ duration: 0.35 }}
+          >
+            <h3>In Progress</h3>
+            <p>
+              This page is intentionally lightweight while the project is being
+              defined and built. It will expand into a full case study as work
+              ships.
+            </p>
+          </Motion.section>
+        ) : null}
+
+        {project.sections.length > 0 ? (
+          <div className="project-sections">
+            {project.sections.map((section) => (
+              <Motion.section
+                className="project-section"
+                key={section.heading}
+                variants={pop}
+                transition={{ duration: 0.35 }}
+              >
+                <h3>{section.heading}</h3>
+                {section.body ? <p>{section.body}</p> : null}
+                {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
+                  <ul>
+                    {section.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </Motion.section>
             ))}
-          </ul>
-        </section>
-      ) : null}
+          </div>
+        ) : null}
 
-      {ctaActions.length > 0 ? (
-        <div className="project-cta-row">
-          {ctaActions.map((action, index) => renderCtaAction(action, index))}
-        </div>
-      ) : null}
+        {project.slug === "project-3" ? (
+          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+            <ProjectDemoPanel />
+          </Motion.div>
+        ) : null}
+
+        {project.highlights.length > 0 ? (
+          <Motion.section
+            className="project-highlights"
+            variants={pop}
+            transition={{ duration: 0.35 }}
+          >
+            <h3>Highlights</h3>
+            <ul>
+              {project.highlights.map((highlight) => (
+                <li key={highlight}>{highlight}</li>
+              ))}
+            </ul>
+          </Motion.section>
+        ) : null}
+
+        {ctaActions.length > 0 ? (
+          <Motion.div
+            className="project-cta-row"
+            variants={pop}
+            transition={{ duration: 0.35 }}
+          >
+            {ctaActions.map((action, index) => renderCtaAction(action, index))}
+          </Motion.div>
+        ) : null}
+      </Motion.div>
     </Motion.section>
   );
 }
