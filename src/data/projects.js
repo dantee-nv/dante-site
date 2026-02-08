@@ -177,6 +177,135 @@ const baseProjects = [
     ],
   },
   {
+    slug: "city-trivia-ios",
+    title: "City Trivia (iOS)",
+    summary:
+      "An iOS city-trivia app that blends LLM-generated local knowledge with quiz UX.",
+    status: "in-progress",
+    tags: ["Swift", "SwiftUI", "MVVM", "JSON Decoding", "iOS", "LLM Integration"],
+    atGlance: {
+      skills: [
+        { label: "Swift", lane: "frontend" },
+        { label: "SwiftUI", lane: "frontend" },
+        { label: "MVVM State", lane: "frontend" },
+        { label: "JSON Decoding", lane: "data" },
+        { label: "UI State Control", lane: "frontend" },
+        { label: "LLM Integration", lane: "ai" },
+      ],
+      metrics: [
+        { label: "Platform", value: "iOS (SwiftUI)", tone: "info" },
+        { label: "Current Cities", value: "LA live flow; Austin/Baltimore scaffolded", tone: "neutral" },
+        { label: "Question Source", value: "JSON stub now; live API planned", tone: "success" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "Current build phase",
+      role: "iOS Engineer (UI + App Flow)",
+      stack:
+        "Swift, SwiftUI, ObservableObject, @Published, JSON decoding, API integration design",
+    },
+    sections: [
+      {
+        heading: "Hero",
+        body:
+          "City Trivia is an iOS quiz app focused on city-specific learning, designed to turn local knowledge into a fast, interactive game loop.",
+        bullets: [
+          "Project name: City Trivia (iOS).",
+          "Value statement: An iOS city-trivia app that blends LLM-generated local knowledge with quiz UX.",
+          "Platform: iOS (SwiftUI architecture).",
+        ],
+      },
+      {
+        heading: "Purpose of the Application",
+        body:
+          "The app solves the problem of making city-specific learning engaging by packaging local facts into short trivia rounds.",
+        bullets: [
+          "Users learn city context through quick quiz interaction rather than static reading.",
+          "A city-category model scopes question sets by selected location.",
+          "Question delivery is designed to be dynamic so each city can receive refreshed content over time.",
+        ],
+      },
+      {
+        heading: "How It Works",
+        body:
+          "The user flow follows a clear quiz lifecycle from city choice to completion and replay.",
+        bullets: [
+          "City selection -> choose a location context for the round.",
+          "Question retrieval and formatting -> decode prompt, answer, and decoys into UI-ready options.",
+          "Answer selection -> user picks one option with submit gating to prevent invalid state.",
+          "Scoring and progress -> track score and question index across the session.",
+          "Completion and restart -> show final result and allow replay from the start.",
+          "Current implementation status: Los Angeles flow is implemented; Austin and Baltimore scaffolds are present.",
+        ],
+      },
+      {
+        heading: "Skills Used",
+        body:
+          "The implementation demonstrates iOS app architecture, data modeling, and UI state management with room for live backend integration.",
+        bullets: [
+          "Swift and SwiftUI for native interface and interaction design.",
+          "MVVM-style state management using ObservableObject and @Published.",
+          "JSON decoding and data modeling for question payload ingestion.",
+          "UI state control for option selection, submit gating, and progress tracking.",
+          "API and LLM integration concept with backend communication pipeline (collaborator-owned generation path).",
+        ],
+      },
+      {
+        heading: "Collaboration Breakdown",
+        body:
+          "Development responsibilities are split between iOS app execution and backend question generation services.",
+        bullets: [
+          "My role: iOS UI, quiz flow state management, scoring/progress logic, and overall app structure.",
+          "Collaborator role: backend API communication and LLM-backed question generation for current local quiz data.",
+        ],
+      },
+      {
+        heading: "What Makes It Impressive",
+        body:
+          "The project combines applied AI content generation with a production-minded mobile interaction loop.",
+        bullets: [
+          "Pairs AI-assisted question generation with a polished quiz UX on iOS.",
+          "Shows end-to-end thinking from backend data contract to view model and interactive UI.",
+          "Uses an expandable multi-city architecture with a direct path to productionization.",
+        ],
+      },
+      {
+        heading: "Roadmap / Next Iteration",
+        body:
+          "The next phase moves from scaffolded prototype behavior into production-grade reliability and scale.",
+        bullets: [
+          "Activate Austin and Baltimore quiz pipelines.",
+          "Replace static JSON stubs with live API responses.",
+          "Add real tests across unit and UI layers.",
+          "Add content validation and fallback rules for malformed LLM output.",
+        ],
+      },
+      {
+        heading: "Important Public APIs / Interfaces / Types",
+        body:
+          "The backend-to-app contract and app-side mapping are intentionally explicit to reduce integration ambiguity.",
+        bullets: [
+          "Backend question contract: question: String.",
+          "Backend question contract: decoys: [String].",
+          "Backend question contract: answer: String.",
+          "App-side mapped decode type: JSONQuestion from backend payload.",
+          "View-consumption model: question object with shuffled options via newOptions.",
+        ],
+      },
+    ],
+    highlights: [
+      "Designed and implemented a native iOS trivia loop with structured state transitions.",
+      "Modeled a clean backend question contract that can scale across cities.",
+      "Integrated architecture choices that support LLM-generated content safely over time.",
+      "Built with clear ownership boundaries across iOS and backend collaboration.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
+  {
     slug: "project-2",
     title: "Crexi Broker Pipeline",
     summary:
