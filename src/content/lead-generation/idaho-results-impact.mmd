@@ -1,17 +1,17 @@
 ```mermaid
 flowchart TD
-  A["Load JSON assets<br/>Count: 1243"] --> B["Assets with brokers<br/>Count: 1243"]
-  B --> C["Single-broker assets<br/>Count: 746"]
-  B --> D["Multi-broker assets<br/>Count: 497"]
+  A["Load JSON assets<br/>Count: 1243"] --> B["Assets with users<br/>Count: 1243"]
+  B --> C["Single-user assets<br/>Count: 746"]
+  B --> D["Multi-user assets<br/>Count: 497"]
 
-  C --> C1["Drop single-broker PRO assets<br/>Count dropped: 465"]
-  C --> C2["Keep single-broker non-PRO assets<br/>Count: 281"]
+  C --> C1["Drop single-user PRO assets<br/>Count dropped: 465"]
+  C --> C2["Keep single-user non-PRO assets<br/>Count: 281"]
 
-  D --> D1["Drop multi-broker assets w/ any PRO<br/>Count dropped: 423"]
-  D --> D2["Keep multi-broker assets (all non-PRO)<br/>Count: 74"]
+  D --> D1["Drop multi-user assets w/ any PRO<br/>Count dropped: 423"]
+  D --> D2["Keep multi-user assets (all non-PRO)<br/>Count: 74"]
 
-  C2 --> E["Brokers to write (pre-dedupe)<br/>Count: 437"]
+  C2 --> E["Users to write (pre-dedupe)<br/>Count: 437"]
   D2 --> E
 
-  E --> F["Dedupe by Broker URL<br/>Unique rows written: 200"]
+  E --> F["Dedupe by User URL<br/>Unique rows written: 200"]
 ```
