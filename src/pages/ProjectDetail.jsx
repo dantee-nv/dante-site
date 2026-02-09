@@ -237,7 +237,7 @@ export default function ProjectDetail() {
           </div>
         ) : null}
 
-        {project.slug === "project-3" ? (
+        {project.slug === "rag-hr-chatbot" ? (
           <Motion.div variants={pop} transition={{ duration: 0.35 }}>
             <ProjectDemoPanel />
           </Motion.div>

@@ -61,7 +61,7 @@ function normalizeAtGlanceMetrics(rawMetrics) {
 
 const baseProjects = [
   {
-    slug: "dante-site",
+    slug: "site",
     title: "This Site",
     summary:
       "An AWS Amplify-hosted personal site built to ship quickly, look polished, and support real outreach through a production contact pipeline.",
@@ -177,7 +177,7 @@ const baseProjects = [
     ],
   },
   {
-    slug: "city-trivia-ios",
+    slug: "cabbie-ios",
     title: "City Trivia (iOS)",
     summary:
       "An iOS city-trivia app that blends LLM-generated local knowledge with quiz UX.",
@@ -306,7 +306,7 @@ const baseProjects = [
     ],
   },
   {
-    slug: "project-2",
+    slug: "broker",
     title: "Crexi Broker Pipeline",
     summary:
       "Built a repeatable pipeline that filters raw Crexi listings, deduplicates brokers, and enriches broker records with active listing totals for outreach and market analysis.",
@@ -441,7 +441,7 @@ const baseProjects = [
     ],
   },
   {
-    slug: "project-3",
+    slug: "rag-hr-chatbot",
     title: "Nestle HR Policy RAG Chatbot",
     summary:
       "A Retrieval-Augmented Generation chatbot that answers Nestle HR policy questions with concise, policy-grounded responses while minimizing hallucinations.",
