@@ -516,6 +516,20 @@ export default function Resume() {
     startLevel(0, cw, ch);
   };
 
+  const setControlState = (control, isPressed) => {
+    keysRef.current[control] = isPressed;
+  };
+
+  const handlePress = (control, e) => {
+    e.preventDefault();
+    setControlState(control, true);
+  };
+
+  const handleRelease = (control, e) => {
+    e.preventDefault();
+    setControlState(control, false);
+  };
+
   // Esc-to-close
   useEffect(() => {
     function onKeyDown(e) {
@@ -1025,6 +1039,42 @@ export default function Resume() {
 
                 <div className="arcade-arena" ref={arenaWrapRef}>
                   <canvas ref={canvasRef} className="arcade-canvas" />
+                </div>
+
+                <div className="arcade-touch-controls">
+                  <button
+                    type="button"
+                    className="arcade-touch-btn"
+                    aria-label="Move left"
+                    onPointerDown={(e) => handlePress("left", e)}
+                    onPointerUp={(e) => handleRelease("left", e)}
+                    onPointerCancel={(e) => handleRelease("left", e)}
+                    onPointerLeave={(e) => handleRelease("left", e)}
+                  >
+                    Left
+                  </button>
+                  <button
+                    type="button"
+                    className="arcade-touch-btn fire"
+                    aria-label="Fire"
+                    onPointerDown={(e) => handlePress("fire", e)}
+                    onPointerUp={(e) => handleRelease("fire", e)}
+                    onPointerCancel={(e) => handleRelease("fire", e)}
+                    onPointerLeave={(e) => handleRelease("fire", e)}
+                  >
+                    Fire
+                  </button>
+                  <button
+                    type="button"
+                    className="arcade-touch-btn"
+                    aria-label="Move right"
+                    onPointerDown={(e) => handlePress("right", e)}
+                    onPointerUp={(e) => handleRelease("right", e)}
+                    onPointerCancel={(e) => handleRelease("right", e)}
+                    onPointerLeave={(e) => handleRelease("right", e)}
+                  >
+                    Right
+                  </button>
                 </div>
               </div>
             </motion.div>
