@@ -106,7 +106,7 @@ const baseProjects = [
           "The site is built with React + Vite and routed with React Router. Framer Motion handles page transitions and staggered reveals to keep motion consistent across pages.",
         bullets: [
           "Single app shell with shared header and footer.",
-          "Route-based pages for Home, Projects, Resume, and Contact.",
+          "Route-based pages for Home, Projects, Background, and Contact.",
           "Reusable animation variants for page and card entry.",
         ],
       },
@@ -126,7 +126,7 @@ const baseProjects = [
           "A skills challenge experience was developed directly into the site to make technical ability more tangible than static bullets alone.",
         bullets: [
           "Designed an interactive challenge flow that aligns with the existing visual system.",
-          "Integrated challenge development into the broader resume and projects narrative.",
+          "Integrated challenge development into the broader background and projects narrative.",
           "Used the feature as a proving ground for iterative UX and frontend implementation decisions.",
           "Mobile use case developed.",
         ],

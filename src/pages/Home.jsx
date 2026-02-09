@@ -65,7 +65,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link to="/resume" className="card">
+          <Link to="/background" className="card">
             <div className="card-title">Background</div>
             <div className="card-desc">
               R&D + verification mindset, applied to software and systems.

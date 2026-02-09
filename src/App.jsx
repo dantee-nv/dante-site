@@ -6,7 +6,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
-import Resume from "./pages/Resume";
+import Background from "./pages/Background";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
@@ -21,7 +21,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/:projectSlug" element={<ProjectDetail />} />
           <Route path="/projects/:projectSlug" element={<ProjectDetail />} />
-          <Route path="/resume" element={<Resume />} />
+          <Route path="/background" element={<Background />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

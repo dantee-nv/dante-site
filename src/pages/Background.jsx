@@ -50,13 +50,24 @@ function AccordionItem({ id, title, children }) {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            className={`accordion-content ${open ? "open" : ""}`}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.18 }}
+            className="accordion-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+              opacity: { duration: 0.22, ease: "easeOut" },
+            }}
           >
-            <div className="accordion-inner">{children}</div>
+            <motion.div
+              className="accordion-inner"
+              initial={{ opacity: 0, y: -4, filter: "blur(2px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -3, filter: "blur(1px)" }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+            >
+              {children}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -69,27 +80,31 @@ function CompanyHeader({ company, companyUrl, role, meta }) {
     <div className="company-header">
       <div className="company-line">
         <div className="company-left">
-          <span className="company-link-group">
-            <a
-              className="company-name"
-              href={companyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {company}
-            </a>
+          {companyUrl ? (
+            <span className="company-link-group">
+              <a
+                className="company-name"
+                href={companyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {company}
+              </a>
 
-            <a
-              className="company-link-icon"
-              href={companyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Open ${company}`}
-              title={`Open ${company}`}
-            >
-              ↗
-            </a>
-          </span>
+              <a
+                className="company-link-icon"
+                href={companyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open ${company}`}
+                title={`Open ${company}`}
+              >
+                ↗
+              </a>
+            </span>
+          ) : (
+            <span className="company-name">{company}</span>
+          )}
 
           <span className="company-sep">•</span>
 
@@ -258,8 +273,8 @@ function clampSingleLine(ctx, text, maxW) {
   return `${t}…`;
 }
 
-export default function Resume() {
-  usePageTitle("Resume");
+export default function Background() {
+  usePageTitle("Background");
 
   const [skillsArcadeOpen, setSkillsArcadeOpen] = useState(false);
   const [score, setScore] = useState(0);
@@ -1120,7 +1135,7 @@ export default function Resume() {
 
   return (
     <motion.section
-      className="page"
+      className="page background-page"
       variants={page}
       initial="initial"
       animate="animate"
@@ -1132,11 +1147,11 @@ export default function Resume() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.45 }}
       >
-        Resume
+        Background
       </motion.h2>
 
       <motion.h3
-        className="resume-intro-title"
+        className="background-intro-title"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.45 }}
@@ -1145,7 +1160,7 @@ export default function Resume() {
       </motion.h3>
 
       <motion.p
-        className="resume-intro"
+        className="background-intro"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
@@ -1374,7 +1389,6 @@ export default function Resume() {
 
             <CompanyHeader
               company="Johns Hopkins University"
-              companyUrl="https://www.hopkinsmedicine.org/inhealth"
               role="Master's Thesis Project"
               meta="Baltimore, MD • 2019-2020"
             />
@@ -1396,7 +1410,7 @@ export default function Resume() {
           transition={{ delay: 0.72, duration: 0.5 }}
         >
           <AccordionItem id="education" title="Education">
-            <CompanyHeader company="Johns Hopkins University" companyUrl="https://www.bme.jhu.edu" role="Degrees (2020)" meta="" />
+            <CompanyHeader company="Johns Hopkins University" role="Degrees (2020)" meta="" />
             <ul>
               <li>M.S.E. in Biomedical Engineering – Imaging and Medical Devices</li>
               <li>B.S. in Biomedical Engineering – Minor: Computer Integrated Surgery</li>
@@ -1404,7 +1418,6 @@ export default function Resume() {
 
             <CompanyHeader
               company="Purdue University"
-              companyUrl="https://bootcamp-sl.discover.online.purdue.edu/applied-artificial-intelligence-course"
               role="Certification (2026)"
               meta=""
             />
@@ -1419,10 +1432,10 @@ export default function Resume() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.80, duration: 0.5 }}
         >
-          <div className="accordion-item" id="resume">
+          <div className="accordion-item" id="background-download">
             <a
               className="accordion-header accordion-download"
-              href="/Resume.pdf"
+              href="/Background.pdf"
               target="_blank"
               rel="noopener noreferrer"
             >
