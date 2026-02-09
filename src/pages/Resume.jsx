@@ -444,25 +444,44 @@ export default function Resume() {
       const lines = [];
       let line = "";
 
+      const splitWordToFit = (word) => {
+        const chunks = [];
+        let chunk = "";
+
+        for (let i = 0; i < word.length; i++) {
+          const next = chunk + word[i];
+          if (ctx.measureText(next).width <= textMaxW || chunk.length === 0) {
+            chunk = next;
+          } else {
+            chunks.push(chunk);
+            chunk = word[i];
+          }
+        }
+
+        if (chunk) chunks.push(chunk);
+        return chunks;
+      };
+
       for (let i = 0; i < words.length; i++) {
-        const next = line ? `${line} ${words[i]}` : words[i];
-        if (ctx.measureText(next).width <= textMaxW) {
-          line = next;
-        } else {
-          if (line) lines.push(line);
-          line = words[i];
+        const word = words[i];
+        if (!word) continue;
+
+        const chunks =
+          ctx.measureText(word).width <= textMaxW ? [word] : splitWordToFit(word);
+
+        for (let j = 0; j < chunks.length; j++) {
+          const chunk = chunks[j];
+          const withSpace = line && j === 0 ? `${line} ${chunk}` : `${line}${chunk}`;
+
+          if (!line || ctx.measureText(withSpace).width <= textMaxW) {
+            line = withSpace;
+          } else {
+            lines.push(line);
+            line = chunk;
+          }
         }
       }
       if (line) lines.push(line);
-
-      for (let i = 0; i < lines.length; i++) {
-        while (
-          ctx.measureText(lines[i]).width > textMaxW &&
-          lines[i].length > 0
-        ) {
-          lines[i] = lines[i].slice(0, -1);
-        }
-      }
 
       return lines;
     };
