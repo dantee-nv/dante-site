@@ -11,12 +11,28 @@ const page = {
 
 function AccordionItem({ id, title, children }) {
   const [open, setOpen] = useState(false);
+  const touchToggledRef = useRef(false);
+
+  const toggleOpen = () => {
+    setOpen((v) => !v);
+  };
 
   return (
     <div className="accordion-item" id={id}>
       <button
         className="accordion-header"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (touchToggledRef.current) {
+            touchToggledRef.current = false;
+            return;
+          }
+          toggleOpen();
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          touchToggledRef.current = true;
+          toggleOpen();
+        }}
         aria-expanded={open}
         type="button"
       >
@@ -34,7 +50,7 @@ function AccordionItem({ id, title, children }) {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            className="accordion-content"
+            className={`accordion-content ${open ? "open" : ""}`}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}

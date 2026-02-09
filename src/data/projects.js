@@ -64,7 +64,7 @@ const baseProjects = [
     slug: "site",
     title: "This Site",
     summary:
-      "An AWS Amplify-hosted personal site built to ship quickly, look polished, and support real outreach through a production contact pipeline.",
+      "An AWS Amplify-hosted personal site built to ship quickly, look polished and support real outreach through a production contact pipeline.",
     status: "live",
     tags: ["React", "Vite", "React Router", "Framer Motion", "AWS", "Amplify"],
     atGlance: {
@@ -93,7 +93,7 @@ const baseProjects = [
       {
         heading: "Goal and Scope",
         body:
-          "The goal was to launch a clean site that feels intentional, presents work clearly, and gives visitors a direct way to start a conversation.",
+          "The goal was to launch a clean site that feels intentional, presents work clearly and gives visitors a direct way to start a conversation.",
         bullets: [
           "Keep navigation simple and fast.",
           "Use reusable patterns so new pages are easy to add.",
@@ -113,7 +113,7 @@ const baseProjects = [
       {
         heading: "UI System Decisions",
         body:
-          "The visual direction uses a glass-style panel system over a layered radial background. Core spacing, borders, and color tokens are centralized in one stylesheet for consistency.",
+          "The visual direction uses a glass-style panel system over a layered radial background. Core spacing, borders and color tokens are centralized in one stylesheet for consistency.",
         bullets: [
           "Card and tile components share border and hover behavior.",
           "Typography and spacing are tuned for readability on desktop and mobile.",
@@ -128,6 +128,7 @@ const baseProjects = [
           "Designed an interactive challenge flow that aligns with the existing visual system.",
           "Integrated challenge development into the broader resume and projects narrative.",
           "Used the feature as a proving ground for iterative UX and frontend implementation decisions.",
+          "Mobile use case developed.",
         ],
       },
       {
@@ -136,7 +137,6 @@ const baseProjects = [
           "Contact submissions flow from the frontend to API Gateway, then into a Lambda function that sends mail through SES with validation and response handling.",
         bullets: [
           "Frontend posts JSON payloads from the Contact page.",
-          "API endpoint is environment-configured with VITE_CONTACT_API_URL.",
           "Backend validates input, rate-limits, and returns user-safe responses.",
         ],
       },
@@ -156,8 +156,7 @@ const baseProjects = [
         body:
           "The site is live and now transitioning from scaffolding into richer project storytelling. Next iterations focus on deeper project case studies and long-term maintainability.",
         bullets: [
-          "Convert all project cards into full detail pages.",
-          "Continue expanding the skills challenge development experience.",
+          "More interactive features are scoped.",
           "Expand project metadata and comparison-friendly structure.",
           "Continue improving content depth while keeping performance tight.",
         ],
@@ -173,33 +172,28 @@ const baseProjects = [
     cta: [
       { label: "Back to Projects", to: "/projects" },
       { label: "Contact Me", to: "/contact" },
-      {
-        label: "View GitHub Repository",
-        to: "https://github.com/dantee-nv/dante-site",
-        external: true,
-      },
+      { label: "View GitHub", to: "https://github.com/dantee-nv", external: true },
     ],
   },
   {
     slug: "cabbie-ios",
     title: "Cabbie Quiz (iOS)",
     summary:
-      "An iOS city-trivia app that blends LLM-generated local knowledge with quiz UX.",
+      "An iOS trivia app that blends LLM-generated local knowledge with quiz UX.",
     status: "in-progress",
     tags: ["Swift", "SwiftUI", "MVVM", "JSON Decoding", "iOS", "LLM Integration"],
     atGlance: {
       skills: [
         { label: "Swift", lane: "frontend" },
         { label: "SwiftUI", lane: "frontend" },
-        { label: "MVVM State", lane: "frontend" },
         { label: "JSON Decoding", lane: "data" },
         { label: "UI State Control", lane: "frontend" },
         { label: "LLM Integration", lane: "ai" },
       ],
       metrics: [
         { label: "Platform", value: "iOS (SwiftUI)", tone: "info" },
-        { label: "Current Cities", value: "LA live flow; Austin/Baltimore scaffolded", tone: "neutral" },
-        { label: "Question Source", value: "JSON stub now; live API planned", tone: "success" },
+        { label: "Current Cities", value: "LA deployed, multiple cities scaffolded", tone: "neutral" },
+        { label: "Question Source", value: "JSON output of LLM generated daily quizes; live API deployed", tone: "success" },
       ],
     },
     template: "case-study",
