@@ -1427,25 +1427,6 @@ export default function Background() {
           </AccordionItem>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.80, duration: 0.5 }}
-        >
-          <div className="accordion-item" id="background-download">
-            <a
-              className="accordion-header accordion-download"
-              href="/Background.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="accordion-title">Download PDF</span>
-              <span className="accordion-icon" aria-hidden="true">
-                ↧
-              </span>
-            </a>
-          </div>
-        </motion.div>
       </motion.div>
 
       {arcadePortal}
