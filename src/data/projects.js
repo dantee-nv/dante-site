@@ -173,12 +173,16 @@ const baseProjects = [
     cta: [
       { label: "Back to Projects", to: "/projects" },
       { label: "Contact Me", to: "/contact" },
-      { label: "View GitHub", to: "https://github.com/dantee-nv", external: true },
+      {
+        label: "View GitHub Repository",
+        to: "https://github.com/dantee-nv/dante-site",
+        external: true,
+      },
     ],
   },
   {
     slug: "cabbie-ios",
-    title: "City Trivia (iOS)",
+    title: "Cabbie Quiz (iOS)",
     summary:
       "An iOS city-trivia app that blends LLM-generated local knowledge with quiz UX.",
     status: "in-progress",
@@ -209,9 +213,9 @@ const baseProjects = [
       {
         heading: "Hero",
         body:
-          "City Trivia is an iOS quiz app focused on city-specific learning, designed to turn local knowledge into a fast, interactive game loop.",
+          "Cabbie Quiz is an iOS quiz app focused on city-specific learning, designed to turn local knowledge into a fast, interactive game loop.",
         bullets: [
-          "Project name: City Trivia (iOS).",
+          "Project name: Cabbie Quiz (iOS).",
           "Value statement: An iOS city-trivia app that blends LLM-generated local knowledge with quiz UX.",
           "Platform: iOS (SwiftUI architecture).",
         ],
@@ -306,8 +310,8 @@ const baseProjects = [
     ],
   },
   {
-    slug: "broker",
-    title: "Crexi Broker Pipeline",
+    slug: "lead-generation",
+    title: "Automated Lead Generation",
     summary:
       "Built a repeatable pipeline that filters raw Crexi listings, deduplicates brokers, and enriches broker records with active listing totals for outreach and market analysis.",
     status: "live",
@@ -442,7 +446,7 @@ const baseProjects = [
   },
   {
     slug: "rag-hr-chatbot",
-    title: "Nestle HR Policy RAG Chatbot",
+    title: "RAG Chatbot",
     summary:
       "A Retrieval-Augmented Generation chatbot that answers Nestle HR policy questions with concise, policy-grounded responses while minimizing hallucinations.",
     status: "live",

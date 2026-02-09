@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
+import { Accordion } from "../components/Accordion";
 import ProjectDemoPanel from "../components/ProjectDemoPanel";
 import { getProjectBySlug } from "../data/projects";
 import usePageTitle from "../hooks/usePageTitle";
@@ -103,6 +104,7 @@ function renderCtaAction(action, index) {
 export default function ProjectDetail() {
   const { projectSlug } = useParams();
   const project = getProjectBySlug(projectSlug);
+  const [openAccordionId, setOpenAccordionId] = React.useState(null);
   usePageTitle(project ? project.title : "404");
 
   if (!project) {
@@ -112,6 +114,62 @@ export default function ProjectDetail() {
   const ctaActions = project.cta.filter((action) => action?.label && action?.to);
   const atGlanceSkills = project.atGlance?.skills || [];
   const atGlanceMetrics = project.atGlance?.metrics || [];
+  const isSiteProject = project.slug === "site";
+  const deepDiveItems = [
+    {
+      id: "deep-dive",
+      title: "Deep Dive",
+      content: (
+        <>
+          {project.template === "stub" ? (
+            <section className="project-section">
+              <h3>In Progress</h3>
+              <p>
+                This page is intentionally lightweight while the project is being
+                defined and built. It will expand into a full case study as work
+                ships.
+              </p>
+            </section>
+          ) : null}
+
+          {project.sections.length > 0 ? (
+            <div className="project-sections">
+              {project.sections.map((section) => (
+                <section className="project-section" key={section.heading}>
+                  <h3>{section.heading}</h3>
+                  {section.body ? <p>{section.body}</p> : null}
+                  {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
+                    <ul>
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ))}
+            </div>
+          ) : null}
+
+          {project.highlights.length > 0 ? (
+            <section className="project-highlights">
+              <h3>Highlights</h3>
+              <ul>
+                {project.highlights.map((highlight) => (
+                  <li key={highlight}>{highlight}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {ctaActions.length > 0 ? (
+            <div className="project-cta-row">
+              {ctaActions.map((action, index) => renderCtaAction(action, index))}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+  ];
 
   return (
     <Motion.section
@@ -199,74 +257,86 @@ export default function ProjectDetail() {
           </Motion.section>
         ) : null}
 
-        {project.template === "stub" ? (
-          <Motion.section
-            className="project-section"
-            variants={pop}
-            transition={{ duration: 0.35 }}
-          >
-            <h3>In Progress</h3>
-            <p>
-              This page is intentionally lightweight while the project is being
-              defined and built. It will expand into a full case study as work
-              ships.
-            </p>
-          </Motion.section>
-        ) : null}
-
-        {project.sections.length > 0 ? (
-          <div className="project-sections">
-            {project.sections.map((section) => (
+        {isSiteProject ? (
+          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+            <Accordion
+              items={deepDiveItems}
+              openId={openAccordionId}
+              setOpenId={setOpenAccordionId}
+            />
+          </Motion.div>
+        ) : (
+          <>
+            {project.template === "stub" ? (
               <Motion.section
                 className="project-section"
-                key={section.heading}
                 variants={pop}
                 transition={{ duration: 0.35 }}
               >
-                <h3>{section.heading}</h3>
-                {section.body ? <p>{section.body}</p> : null}
-                {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
-                  <ul>
-                    {section.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
-                    ))}
-                  </ul>
-                ) : null}
+                <h3>In Progress</h3>
+                <p>
+                  This page is intentionally lightweight while the project is being
+                  defined and built. It will expand into a full case study as work
+                  ships.
+                </p>
               </Motion.section>
-            ))}
-          </div>
-        ) : null}
+            ) : null}
 
-        {project.slug === "rag-hr-chatbot" ? (
-          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
-            <ProjectDemoPanel />
-          </Motion.div>
-        ) : null}
+            {project.sections.length > 0 ? (
+              <div className="project-sections">
+                {project.sections.map((section) => (
+                  <Motion.section
+                    className="project-section"
+                    key={section.heading}
+                    variants={pop}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <h3>{section.heading}</h3>
+                    {section.body ? <p>{section.body}</p> : null}
+                    {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
+                      <ul>
+                        {section.bullets.map((bullet) => (
+                          <li key={bullet}>{bullet}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </Motion.section>
+                ))}
+              </div>
+            ) : null}
 
-        {project.highlights.length > 0 ? (
-          <Motion.section
-            className="project-highlights"
-            variants={pop}
-            transition={{ duration: 0.35 }}
-          >
-            <h3>Highlights</h3>
-            <ul>
-              {project.highlights.map((highlight) => (
-                <li key={highlight}>{highlight}</li>
-              ))}
-            </ul>
-          </Motion.section>
-        ) : null}
+            {project.slug === "rag-hr-chatbot" ? (
+              <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+                <ProjectDemoPanel />
+              </Motion.div>
+            ) : null}
 
-        {ctaActions.length > 0 ? (
-          <Motion.div
-            className="project-cta-row"
-            variants={pop}
-            transition={{ duration: 0.35 }}
-          >
-            {ctaActions.map((action, index) => renderCtaAction(action, index))}
-          </Motion.div>
-        ) : null}
+            {project.highlights.length > 0 ? (
+              <Motion.section
+                className="project-highlights"
+                variants={pop}
+                transition={{ duration: 0.35 }}
+              >
+                <h3>Highlights</h3>
+                <ul>
+                  {project.highlights.map((highlight) => (
+                    <li key={highlight}>{highlight}</li>
+                  ))}
+                </ul>
+              </Motion.section>
+            ) : null}
+
+            {ctaActions.length > 0 ? (
+              <Motion.div
+                className="project-cta-row"
+                variants={pop}
+                transition={{ duration: 0.35 }}
+              >
+                {ctaActions.map((action, index) => renderCtaAction(action, index))}
+              </Motion.div>
+            ) : null}
+          </>
+        )}
       </Motion.div>
     </Motion.section>
   );

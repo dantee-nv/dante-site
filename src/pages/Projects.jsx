@@ -25,6 +25,27 @@ const tile = {
 
 export default function Projects() {
   usePageTitle("Projects");
+  const statusOrder = {
+    live: 0,
+    "in-progress": 1,
+  };
+  const sortedProjects = [...projectCardList].sort((a, b) => {
+    const aIsMainCard = a.slug === "site";
+    const bIsMainCard = b.slug === "site";
+
+    if (aIsMainCard !== bIsMainCard) {
+      return aIsMainCard ? -1 : 1;
+    }
+
+    const aRank = statusOrder[a.status] ?? Number.MAX_SAFE_INTEGER;
+    const bRank = statusOrder[b.status] ?? Number.MAX_SAFE_INTEGER;
+
+    if (aRank !== bRank) {
+      return aRank - bRank;
+    }
+
+    return a.title.localeCompare(b.title);
+  });
 
   function formatStatus(status) {
     if (!status) {
@@ -62,7 +83,7 @@ export default function Projects() {
       </Motion.p>
 
       <Motion.div className="grid" variants={grid} initial="initial" animate="animate">
-        {projectCardList.map((project) => {
+        {sortedProjects.map((project) => {
           const skills = project.atGlance?.skills || [];
 
           return (
