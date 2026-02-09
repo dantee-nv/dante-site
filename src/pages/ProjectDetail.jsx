@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
 import { Accordion } from "../components/Accordion";
+import AmcThirtyDayWatchSignupPanel from "../components/AmcThirtyDayWatchSignupPanel";
 import MermaidDiagram from "../components/MermaidDiagram";
 import ProjectDemoPanel from "../components/ProjectDemoPanel";
 import { getProjectBySlug } from "../data/projects";
@@ -119,6 +120,7 @@ export default function ProjectDetail() {
   const ctaActions = project.cta.filter((action) => action?.label && action?.to);
   const atGlanceSkills = project.atGlance?.skills || [];
   const atGlanceMetrics = project.atGlance?.metrics || [];
+  const shouldRenderAmcSignup = project.slug === "amc-imax-scraper-n8n-automation";
   const deepDiveItems = [
     {
       id: "deep-dive",
@@ -139,24 +141,30 @@ export default function ProjectDetail() {
           {project.sections.length > 0 ? (
             <div className="project-sections">
               {project.sections.map((section) => (
-                <section className="project-section" key={section.heading}>
-                  <h3>{section.heading}</h3>
-                  {section.body ? <p>{section.body}</p> : null}
-                  {section.visual?.kind === "mermaid" ? (
-                    <MermaidDiagram
-                      markdown={section.visual.markdown}
-                      caption={section.visual.caption}
-                      ariaLabel={section.visual.caption || `${section.heading} diagram`}
-                    />
+                <React.Fragment key={section.heading}>
+                  <section className="project-section">
+                    <h3>{section.heading}</h3>
+                    {section.body ? <p>{section.body}</p> : null}
+                    {section.visual?.kind === "mermaid" ? (
+                      <MermaidDiagram
+                        markdown={section.visual.markdown}
+                        caption={section.visual.caption}
+                        ariaLabel={section.visual.caption || `${section.heading} diagram`}
+                      />
+                    ) : null}
+                    {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
+                      <ul>
+                        {section.bullets.map((bullet) => (
+                          <li key={bullet}>{bullet}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </section>
+
+                  {shouldRenderAmcSignup && section.heading === "Work Completed" ? (
+                    <AmcThirtyDayWatchSignupPanel />
                   ) : null}
-                  {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
-                    <ul>
-                      {section.bullets.map((bullet) => (
-                        <li key={bullet}>{bullet}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </section>
+                </React.Fragment>
               ))}
             </div>
           ) : null}

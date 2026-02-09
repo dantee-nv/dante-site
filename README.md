@@ -19,6 +19,7 @@ npm run dev
 
 The contact page reads `VITE_CONTACT_API_URL` and posts JSON to that endpoint.
 The Project 3 demo panel reads `VITE_RAG_DEMO_API_URL` and calls the Python RAG demo endpoint.
+The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and posts JSON to an n8n webhook.
 
 ## Contact API architecture
 
@@ -60,6 +61,71 @@ sam deploy \
 After deploy, use the `ContactApiUrl` stack output as:
 
 - `VITE_CONTACT_API_URL=<ContactApiUrl>`
+
+## AMC 30-Day Watch signup (n8n webhook)
+
+The AMC project detail page signup pipeline is:
+
+`React AMC signup panel -> n8n webhook -> n8n Code node (workflow static JSON upsert)`
+
+Frontend config:
+
+- `VITE_AMC_SIGNUP_WEBHOOK_URL=https://<n8n-domain>/webhook/<token>`
+
+Frontend payload contract:
+
+```json
+{
+  "email": "user@example.com",
+  "watchMode": "30_day_watch",
+  "sourceSite": "dantenavarro.com",
+  "sourcePage": "project-detail",
+  "sourceProjectSlug": "amc-imax-scraper-n8n-automation",
+  "submittedAt": "2026-02-09T12:00:00.000Z"
+}
+```
+
+Expected n8n response:
+
+- Success: `200` with `{ "ok": true, "message": "Added to 30-Day Watch." }`
+- Error: `4xx/5xx` with `{ "ok": false, "message": "..." }`
+
+Example n8n Code node upsert logic:
+
+```js
+const data = getWorkflowStaticData("global");
+if (!Array.isArray(data.amcThirtyDayWatchSubscribers)) {
+  data.amcThirtyDayWatchSubscribers = [];
+}
+
+const input = items[0]?.json ?? {};
+const email = String(input.email || "").trim().toLowerCase();
+
+if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  return [{ json: { ok: false, message: "Invalid email." } }];
+}
+
+const now = new Date().toISOString();
+const list = data.amcThirtyDayWatchSubscribers;
+const existing = list.find((entry) => entry.email === email);
+
+if (existing) {
+  existing.watchMode = "30_day_watch";
+  existing.sourceProject = "amc-imax-scraper-n8n-automation";
+  existing.updatedAt = now;
+  existing.lastSubmittedAt = input.submittedAt || now;
+} else {
+  list.push({
+    email,
+    watchMode: "30_day_watch",
+    sourceProject: "amc-imax-scraper-n8n-automation",
+    submittedAt: input.submittedAt || now,
+    updatedAt: now,
+  });
+}
+
+return [{ json: { ok: true, message: "Added to 30-Day Watch." } }];
+```
 
 ## RAG demo API architecture
 
@@ -124,6 +190,7 @@ In Amplify environment variables, set:
 
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
 - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
+- `VITE_AMC_SIGNUP_WEBHOOK_URL=https://<n8n-domain>/webhook/<token>`
 
 Then trigger a redeploy.
 

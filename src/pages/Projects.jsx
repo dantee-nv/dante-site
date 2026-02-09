@@ -29,6 +29,12 @@ export default function Projects() {
     live: 0,
     "in-progress": 1,
   };
+  const liveProjectOrder = {
+    "rag-hr-chatbot": 0,
+    "lead-generation": 1,
+    "amc-imax-scraper-n8n-automation": 2,
+  };
+
   const sortedProjects = [...projectCardList].sort((a, b) => {
     const aIsMainCard = a.slug === "site";
     const bIsMainCard = b.slug === "site";
@@ -42,6 +48,15 @@ export default function Projects() {
 
     if (aRank !== bRank) {
       return aRank - bRank;
+    }
+
+    if (a.status === "live" && b.status === "live") {
+      const aLiveOrder = liveProjectOrder[a.slug] ?? Number.MAX_SAFE_INTEGER;
+      const bLiveOrder = liveProjectOrder[b.slug] ?? Number.MAX_SAFE_INTEGER;
+
+      if (aLiveOrder !== bLiveOrder) {
+        return aLiveOrder - bLiveOrder;
+      }
     }
 
     return a.title.localeCompare(b.title);

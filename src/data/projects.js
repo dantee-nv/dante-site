@@ -561,6 +561,120 @@ const baseProjects = [
       { label: "Contact Me", to: "/contact" },
     ],
   },
+  {
+    slug: "amc-imax-scraper-n8n-automation",
+    title: "AMC IMAX Scraper to n8n Email Automation",
+    summary:
+      "An automation pipeline that captures IMAX-only showtimes for one Los Angeles AMC theater and delivers scheduled Pacific-time email summaries via n8n and AWS SES.",
+    cardSummary:
+      "IMAX-only AMC showtime scraper with n8n scheduling, SES email delivery, and EC2-hosted workflow reliability.",
+    status: "live",
+    tags: [
+      "Python",
+      "Playwright",
+      "Pytest",
+      "Web Scraping",
+      "n8n",
+      "AWS SES",
+      "AWS EC2",
+      "Automation",
+    ],
+    atGlance: {
+      skills: [
+        { label: "Playwright Scraping", lane: "automation" },
+        { label: "Data Normalization", lane: "data" },
+        { label: "IMAX Filter Logic", lane: "data" },
+        { label: "n8n Orchestration", lane: "automation" },
+        { label: "AWS SES", lane: "cloud" },
+        { label: "AWS EC2", lane: "cloud" },
+        { label: "Pytest", lane: "backend" },
+      ],
+      metrics: [
+        { label: "Theater Scope", value: "Single Los Angeles AMC theater", tone: "info" },
+        { label: "Scan Modes", value: "Single date and rolling 30-day window", tone: "neutral" },
+        { label: "Delivery", value: "Scheduled n8n emails via AWS SES with failure alerts", tone: "success" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "2026",
+      role: "Automation + Data Engineer",
+      stack:
+        "Python, Playwright, Pytest, JSON-LD parsing, DOM/network extraction, timezone conversion, n8n, AWS SES, AWS EC2",
+    },
+    sections: [
+      {
+        heading: "Goal and Scope",
+        body:
+          "The AMC mobile app and website only expose one day of showtimes at a time, which makes it hard to track IMAX availability across upcoming dates. This project was built to provide a broader IMAX view so I can plan around specific IMAX releases, which do not always align cleanly with standard theatrical listings.",
+        bullets: [
+          "In scope: one Los Angeles AMC theater, IMAX-only filtering, single-date and 30-day windows, Pacific-time output, n8n scheduling, SES delivery, and failure alerts.",
+          "Primary objective: replace repetitive day-by-day manual checks with a reliable IMAX-specific schedule feed for both machine and human use.",
+        ],
+      },
+      {
+        heading: "Work Completed",
+        body:
+          "The scraper and automation path were hardened from extraction through delivery, with reliability and test coverage emphasized.",
+        bullets: [
+          "Built layered extraction fallback flow using JSON-LD, network-response parsing, and DOM strategies.",
+          "Added date controls for one-date execution and rolling-window scans up to 30 days.",
+          "Tightened IMAX attribution rules to remove false positives from non-IMAX showtimes.",
+          "Implemented chronological normalization, deduplication, and human-readable Pacific-time console summaries.",
+          "Validated 30-day scan mode and prepared n8n architecture for biweekly execution with results and admin alert branches.",
+        ],
+      },
+      {
+        heading: "Skills Used",
+        body:
+          "This project combines scraping reliability techniques with workflow automation and cloud email operations.",
+        bullets: [
+          "Dynamic web scraping using Playwright-based extraction and fallback strategy.",
+          "Data parsing and normalization across JSON-LD, DOM, and network payload variants.",
+          "Filtering logic engineering for explicit IMAX evidence and safe exclusion rules.",
+          "CLI hardening with flags, env var support, and stable exit-code behavior.",
+          "Reliability patterns including retries, diagnostics, and source-unavailable handling.",
+          "Test-driven validation with pytest and focused behavioral coverage.",
+          "Workflow orchestration in n8n with AWS SES email automation design.",
+          "Deployment portability planning through private GitHub and EC2-hosted runtime.",
+        ],
+      },
+      {
+        heading: "n8n Automation Network on EC2",
+        body:
+          "The automation network is designed for EC2 hosting so schedules, credentials, and alerting remain under controlled infrastructure.",
+        bullets: [
+          "Run n8n on EC2 as the orchestration layer for cadence, execution logging, and workflow branching.",
+          "Use scheduled trigger nodes for biweekly runs and optional ad-hoc backfill windows.",
+          "Execute scraper jobs from n8n, parse JSON output, and route success payloads to SES email delivery.",
+          "Maintain a separate admin-alert branch for failures, timeout conditions, and empty-data anomalies.",
+          "Keep secrets and environment configuration isolated on EC2 with predictable deployment and rollback paths.",
+          "Support portability by storing code in private GitHub and promoting the same workflow design across environments.",
+        ],
+      },
+      {
+        heading: "Outcome and Highlights",
+        body:
+          "The final state is operations-ready and supports dependable recurring delivery without manual intervention.",
+        bullets: [
+          "Removed IMAX false positives by tightening format evidence rules.",
+          "Output serves both machines (JSON for n8n) and humans (clean PST/PDT summary).",
+          "Established a production path: scheduled runs, SES email delivery, and failure escalation to admins.",
+        ],
+      },
+    ],
+    highlights: [
+      "Delivered IMAX-only showtime extraction for a single Los Angeles AMC theater with layered fallback parsing.",
+      "Eliminated non-IMAX contamination through stricter format evidence logic.",
+      "Added single-date and rolling 30-day scan behavior with timezone-safe ordering and deduplication.",
+      "Validated behavior through pytest coverage for filtering, windowing, sorting, and summary output.",
+      "Designed an EC2-hosted n8n automation network with biweekly scheduling, SES distribution, and admin failure alerts.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
 ];
 
 function normalizeProject(project) {
