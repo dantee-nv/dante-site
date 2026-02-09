@@ -34,6 +34,17 @@ Resources:
         ThrottlingBurstLimit: 8
         ThrottlingRateLimit: 4
 
+  RagDemoFeedbackTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: feedbackId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: feedbackId
+          KeyType: HASH
+
   RagDemoFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -47,7 +58,15 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAIApiKey
           CHAT_MODEL: !Ref ChatModel
           EMBEDDING_MODEL: !Ref EmbeddingModel
-          TOP_K: 4
+          TOP_K: 6
+          MAX_CONTEXT_CHUNKS: 6
+          VECTOR_CANDIDATE_K: 12
+          LEXICAL_CANDIDATE_K: 12
+          MIN_SIMILARITY: 0.18
+          CHUNK_SIZE: 500
+          CHUNK_OVERLAP: 100
+          RRF_K: 60
+          POLICY_PDF_PATH: /var/task/data/nestle_hr_policy.pdf
           POLICY_TEXT_PATH: /var/task/data/nestle_hr_policy.txt
       Events:
         RagDemoPost:
@@ -57,6 +76,33 @@ Resources:
             Path: /rag-demo
             Method: POST
 
+  RagDemoFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/feedback_handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 10
+      MemorySize: 512
+      Environment:
+        Variables:
+          FEEDBACK_TABLE_NAME: !Ref RagDemoFeedbackTable
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: RagDemoFeedbackWrite
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt RagDemoFeedbackTable.Arn
+      Events:
+        RagDemoFeedbackPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RagDemoApi
+            Path: /rag-demo/feedback
+            Method: POST
+
 Outputs:
   RagDemoApiBaseUrl:
     Description: Base URL for the rag demo API.
@@ -64,3 +110,6 @@ Outputs:
   RagDemoApiUrl:
     Description: Rag demo endpoint URL.
     Value: !Sub https://${RagDemoApi}.execute-api.${AWS::Region}.amazonaws.com/rag-demo
+  RagDemoFeedbackTableName:
+    Description: DynamoDB table used for rag demo feedback.
+    Value: !Ref RagDemoFeedbackTable

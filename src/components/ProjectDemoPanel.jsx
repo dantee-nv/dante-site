@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 
 const MAX_QUESTION_LENGTH = 500;
+const MAX_FEEDBACK_NOTE_LENGTH = 1000;
+const POLICY_PDF_DOWNLOAD_PATH = "/nestle_hr_policy.pdf";
 
 function resolveRagDemoApiUrl(rawUrl) {
   if (typeof rawUrl !== "string") {
@@ -22,6 +24,37 @@ function resolveRagDemoApiUrl(rawUrl) {
     }
 
     parsedUrl.pathname = path ? `${path}/rag-demo` : "/rag-demo";
+    return parsedUrl.toString();
+  } catch {
+    return "";
+  }
+}
+
+function resolveRagDemoFeedbackApiUrl(rawUrl) {
+  if (typeof rawUrl !== "string") {
+    return "";
+  }
+
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  try {
+    const parsedUrl = new URL(trimmed);
+    const path = parsedUrl.pathname.replace(/\/+$/, "");
+    parsedUrl.pathname = path || "/";
+
+    if (path.endsWith("/rag-demo/feedback")) {
+      return parsedUrl.toString();
+    }
+
+    if (path.endsWith("/rag-demo")) {
+      parsedUrl.pathname = `${path}/feedback`;
+      return parsedUrl.toString();
+    }
+
+    parsedUrl.pathname = path ? `${path}/rag-demo/feedback` : "/rag-demo/feedback";
     return parsedUrl.toString();
   } catch {
     return "";
@@ -72,14 +105,34 @@ function formatCost(cost) {
 export default function ProjectDemoPanel() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [answeredQuestion, setAnsweredQuestion] = useState("");
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [feedbackChoice, setFeedbackChoice] = useState(null);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   const apiUrl = useMemo(
     () => resolveRagDemoApiUrl(import.meta.env.VITE_RAG_DEMO_API_URL),
     []
   );
+  const feedbackApiUrl = useMemo(
+    () => resolveRagDemoFeedbackApiUrl(import.meta.env.VITE_RAG_DEMO_API_URL),
+    []
+  );
+
+  function resetFeedbackState() {
+    setFeedbackChoice(null);
+    setFeedbackNote("");
+    setFeedbackError("");
+    setFeedbackMessage("");
+    setHasSubmittedFeedback(false);
+    setIsSubmittingFeedback(false);
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -99,7 +152,9 @@ export default function ProjectDemoPanel() {
     setIsLoading(true);
     setError("");
     setAnswer("");
+    setAnsweredQuestion("");
     setStats(null);
+    resetFeedbackState();
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
@@ -132,6 +187,7 @@ export default function ProjectDemoPanel() {
       }
 
       setAnswer(payload.answer.trim());
+      setAnsweredQuestion(normalizedQuestion);
       setStats(normalizeStats(payload.stats));
     } catch (requestError) {
       if (requestError.name === "AbortError") {
@@ -146,15 +202,111 @@ export default function ProjectDemoPanel() {
     }
   }
 
+  async function handleFeedbackSubmit(event) {
+    event.preventDefault();
+
+    if (hasSubmittedFeedback) {
+      return;
+    }
+
+    if (!answer || !answeredQuestion) {
+      setFeedbackError("Run the demo first, then submit feedback.");
+      return;
+    }
+
+    if (typeof feedbackChoice !== "boolean") {
+      setFeedbackError("Choose Helpful or Not Helpful before submitting.");
+      return;
+    }
+
+    if (!feedbackApiUrl) {
+      setFeedbackError("RAG feedback API is not configured yet.");
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    setFeedbackError("");
+    setFeedbackMessage("");
+
+    const payload = {
+      question: answeredQuestion,
+      answer,
+      helpful: feedbackChoice,
+    };
+
+    if (stats) {
+      payload.stats = stats;
+    }
+
+    const normalizedNote = feedbackNote.trim();
+    if (normalizedNote) {
+      payload.note = normalizedNote;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    try {
+      const response = await fetch(feedbackApiUrl, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      const responsePayload = await parseResponsePayload(response);
+      if (!response.ok) {
+        const defaultMessage =
+          response.status === 429
+            ? "Too many feedback requests. Please wait a moment and try again."
+            : "Failed to submit feedback. Please try again.";
+        setFeedbackError(responsePayload?.message || defaultMessage);
+        return;
+      }
+
+      if (responsePayload?.ok !== true || typeof responsePayload?.feedbackId !== "string") {
+        setFeedbackError("Feedback response was invalid.");
+        return;
+      }
+
+      setHasSubmittedFeedback(true);
+      setFeedbackMessage("Thanks for the feedback.");
+    } catch (requestError) {
+      if (requestError.name === "AbortError") {
+        setFeedbackError("Feedback request timed out. Please try again.");
+        return;
+      }
+
+      setFeedbackError("Network error while submitting feedback.");
+    } finally {
+      clearTimeout(timeoutId);
+      setIsSubmittingFeedback(false);
+    }
+  }
+
   return (
     <section className="project-demo-panel">
       <h3>Live Demo</h3>
       <p>
-        Ask a policy question and run the Python RAG demo directly from this
-        page.
+        This demo uses the Nestle HR policy document. The same RAG architecture
+        can be applied to any approved document set.
       </p>
 
       <form className="project-demo-form" onSubmit={handleSubmit}>
+        <div className="project-demo-document-actions">
+          <a
+            className="btn ghost project-demo-document-btn"
+            href={POLICY_PDF_DOWNLOAD_PATH}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open Nestle HR Policy (PDF)
+          </a>
+        </div>
+
         <label className="project-demo-label" htmlFor="project-demo-question">
           Question
         </label>
@@ -189,6 +341,82 @@ export default function ProjectDemoPanel() {
           <h4>Answer</h4>
           <p>{answer}</p>
         </div>
+      ) : null}
+
+      {answer ? (
+        <form className="project-demo-feedback" onSubmit={handleFeedbackSubmit}>
+          <h4>Was this answer helpful?</h4>
+          <div className="project-demo-feedback-options">
+            <button
+              type="button"
+              className={`btn ghost project-demo-feedback-btn ${
+                feedbackChoice === true ? "selected" : ""
+              }`}
+              onClick={() => setFeedbackChoice(true)}
+              aria-pressed={feedbackChoice === true}
+              disabled={hasSubmittedFeedback || isSubmittingFeedback}
+            >
+              Helpful
+            </button>
+            <button
+              type="button"
+              className={`btn ghost project-demo-feedback-btn ${
+                feedbackChoice === false ? "selected" : ""
+              }`}
+              onClick={() => setFeedbackChoice(false)}
+              aria-pressed={feedbackChoice === false}
+              disabled={hasSubmittedFeedback || isSubmittingFeedback}
+            >
+              Not Helpful
+            </button>
+          </div>
+
+          <label className="project-demo-label" htmlFor="project-demo-feedback-note">
+            Optional note
+          </label>
+          <textarea
+            id="project-demo-feedback-note"
+            className="project-demo-textarea project-demo-feedback-note"
+            name="feedback-note"
+            value={feedbackNote}
+            onChange={(event) => setFeedbackNote(event.target.value)}
+            maxLength={MAX_FEEDBACK_NOTE_LENGTH}
+            placeholder="Add context to help improve future answers."
+            disabled={hasSubmittedFeedback || isSubmittingFeedback}
+          />
+          <div className="project-demo-actions">
+            <span className="project-demo-count">
+              {feedbackNote.length}/{MAX_FEEDBACK_NOTE_LENGTH}
+            </span>
+            <button
+              className="btn primary"
+              type="submit"
+              disabled={
+                hasSubmittedFeedback ||
+                isSubmittingFeedback ||
+                typeof feedbackChoice !== "boolean"
+              }
+            >
+              {hasSubmittedFeedback
+                ? "Feedback Sent"
+                : isSubmittingFeedback
+                ? "Submitting..."
+                : "Submit Feedback"}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {feedbackError ? (
+        <p className="project-demo-error" role="status">
+          {feedbackError}
+        </p>
+      ) : null}
+
+      {feedbackMessage ? (
+        <p className="project-demo-feedback-success" role="status">
+          {feedbackMessage}
+        </p>
       ) : null}
 
       {stats ? (

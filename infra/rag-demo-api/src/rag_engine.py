@@ -1,8 +1,9 @@
+import logging
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 try:
     import faiss  # type: ignore
@@ -29,10 +30,25 @@ try:
 except ImportError:
     PdfReader = None
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 CHAT_MODEL = os.getenv("CHAT_MODEL", "gpt-4.1-nano")
-TOP_K = int(os.getenv("TOP_K", "4"))
-MIN_SIMILARITY = float(os.getenv("MIN_SIMILARITY", "0.22"))
+
+# Retrieval defaults are tuned for smaller, policy-style documents and lightweight models.
+TOP_K = int(os.getenv("TOP_K", "6"))
+MAX_CONTEXT_CHUNKS = max(1, int(os.getenv("MAX_CONTEXT_CHUNKS", str(TOP_K))))
+VECTOR_CANDIDATE_K = max(TOP_K, int(os.getenv("VECTOR_CANDIDATE_K", str(max(TOP_K * 2, 10)))))
+LEXICAL_CANDIDATE_K = max(
+    TOP_K, int(os.getenv("LEXICAL_CANDIDATE_K", str(max(TOP_K * 2, 10))))
+)
+MIN_SIMILARITY = float(os.getenv("MIN_SIMILARITY", "0.18"))
+RRF_K = max(1, int(os.getenv("RRF_K", "60")))
+
+# Chunking defaults are tighter to reduce context dilution for small/cheap models.
+CHUNK_SIZE = max(150, int(os.getenv("CHUNK_SIZE", "500")))
+CHUNK_OVERLAP = max(0, int(os.getenv("CHUNK_OVERLAP", "100")))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_POLICY_PDF_PATH = BASE_DIR / "data" / "nestle_hr_policy.pdf"
@@ -45,60 +61,124 @@ NOT_FOUND_MESSAGE = (
     "Please check the policy document or contact HR for clarification."
 )
 
-_CLIENT = None
+TERM_PATTERN = re.compile(r"[a-zA-Z]{3,}")
+PAGE_PREFIX_PATTERN = re.compile(r"^\[Page\s+\d+\]\s*", re.IGNORECASE)
+PAGE_CITATION_PATTERN = re.compile(r"\(Page(?:s)?\s+\d", re.IGNORECASE)
+STOP_TERMS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "that",
+    "this",
+    "from",
+    "what",
+    "when",
+    "where",
+    "which",
+    "who",
+    "how",
+    "are",
+    "was",
+    "were",
+    "can",
+    "does",
+    "about",
+    "into",
+    "your",
+    "their",
+    "should",
+}
+
+_UNINITIALIZED = object()
+_CLIENT = _UNINITIALIZED
 _KNOWLEDGE_BASE = None
 
 
 @dataclass
+class PolicyChunk:
+    chunk_id: str
+    text: str
+    page_number: Optional[int]
+    lexical_terms: Set[str]
+
+
+@dataclass
 class KnowledgeBase:
-    chunks: List[str]
+    chunks: List[PolicyChunk]
     embeddings: List[List[float]]
     index: Optional[object]
 
 
 @dataclass
 class RetrievalHit:
+    chunk_id: str
     text: str
+    page_number: Optional[int]
     score: float
 
 
 def _get_client():
     global _CLIENT
 
-    if _CLIENT is not None:
+    if _CLIENT is not _UNINITIALIZED:
         return _CLIENT
 
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key or OpenAI is None:
-        _CLIENT = False
-        return None
+        _CLIENT = None
+        return _CLIENT
 
     _CLIENT = OpenAI(api_key=api_key)
     return _CLIENT
 
 
-def _read_policy_text() -> str:
-    if POLICY_PDF_PATH.exists() and PdfReader is not None:
-        pages = []
-        reader = PdfReader(str(POLICY_PDF_PATH))
-        for page in reader.pages:
-            page_text = page.extract_text() or ""
-            page_text = page_text.strip()
-            if page_text:
-                pages.append(page_text)
-        if pages:
-            return "\n\n".join(pages)
+def _extract_terms(text: str) -> Set[str]:
+    terms = {term.lower() for term in TERM_PATTERN.findall(text)}
+    return {term for term in terms if term not in STOP_TERMS}
+
+
+def _read_pdf_documents() -> List[Tuple[int, str]]:
+    if not POLICY_PDF_PATH.exists():
+        return []
+
+    if PdfReader is None:
+        logger.warning("policy_pdf_unavailable_reader_missing path=%s", POLICY_PDF_PATH)
+        return []
+
+    reader = PdfReader(str(POLICY_PDF_PATH))
+    documents: List[Tuple[int, str]] = []
+
+    for page_number, page in enumerate(reader.pages, start=1):
+        page_text = (page.extract_text() or "").strip()
+        if not page_text:
+            logger.warning("policy_pdf_page_empty page=%s path=%s", page_number, POLICY_PDF_PATH)
+            continue
+        documents.append((page_number, page_text))
+
+    if not documents:
+        logger.warning("policy_pdf_no_extractable_text path=%s", POLICY_PDF_PATH)
+    return documents
+
+
+def _read_policy_documents() -> List[Tuple[Optional[int], str]]:
+    pdf_documents = _read_pdf_documents()
+    if pdf_documents:
+        return [(page_number, text) for page_number, text in pdf_documents]
 
     if POLICY_TEXT_PATH.exists():
         text = POLICY_TEXT_PATH.read_text(encoding="utf-8").strip()
         if text:
-            return text
+            return [(None, text)]
 
-    return (
-        "Nestle HR Policy excerpt: Employees should consult approved HR documentation "
-        "for leave, conduct, and benefits information. If no policy entry is found, "
-        "the assistant must say the information is not available in the approved policy."
-    )
+    return [
+        (
+            None,
+            "Nestle HR Policy excerpt: Employees should consult approved HR documentation "
+            "for leave, conduct, and benefits information. If no policy entry is found, "
+            "the assistant must say the information is not available in the approved policy.",
+        )
+    ]
 
 
 def _fallback_chunk_text(text: str) -> List[str]:
@@ -106,17 +186,35 @@ def _fallback_chunk_text(text: str) -> List[str]:
     if not paragraphs:
         return [text.strip()]
 
-    chunks = []
+    chunks: List[str] = []
     buffer = ""
+    chunk_step = max(1, CHUNK_SIZE - CHUNK_OVERLAP)
+
+    def flush_oversized_paragraph(paragraph: str):
+        start = 0
+        while start < len(paragraph):
+            part = paragraph[start : start + CHUNK_SIZE].strip()
+            if part:
+                chunks.append(part)
+            if start + CHUNK_SIZE >= len(paragraph):
+                break
+            start += chunk_step
+
     for paragraph in paragraphs:
         candidate = f"{buffer}\n\n{paragraph}".strip() if buffer else paragraph
-        if len(candidate) <= 700:
+        if len(candidate) <= CHUNK_SIZE:
             buffer = candidate
             continue
 
         if buffer:
             chunks.append(buffer)
-        buffer = paragraph
+
+        if len(paragraph) <= CHUNK_SIZE:
+            buffer = paragraph
+            continue
+
+        flush_oversized_paragraph(paragraph)
+        buffer = ""
 
     if buffer:
         chunks.append(buffer)
@@ -124,18 +222,43 @@ def _fallback_chunk_text(text: str) -> List[str]:
     return chunks
 
 
-def _chunk_text(text: str) -> List[str]:
+def _chunk_single_text(text: str) -> List[str]:
     if RecursiveCharacterTextSplitter is None:
         return _fallback_chunk_text(text)
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=700,
-        chunk_overlap=120,
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP,
         separators=["\n\n", "\n", ". ", " ", ""],
     )
 
     chunks = [part.strip() for part in splitter.split_text(text) if part.strip()]
     return chunks or _fallback_chunk_text(text)
+
+
+def _build_policy_chunks(documents: Sequence[Tuple[Optional[int], str]]) -> List[PolicyChunk]:
+    chunks: List[PolicyChunk] = []
+
+    for page_number, document_text in documents:
+        parts = _chunk_single_text(document_text)
+        for chunk_position, part in enumerate(parts, start=1):
+            if page_number is not None:
+                normalized_text = f"[Page {page_number}] {part}"
+                chunk_id = f"page-{page_number}-chunk-{chunk_position}"
+            else:
+                normalized_text = part
+                chunk_id = f"text-chunk-{chunk_position}"
+
+            chunks.append(
+                PolicyChunk(
+                    chunk_id=chunk_id,
+                    text=normalized_text,
+                    page_number=page_number,
+                    lexical_terms=_extract_terms(part),
+                )
+            )
+
+    return chunks
 
 
 def _embed_texts(texts: Sequence[str]) -> List[List[float]]:
@@ -170,35 +293,46 @@ def load_knowledge_base() -> KnowledgeBase:
     if _KNOWLEDGE_BASE is not None:
         return _KNOWLEDGE_BASE
 
-    raw_text = _read_policy_text()
-    chunks = _chunk_text(raw_text)
-    embeddings = _embed_texts(chunks)
+    documents = _read_policy_documents()
+    chunks = _build_policy_chunks(documents)
+    embeddings = _embed_texts([chunk.text for chunk in chunks])
     index = _build_index(embeddings)
 
     _KNOWLEDGE_BASE = KnowledgeBase(chunks=chunks, embeddings=embeddings, index=index)
     return _KNOWLEDGE_BASE
 
 
-def _lexical_retrieval(question: str, chunks: Sequence[str], k: int) -> List[RetrievalHit]:
-    terms = set(re.findall(r"[a-zA-Z]{3,}", question.lower()))
+def _lexical_retrieval(question: str, chunks: Sequence[PolicyChunk], k: int) -> List[RetrievalHit]:
+    terms = _extract_terms(question)
     if not terms:
         return []
 
-    scored: List[Tuple[float, str]] = []
+    scored: List[Tuple[float, PolicyChunk]] = []
+    term_count = max(1, len(terms))
     for chunk in chunks:
-        chunk_terms = set(re.findall(r"[a-zA-Z]{3,}", chunk.lower()))
-        overlap = len(terms & chunk_terms)
-        if overlap > 0:
-            scored.append((float(overlap), chunk))
+        overlap = len(terms & chunk.lexical_terms)
+        if overlap == 0:
+            continue
+
+        score = overlap / term_count
+        scored.append((score, chunk))
 
     scored.sort(key=lambda item: item[0], reverse=True)
-    return [RetrievalHit(text=text, score=score) for score, text in scored[:k]]
+    return [
+        RetrievalHit(
+            chunk_id=chunk.chunk_id,
+            text=chunk.text,
+            page_number=chunk.page_number,
+            score=score,
+        )
+        for score, chunk in scored[:k]
+    ]
 
 
 def _vector_retrieval(question: str, knowledge: KnowledgeBase, k: int) -> List[RetrievalHit]:
     client = _get_client()
     if client is None or not knowledge.embeddings:
-        return _lexical_retrieval(question, knowledge.chunks, k)
+        return []
 
     question_embedding = client.embeddings.create(model=EMBEDDING_MODEL, input=question).data[0].embedding
 
@@ -207,24 +341,113 @@ def _vector_retrieval(question: str, knowledge: KnowledgeBase, k: int) -> List[R
         faiss.normalize_L2(vector)
         scores, indices = knowledge.index.search(vector, k)
 
-        hits = []
+        hits: List[RetrievalHit] = []
         for score, index in zip(scores[0], indices[0]):
             if index < 0:
                 continue
-            hits.append(RetrievalHit(text=knowledge.chunks[index], score=float(score)))
-
+            chunk = knowledge.chunks[index]
+            hits.append(
+                RetrievalHit(
+                    chunk_id=chunk.chunk_id,
+                    text=chunk.text,
+                    page_number=chunk.page_number,
+                    score=float(score),
+                )
+            )
         return hits
 
-    hits = []
+    hits: List[RetrievalHit] = []
     query_norm = sum(value * value for value in question_embedding) ** 0.5 or 1.0
     for chunk, embedding in zip(knowledge.chunks, knowledge.embeddings):
         dot = sum(q * c for q, c in zip(question_embedding, embedding))
         emb_norm = sum(value * value for value in embedding) ** 0.5 or 1.0
         score = dot / (query_norm * emb_norm)
-        hits.append(RetrievalHit(text=chunk, score=float(score)))
+        hits.append(
+            RetrievalHit(
+                chunk_id=chunk.chunk_id,
+                text=chunk.text,
+                page_number=chunk.page_number,
+                score=float(score),
+            )
+        )
 
     hits.sort(key=lambda item: item.score, reverse=True)
     return hits[:k]
+
+
+def _rrf_fuse(
+    vector_hits: Sequence[RetrievalHit], lexical_hits: Sequence[RetrievalHit], k: int
+) -> List[RetrievalHit]:
+    fused_scores: Dict[str, float] = {}
+    best_hits: Dict[str, RetrievalHit] = {}
+
+    for rank, hit in enumerate(vector_hits, start=1):
+        fused_scores[hit.chunk_id] = fused_scores.get(hit.chunk_id, 0.0) + (1.0 / (RRF_K + rank))
+        best_hits[hit.chunk_id] = hit
+
+    for rank, hit in enumerate(lexical_hits, start=1):
+        fused_scores[hit.chunk_id] = fused_scores.get(hit.chunk_id, 0.0) + (0.85 / (RRF_K + rank))
+        if hit.chunk_id not in best_hits:
+            best_hits[hit.chunk_id] = hit
+
+    ranked = sorted(fused_scores.items(), key=lambda item: item[1], reverse=True)
+    return [
+        RetrievalHit(
+            chunk_id=chunk_id,
+            text=best_hits[chunk_id].text,
+            page_number=best_hits[chunk_id].page_number,
+            score=score,
+        )
+        for chunk_id, score in ranked[:k]
+    ]
+
+
+def _hybrid_retrieval(question: str, knowledge: KnowledgeBase, k: int) -> List[RetrievalHit]:
+    vector_candidates = _vector_retrieval(question, knowledge, VECTOR_CANDIDATE_K)
+    vector_hits = [hit for hit in vector_candidates if hit.score >= MIN_SIMILARITY]
+
+    lexical_hits = _lexical_retrieval(question, knowledge.chunks, LEXICAL_CANDIDATE_K)
+    if not vector_hits and not lexical_hits:
+        return []
+
+    if not vector_hits:
+        return lexical_hits[:k]
+
+    if not lexical_hits:
+        return vector_hits[:k]
+
+    return _rrf_fuse(vector_hits, lexical_hits, k)
+
+
+def _strip_page_prefix(text: str) -> str:
+    return PAGE_PREFIX_PATTERN.sub("", text).strip()
+
+
+def _collect_page_numbers(retrieved_context: Sequence[RetrievalHit]) -> List[int]:
+    pages = {hit.page_number for hit in retrieved_context if hit.page_number is not None}
+    return sorted(pages)
+
+
+def _append_page_citation(answer: str, retrieved_context: Sequence[RetrievalHit]) -> str:
+    if not answer or answer == NOT_FOUND_MESSAGE:
+        return answer
+
+    if PAGE_CITATION_PATTERN.search(answer):
+        return answer
+
+    pages = _collect_page_numbers(retrieved_context)
+    if not pages:
+        return answer
+
+    if len(pages) == 1:
+        citation = f"(Page {pages[0]})"
+    else:
+        citation = f"(Pages {', '.join(str(page) for page in pages[:3])})"
+
+    normalized = answer.strip()
+    if normalized.endswith((".", "!", "?")):
+        return f"{normalized} {citation}"
+    return f"{normalized}. {citation}"
 
 
 def _clip_to_two_sentences(text: str) -> str:
@@ -233,17 +456,29 @@ def _clip_to_two_sentences(text: str) -> str:
         return ""
 
     sentences = re.split(r"(?<=[.!?])\s+", normalized)
-    clipped = " ".join(sentences[:2]).strip()
-    return clipped
+    return " ".join(sentences[:2]).strip()
+
+
+def _truncate_words(text: str, max_words: int = 65) -> str:
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+
+    truncated = " ".join(words[:max_words]).rstrip(" ,;:")
+    if truncated.endswith((".", "!", "?")):
+        return truncated
+    return f"{truncated}..."
 
 
 def _offline_answer(retrieved_context: Sequence[RetrievalHit]) -> str:
     if not retrieved_context:
         return NOT_FOUND_MESSAGE
 
-    best_context = retrieved_context[0].text.strip()
+    best_context = _strip_page_prefix(retrieved_context[0].text)
     answer = _clip_to_two_sentences(best_context)
-    return answer or NOT_FOUND_MESSAGE
+    answer = _truncate_words(answer, max_words=65)
+    answer = answer or NOT_FOUND_MESSAGE
+    return _append_page_citation(answer, retrieved_context[:1])
 
 
 def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
@@ -262,25 +497,33 @@ def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
             "totalTokens": 0,
         }
 
+    context_hits = list(retrieved_context[:MAX_CONTEXT_CHUNKS])
     context_block = "\n\n".join(
-        f"[{idx + 1}] {hit.text}" for idx, hit in enumerate(retrieved_context)
+        f"[{idx + 1}] {hit.text}" for idx, hit in enumerate(context_hits)
+    )
+    page_numbers = _collect_page_numbers(context_hits)
+    page_hint = (
+        f"Context pages available: {', '.join(str(page) for page in page_numbers)}."
+        if page_numbers
+        else "Context pages are not available for citation."
     )
 
     instructions = (
         "You are Nestle's Human Resources Policy Assistant. "
-        "Answer strictly from the provided policy context. "
-        "Keep answers concise (one or two short sentences), professional, and factual. "
+        "Use only the supplied policy context. "
+        "Because you are a lightweight model, avoid multi-step inference and avoid speculation. "
+        "Prefer direct policy wording from the context, and keep responses concise (one or two sentences). "
         "If the context does not contain the answer, respond exactly with: "
-        "'I could not find that information in the approved HR policy. "
-        "Please check the policy document or contact HR for clarification.' "
-        "Do not speculate and do not provide legal advice."
+        f"'{NOT_FOUND_MESSAGE}' "
+        "Do not provide legal advice."
     )
 
     prompt = (
+        f"{page_hint}\n"
         "Policy context:\n"
         f"{context_block}\n\n"
         f"Question: {question}\n"
-        "Answer:"
+        "Answer in one or two short sentences. Include page citation in parentheses when available."
     )
 
     response = client.responses.create(
@@ -288,14 +531,17 @@ def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
         instructions=instructions,
         input=prompt,
         temperature=0.1,
-        max_output_tokens=120,
+        max_output_tokens=140,
     )
 
     answer_text = getattr(response, "output_text", "") or ""
     answer_text = _clip_to_two_sentences(answer_text)
+    answer_text = _truncate_words(answer_text, max_words=65)
 
     if not answer_text:
         answer_text = NOT_FOUND_MESSAGE
+
+    answer_text = _append_page_citation(answer_text, context_hits)
 
     usage = getattr(response, "usage", None)
     prompt_tokens = int(getattr(usage, "input_tokens", 0) or 0)
@@ -312,14 +558,9 @@ def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
 def answer_question(question: str):
     knowledge = load_knowledge_base()
 
-    hits = _vector_retrieval(question, knowledge, TOP_K)
-    filtered_hits = [hit for hit in hits if hit.score >= MIN_SIMILARITY]
+    hits = _hybrid_retrieval(question, knowledge, TOP_K)
+    answer, usage = _generate_answer(question, hits)
 
-    # Lexical retrieval scores are overlap counts; keep them even when MIN_SIMILARITY is tuned for cosine.
-    if hits and max(hit.score for hit in hits) > 1.0:
-        filtered_hits = hits
-
-    answer, usage = _generate_answer(question, filtered_hits)
     if "legal advice" in answer.lower():
         answer = (
             "I can only provide information from approved HR policy context and "

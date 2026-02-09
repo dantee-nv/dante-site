@@ -67,13 +67,19 @@ The Project 3 in-page demo pipeline is:
 
 `React demo panel -> API Gateway (HTTP API) -> Python Lambda (RAG handler)`
 
+Feedback pipeline:
+
+`React demo panel feedback form -> API Gateway (HTTP API) -> Python Lambda (feedback handler) -> DynamoDB`
+
 Infrastructure and Lambda code live in:
 
 - `infra/rag-demo-api/template.yaml`
 - `infra/rag-demo-api/src/handler.py`
 - `infra/rag-demo-api/src/rag_engine.py`
+- `infra/rag-demo-api/src/feedback_handler.py`
+- `infra/rag-demo-api/data/nestle_hr_policy.pdf`
 
-The Lambda loads policy text (or PDF if provided), chunks content with LangChain text splitters, embeds with `text-embedding-3-small`, retrieves context with FAISS when available, and generates final answers with `gpt-4.1-nano`.
+The Lambda loads policy content from `infra/rag-demo-api/data/nestle_hr_policy.pdf` (with text fallback), applies tighter chunking with overlap, embeds with `text-embedding-3-small`, retrieves context through hybrid vector + lexical ranking (FAISS + reciprocal rank fusion), and generates final answers with `gpt-4.1-nano` using lightweight-model guardrails (context-only, concise output, no speculation, and not-found fallback).
 
 ## Deploy RAG demo API (AWS SAM)
 
@@ -104,6 +110,14 @@ After deploy, use the `RagDemoApiUrl` stack output as:
 
 - `VITE_RAG_DEMO_API_URL=<RagDemoApiUrl>`
 
+The feedback endpoint is deployed at:
+
+- `<RagDemoApiBaseUrl>/rag-demo/feedback`
+
+The demo download button serves:
+
+- `/nestle_hr_policy.pdf`
+
 ## Amplify configuration
 
 In Amplify environment variables, set:
@@ -131,3 +145,4 @@ Then trigger a redeploy.
 3. `500 Failed to send message`: check CloudWatch logs and SES identity/sandbox status.
 4. CORS errors: verify site origin matches the configured `AllowedOrigins`.
 5. If `sam build` fails with an npm 11 error, use Node 20/npm 10 for build, or deploy directly with `sam deploy --template-file template.yaml` after `npm install` in `infra/contact-api`.
+6. If `sam build` fails for `infra/rag-demo-api` with Python runtime mismatch, install `python3.12` locally (the stack runtime is pinned to `python3.12`).
