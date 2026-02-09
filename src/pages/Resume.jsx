@@ -429,7 +429,8 @@ export default function Resume() {
     const blockW = (usableW - gapX * (cols - 1)) / cols;
 
     const pad = 10;
-    const lineH = 14;
+    const baseFontPx = 12;
+    const minFontPx = 8;
     const textMaxW = blockW - pad * 2;
 
     if (ctx) {
@@ -444,41 +445,15 @@ export default function Resume() {
       const lines = [];
       let line = "";
 
-      const splitWordToFit = (word) => {
-        const chunks = [];
-        let chunk = "";
-
-        for (let i = 0; i < word.length; i++) {
-          const next = chunk + word[i];
-          if (ctx.measureText(next).width <= textMaxW || chunk.length === 0) {
-            chunk = next;
-          } else {
-            chunks.push(chunk);
-            chunk = word[i];
-          }
-        }
-
-        if (chunk) chunks.push(chunk);
-        return chunks;
-      };
-
       for (let i = 0; i < words.length; i++) {
         const word = words[i];
         if (!word) continue;
-
-        const chunks =
-          ctx.measureText(word).width <= textMaxW ? [word] : splitWordToFit(word);
-
-        for (let j = 0; j < chunks.length; j++) {
-          const chunk = chunks[j];
-          const withSpace = line && j === 0 ? `${line} ${chunk}` : `${line}${chunk}`;
-
-          if (!line || ctx.measureText(withSpace).width <= textMaxW) {
-            line = withSpace;
-          } else {
-            lines.push(line);
-            line = chunk;
-          }
+        const next = line ? `${line} ${word}` : word;
+        if (ctx.measureText(next).width <= textMaxW || !line) {
+          line = next;
+        } else {
+          lines.push(line);
+          line = word;
         }
       }
       if (line) lines.push(line);
@@ -491,6 +466,13 @@ export default function Resume() {
 
     for (let i = 0; i < n; i++) {
       const lines = wrapLines(items[i]);
+      const maxLineW = lines.reduce(
+        (acc, curr) => Math.max(acc, ctx ? ctx.measureText(curr).width : 0),
+        0
+      );
+      const shrink = maxLineW > textMaxW ? textMaxW / maxLineW : 1;
+      const fontPx = Math.max(minFontPx, Math.min(baseFontPx, baseFontPx * shrink));
+      const lineH = Math.max(11, Math.ceil(fontPx * 1.2));
       const h = pad + lines.length * lineH + pad;
       if (h > maxH) maxH = h;
 
@@ -507,6 +489,8 @@ export default function Resume() {
         h,
         label: items[i],
         lines,
+        fontPx,
+        lineH,
         hp: 10,
         maxHp: 10,
         isBoss: false,
@@ -893,12 +877,13 @@ export default function Resume() {
           drawCracksStable(ctx, block, damage);
 
           ctx.fillStyle = "rgba(255,255,255,0.90)";
+          const textPx = block.fontPx || 12;
           ctx.font =
-            "600 12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+            `600 ${textPx}px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
 
           const lines =
             block.lines && block.lines.length ? block.lines : [block.label];
-          const lineH = 14;
+          const lineH = block.lineH || 14;
           const textH = lines.length * lineH;
 
           let ty = block.y + (block.h - textH) / 2 + lineH - 2;
