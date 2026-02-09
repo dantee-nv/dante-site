@@ -401,13 +401,16 @@ export default function Resume() {
 
     const paddingX = 22;
     const top = 26;
-
     const gapX = 12;
-    const usableW = cw - paddingX * 2;
+    const gapY = 10;
+    const usableW = Math.max(120, cw - paddingX * 2);
 
-    const blockW = Math.max(110, (usableW - gapX * (n - 1)) / n);
-    const rowW = blockW * n + gapX * (n - 1);
-    const startX = (cw - rowW) / 2;
+    const minBlockW = cw <= 480 ? 82 : 110;
+    const cols = Math.max(
+      1,
+      Math.min(n, Math.floor((usableW + gapX) / (minBlockW + gapX)))
+    );
+    const blockW = (usableW - gapX * (cols - 1)) / cols;
 
     const pad = 10;
     const lineH = 14;
@@ -456,9 +459,15 @@ export default function Resume() {
       const h = pad + lines.length * lineH + pad;
       if (h > maxH) maxH = h;
 
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const rowCount = Math.min(cols, n - row * cols);
+      const rowW = rowCount * blockW + gapX * (rowCount - 1);
+      const rowStartX = (cw - rowW) / 2;
+
       blocks.push({
-        x: startX + i * (blockW + gapX),
-        y: top,
+        x: rowStartX + col * (blockW + gapX),
+        y: top + row * (maxH + gapY),
         w: blockW,
         h,
         label: items[i],
@@ -471,10 +480,15 @@ export default function Resume() {
       });
     }
 
-    for (const b of blocks) b.h = maxH;
+    for (let i = 0; i < blocks.length; i++) {
+      const row = Math.floor(i / cols);
+      blocks[i].h = maxH;
+      blocks[i].y = top + row * (maxH + gapY);
+    }
 
     const maxBottom = ch * 0.62;
-    const bottom = top + maxH;
+    const rowCount = Math.ceil(n / cols);
+    const bottom = top + rowCount * maxH + (rowCount - 1) * gapY;
     if (bottom > maxBottom) {
       const shift = bottom - maxBottom;
       for (const b of blocks) b.y = Math.max(18, b.y - shift);
