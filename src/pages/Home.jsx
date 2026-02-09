@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import usePageTitle from "../hooks/usePageTitle";
 
 const page = {
@@ -14,7 +14,7 @@ export default function Home() {
   usePageTitle("Home");
   
   return (
-    <motion.section
+    <Motion.section
       className="hero"
       variants={page}
       initial="initial"
@@ -24,25 +24,25 @@ export default function Home() {
     >
       <div className="hero-bg" aria-hidden="true" />
       <div className="hero-inner">
-        <motion.p
+        <Motion.p
           className="badge"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4 }}
         >
           R&D Engineer • Automation Builder • LA
-        </motion.p>
+        </Motion.p>
 
-        <motion.h1
+        <Motion.h1
           className="headline"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.5 }}
         >
           Building tools that feel effortless.
-        </motion.h1>
+        </Motion.h1>
 
-        <motion.p
+        <Motion.p
           className="subhead"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -50,9 +50,9 @@ export default function Home() {
         >
           I create clean, high-impact software and automation, then ship it fast.
           This site is a hub for my projects, experiments and future work.
-        </motion.p>
+        </Motion.p>
 
-        <motion.div
+        <Motion.div
           className="cards"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -78,8 +78,8 @@ export default function Home() {
               If you’re hiring or building, let’s connect.
             </div>
           </Link>
-        </motion.div>
+        </Motion.div>
       </div>
-    </motion.section>
+    </Motion.section>
   );
 }

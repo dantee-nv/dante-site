@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
 import { Accordion } from "../components/Accordion";
+import MermaidDiagram from "../components/MermaidDiagram";
 import ProjectDemoPanel from "../components/ProjectDemoPanel";
 import { getProjectBySlug } from "../data/projects";
 import usePageTitle from "../hooks/usePageTitle";
@@ -141,6 +142,13 @@ export default function ProjectDetail() {
                 <section className="project-section" key={section.heading}>
                   <h3>{section.heading}</h3>
                   {section.body ? <p>{section.body}</p> : null}
+                  {section.visual?.kind === "mermaid" ? (
+                    <MermaidDiagram
+                      markdown={section.visual.markdown}
+                      caption={section.visual.caption}
+                      ariaLabel={section.visual.caption || `${section.heading} diagram`}
+                    />
+                  ) : null}
                   {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
                     <ul>
                       {section.bullets.map((bullet) => (

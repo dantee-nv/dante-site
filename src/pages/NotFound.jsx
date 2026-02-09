@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import usePageTitle from "../hooks/usePageTitle";
 
 export default function NotFound() {
@@ -8,7 +8,7 @@ export default function NotFound() {
   usePageTitle("404");
   
   return (
-    <motion.section
+    <Motion.section
       className="page"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -18,6 +18,6 @@ export default function NotFound() {
       <h2>404</h2>
       <p>This page doesn’t exist.</p>
       <Link className="btn ghost" to="/">Go Home</Link>
-    </motion.section>
+    </Motion.section>
   );
 }

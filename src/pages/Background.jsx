@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import usePageTitle from "../hooks/usePageTitle";
 
@@ -37,19 +37,19 @@ function AccordionItem({ id, title, children }) {
         type="button"
       >
         <span className="accordion-title">{title}</span>
-        <motion.span
+        <Motion.span
           className="accordion-icon"
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
           aria-hidden="true"
         >
           ▾
-        </motion.span>
+        </Motion.span>
       </button>
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <Motion.div
             className="accordion-content"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -59,7 +59,7 @@ function AccordionItem({ id, title, children }) {
               opacity: { duration: 0.22, ease: "easeOut" },
             }}
           >
-            <motion.div
+            <Motion.div
               className="accordion-inner"
               initial={{ opacity: 0, y: -4, filter: "blur(2px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -67,8 +67,8 @@ function AccordionItem({ id, title, children }) {
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
             >
               {children}
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -277,7 +277,7 @@ export default function Background() {
   usePageTitle("Background");
 
   const [skillsArcadeOpen, setSkillsArcadeOpen] = useState(false);
-  const [score, setScore] = useState(0);
+  const [, setScore] = useState(0);
   const [levelTitle, setLevelTitle] = useState("AI and Data Systems");
 
   const skillsData = useMemo(() => {
@@ -345,18 +345,6 @@ export default function Background() {
   // Effects and camera shake
   const effectsRef = useRef([]);
   const shakeRef = useRef({ t: 0, mag: 0 });
-
-  const spawnPop = (block, now) => {
-    effectsRef.current.push({
-      type: "pop",
-      x: block.x,
-      y: block.y,
-      w: block.w,
-      h: block.h,
-      t: now,
-      dur: 180,
-    });
-  };
 
   const spawnBurst = (block, now) => {
     const seed = hashString(block.label || "block");
@@ -531,7 +519,7 @@ export default function Background() {
     return blocks;
   };
 
-  const startLevel = (idx, cw, ch) => {
+  const startLevel = (idx, cw) => {
     categoryIndexRef.current = idx;
     phaseRef.current = "boss";
     advanceAtRef.current = 0;
@@ -561,7 +549,7 @@ export default function Background() {
     scoreRef.current = 0;
     setScore(0);
 
-    startLevel(0, cw, ch);
+    startLevel(0, cw);
   };
 
   const setControlState = (control, isPressed) => {
@@ -600,25 +588,26 @@ export default function Background() {
   // Keyboard controls (only when open)
   useEffect(() => {
     if (!skillsArcadeOpen) return;
+    const keys = keysRef.current;
 
     function down(e) {
       const k = e.key;
-      if (k === "ArrowLeft" || k === "a" || k === "A") keysRef.current.left = true;
-      if (k === "ArrowRight" || k === "d" || k === "D") keysRef.current.right = true;
+      if (k === "ArrowLeft" || k === "a" || k === "A") keys.left = true;
+      if (k === "ArrowRight" || k === "d" || k === "D") keys.right = true;
 
       if (k === " " || k === "Spacebar") {
-        keysRef.current.fire = true;
+        keys.fire = true;
         e.preventDefault();
       }
     }
 
     function up(e) {
       const k = e.key;
-      if (k === "ArrowLeft" || k === "a" || k === "A") keysRef.current.left = false;
-      if (k === "ArrowRight" || k === "d" || k === "D") keysRef.current.right = false;
+      if (k === "ArrowLeft" || k === "a" || k === "A") keys.left = false;
+      if (k === "ArrowRight" || k === "d" || k === "D") keys.right = false;
 
       if (k === " " || k === "Spacebar") {
-        keysRef.current.fire = false;
+        keys.fire = false;
         e.preventDefault();
       }
     }
@@ -629,9 +618,9 @@ export default function Background() {
     return () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
-      keysRef.current.left = false;
-      keysRef.current.right = false;
-      keysRef.current.fire = false;
+      keys.left = false;
+      keys.right = false;
+      keys.fire = false;
     };
   }, [skillsArcadeOpen]);
 
@@ -724,7 +713,7 @@ export default function Background() {
         if (now >= advanceAtRef.current) {
           const nextIdx = categoryIndexRef.current + 1;
           if (nextIdx < skillsData.length) {
-            startLevel(nextIdx, cw, ch);
+            startLevel(nextIdx, cw);
           } else {
             phaseRef.current = "complete";
             blocksRef.current = [];
@@ -1036,19 +1025,20 @@ export default function Background() {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillsArcadeOpen, skillsData]);
 
   const arcadePortal = skillsArcadeOpen
     ? createPortal(
         <AnimatePresence>
-          <motion.div
+          <Motion.div
             className="arcade-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSkillsArcadeOpen(false)}
           >
-            <motion.div
+            <Motion.div
               className="arcade-modal"
               initial={{ opacity: 0, y: 10, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1126,15 +1116,15 @@ export default function Background() {
                   </button>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         </AnimatePresence>,
         document.body
       )
     : null;
 
   return (
-    <motion.section
+    <Motion.section
       className="page background-page"
       variants={page}
       initial="initial"
@@ -1142,24 +1132,24 @@ export default function Background() {
       exit="exit"
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
-      <motion.h2
+      <Motion.h2
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.45 }}
       >
         Background
-      </motion.h2>
+      </Motion.h2>
 
-      <motion.h3
+      <Motion.h3
         className="background-intro-title"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.45 }}
       >
         Summary
-      </motion.h3>
+      </Motion.h3>
 
-      <motion.p
+      <Motion.p
         className="background-intro"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1169,15 +1159,15 @@ export default function Background() {
         medical device development and regulated engineering environments. My work
         focuses on building analytical and AI-enabled tools that accelerate verification,
         decision making and regulatory outcomes without sacrificing rigor.
-      </motion.p>
+      </Motion.p>
 
-      <motion.div
+      <Motion.div
         className="accordion"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.42, duration: 0.6 }}
       >
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.48, duration: 0.5 }}
@@ -1281,9 +1271,9 @@ export default function Background() {
               </li>
             </ul>
           </AccordionItem>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.56, duration: 0.5 }}
@@ -1346,9 +1336,9 @@ export default function Background() {
               </span>
             </div>
           </AccordionItem>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.64, duration: 0.5 }}
@@ -1402,9 +1392,9 @@ export default function Background() {
               </li>
             </ul>
           </AccordionItem>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.72, duration: 0.5 }}
@@ -1425,11 +1415,11 @@ export default function Background() {
               <li>Applied Generative AI Specialization – Building LLM Applications and Agentic Frameworks</li>
             </ul>
           </AccordionItem>
-        </motion.div>
+        </Motion.div>
 
-      </motion.div>
+      </Motion.div>
 
       {arcadePortal}
-    </motion.section>
+    </Motion.section>
   );
 }

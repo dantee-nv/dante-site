@@ -1,3 +1,5 @@
+import idahoResultsFlow from "../content/lead-generation/idaho-results-impact.mmd?raw";
+
 const validSkillLanes = new Set([
   "frontend",
   "backend",
@@ -307,7 +309,7 @@ const baseProjects = [
     slug: "lead-generation",
     title: "Automated Lead Generation",
     summary:
-      "Built a repeatable pipeline that filters raw Crexi listings, deduplicates brokers, and enriches broker records with active listing totals for outreach and market analysis.",
+      "Automated an SDR territory workflow by turning one filtered search URL into a qualified non-PRO lead list with contact details and Active Listings counts for AE demo pipeline handoff.",
     status: "live",
     tags: ["Python", "Data Pipeline", "Playwright", "Async Scraping", "Data Quality", "Automation"],
     atGlance: {
@@ -320,9 +322,18 @@ const baseProjects = [
         { label: "Automation", lane: "automation" },
       ],
       metrics: [
-        { label: "Input", value: "1,243 assets parsed", tone: "info" },
-        { label: "Targets", value: "200 unique brokers", tone: "neutral" },
-        { label: "Coverage", value: "98.5% enriched", tone: "success" },
+        { label: "Territory", value: "Idaho SDR snapshot (1,243 assets parsed)", tone: "info" },
+        {
+          label: "Lead Rule",
+          value: "Target non-PRO users with recently updated, high-activity listing profiles",
+          tone: "neutral",
+        },
+        {
+          label: "Output",
+          value: "200 deduped non-PRO leads with contact data + Active Listings",
+          tone: "success",
+        },
+        { label: "Coverage", value: "197 / 200 enriched (98.5%)", tone: "success" },
       ],
     },
     template: "case-study",
@@ -335,43 +346,33 @@ const baseProjects = [
       {
         heading: "Goal and Scope",
         body:
-          "I built a data pipeline that turns raw Crexi listing data into a clean broker dataset, then enriches each broker with total active listings from their public Crexi profile.",
+          "This workflow improves how an SDR works a defined territory by converting manual profile-by-profile qualification into a repeatable pipeline from one search URL.",
         bullets: [
-          "Designed for speed, accuracy, and repeatability.",
-          "Combined backend parsing with browser automation in one workflow.",
-          "Created a reusable process for outreach and market analysis datasets.",
+          "Support the SDR motion of booking demos that Account Executives close as PRO subscriptions.",
+          "Apply explicit regular-user vs PRO-user targeting logic at scale.",
+          "Return outreach-ready rows that preserve lead quality context for call prioritization.",
         ],
       },
       {
-        heading: "Problem and Goal",
+        heading: "Manual Baseline Process",
         body:
-          "SDR workflows required manual territory searches, listing checks, broker profile reviews, and outreach qualification one broker at a time.",
+          "The original territory workflow was fully manual and required repetitive drill-down across assets, users, and profiles before a lead could even be scored.",
         bullets: [
-          "Reduce manual profile-by-profile research for identified territories.",
-          "Apply business logic around PRO versus non-PRO broker targeting.",
-          "Prioritize lead quality signals including active listing volume and recent activity context.",
-          "Produce a reliable broker dataset for outreach and analysis.",
+          "Run a territory search and open assets one at a time.",
+          "Check each asset's users to find non-PRO candidates.",
+          "Open each user profile and inspect Active Listings to judge lead strength.",
+          "Use recent listing activity + Active Listings volume as lead quality signals before outreach.",
         ],
       },
       {
-        heading: "What I Built",
+        heading: "Automated Workflow and Qualification Logic",
         body:
-          "I implemented a three-stage pipeline from raw listing export to enrichment-ready and analysis-ready broker output.",
+          "I automated the flow so the SDR can provide the initial search URL and receive a targeted output of non-PRO users with contact info and Active Listings totals.",
         bullets: [
-          "API Parse.py handled data filtering and broker extraction from 1,243 raw asset records.",
-          "Generated normalized broker profile URLs and deduplicated to 200 unique brokers.",
-          "Crexi Scraper.py enriched broker rows with Active Listings Total using layered fallback selectors.",
-        ],
-      },
-      {
-        heading: "Results and Impact (One Territory Snapshot)",
-        body:
-          "These metrics are from a single Idaho territory export run and represent one repeatable snapshot of the workflow.",
-        bullets: [
-          "Input scope: 1,243 raw assets.",
-          "Final target set: 200 unique broker profiles.",
-          "Enriched successfully: 197 / 200 (98.5% coverage).",
-          "Unresolved: 3 rows marked N/A.",
+          "Parsed 1,243 Idaho assets and filtered records to enforce non-PRO targeting rules.",
+          "Handled both single-broker and multi-broker assets while excluding rows that violate targeting criteria.",
+          "Deduplicated broker profiles into one outreach-ready target set and enriched with Active Listings totals.",
+          "Produced a clean handoff for SDR calling and AE demo conversion workflows.",
         ],
       },
       {
@@ -386,52 +387,47 @@ const baseProjects = [
         ],
       },
       {
-        heading: "Skills Matrix",
-        body: "How project skills translated into measurable outcomes.",
+        heading: "Step-by-Step Timeline",
+        body:
+          "Execution moved from territory input through qualification logic, enrichment, and final SDR handoff output.",
         bullets: [
-          "Python scripting - Built end-to-end pipeline scripts - Automated a manual workflow.",
-          "JSON processing - Parsed and iterated 1,243 raw assets - Structured ingestion at scale.",
-          "CSV pipeline design - Produced filtered and enriched outputs - Clean stage-to-stage handoff.",
-          "Business-rule filtering - Excluded PRO brokers by logic - Improved lead targeting quality.",
-          "Deduplication strategy - Removed duplicate broker URLs - Delivered 200 unique broker rows.",
-          "Async Playwright scraping - Ran worker concurrency for profile enrichment - Increased throughput and coverage.",
-          "Reliability engineering - Implemented retry and backoff - Improved resilience on dynamic pages.",
-          "Regex and text extraction - Parsed Active Listings Total via fallbacks - More robust enrichment.",
-          "Data quality controls - Skipped already-filled rows and normalized N/A values - Safer reruns.",
+          "1. Started from the Idaho territory search export and validated extraction structure.",
+          "2. Implemented business filters for non-PRO targeting across single- and multi-broker assets.",
+          "3. Generated normalized broker profile URLs and deduplicated records by profile URL.",
+          "4. Produced enrichment-ready broker CSV with stable contact and profile handoff fields.",
+          "5. Implemented async Playwright workers to scrape Active Listings Total from broker profiles.",
+          "6. Added layered fallbacks, request blocking, retries, and backoff for extraction stability.",
+          "7. Delivered AE-ready SDR lead output with 197 / 200 enriched profiles (98.5%) and 3 rows marked N/A.",
         ],
       },
       {
-        heading: "Step-by-Step Timeline",
+        heading: "Results and Impact (One Territory Snapshot)",
         body:
-          "Execution moved from raw ingestion through hardened enrichment and final metric validation.",
-        bullets: [
-          "1. Loaded Idaho JSON export and validated record structure for broker extraction.",
-          "2. Implemented business filters for non-PRO targeting across single- and multi-broker assets.",
-          "3. Generated normalized broker URLs and deduplicated records by profile URL.",
-          "4. Produced enrichment-ready broker CSV with stable handoff fields.",
-          "5. Implemented async Playwright workers to scrape Active Listings Total from broker profiles.",
-          "6. Added layered fallbacks, request blocking, retries, and backoff for extraction stability.",
-          "7. Validated final coverage at 197/200 enriched profiles (98.5%) with 3 rows marked N/A.",
-        ],
+          "This Idaho run shows how the automated qualification funnel compresses manual SDR research into a repeatable territory snapshot.",
+        visual: {
+          kind: "mermaid",
+          markdown: idahoResultsFlow,
+          caption: "Idaho territory funnel from raw assets to deduped outreach targets.",
+        },
       },
       {
         heading: "What This Demonstrates",
         body:
-          "The project demonstrates full-stack automation execution from business logic translation to production-usable output quality.",
+          "The project demonstrates measurable process improvement, not just scraping output, by preserving lead quality intent while removing manual SDR bottlenecks.",
         bullets: [
-          "Converted outreach requirements into explicit, testable filtering logic.",
-          "Handled edge cases in dynamic web extraction with resilient fallback strategies.",
-          "Optimized runtime through concurrency and selective request blocking.",
-          "Delivered analysis-ready output that reduces manual research effort.",
+          "Replaced multi-click manual qualification with one-input automated lead generation.",
+          "Improved targeting precision by codifying non-PRO and lead-quality rules.",
+          "Strengthened SDR-to-AE handoff with actionable contact + Active Listings context.",
+          "Delivered repeatable territory snapshots for ongoing outreach planning.",
         ],
       },
     ],
     highlights: [
-      "Built a repeatable broker enrichment workflow from raw export to outreach-ready output.",
-      "Achieved 98.5% enrichment coverage on the 200-profile target set.",
-      "Implemented robust fallback extraction for dynamic profile page variance.",
-      "Reduced manual SDR research workload with automated filtering and enrichment.",
-      "Produced a clean dataset suitable for both outreach execution and market analysis.",
+      "Replaced manual asset-user-profile qualification with a one-URL automated pipeline.",
+      "Applied non-PRO targeting logic with lead-quality prioritization tied to recent activity and active inventory.",
+      "Generated AE-ready SDR call targets with contact context and Active Listings totals.",
+      "Produced 200 deduped broker targets from 1,243 Idaho assets with 98.5% enrichment coverage.",
+      "Maintained a repeatable territory workflow for ongoing outreach execution and analysis.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },
