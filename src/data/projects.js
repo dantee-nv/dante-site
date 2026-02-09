@@ -67,6 +67,8 @@ const baseProjects = [
     title: "This Site",
     summary:
       "An AWS Amplify-hosted personal site built to ship quickly, look polished and support real outreach through a production contact pipeline.",
+    cardSummary:
+      "AWS Amplify-hosted portfolio with polished React UX and a production contact pipeline.",
     status: "live",
     tags: ["React", "Vite", "React Router", "Framer Motion", "AWS", "Amplify"],
     atGlance: {
@@ -309,7 +311,7 @@ const baseProjects = [
     slug: "lead-generation",
     title: "Automated Lead Generation",
     summary:
-      "Automated an SDR territory workflow by turning one filtered search URL into a qualified non-PRO lead list with contact details and Active Listings counts for AE demo pipeline handoff.",
+      "Automated sales territory workflows by scraping qualified non-paid user lists from an initial unfiltered searches.",
     status: "live",
     tags: ["Python", "Data Pipeline", "Playwright", "Async Scraping", "Data Quality", "Automation"],
     atGlance: {
@@ -333,12 +335,12 @@ const baseProjects = [
           value: "200 deduped non-PRO leads with contact data + Active Listings",
           tone: "success",
         },
-        { label: "Coverage", value: "197 / 200 enriched (98.5%)", tone: "success" },
+        { label: "Coverage", value: "197 / 200 enriched (98.5%); 3 true N/A rows", tone: "success" },
       ],
     },
     template: "case-study",
     meta: {
-      timeline: "2026 (Idaho territory snapshot run)",
+      timeline: "2026",
       role: "Data + Automation Engineer",
       stack: "Python, JSON, CSV, Playwright, Asyncio, Regex, Apify Actor output",
     },
@@ -346,7 +348,7 @@ const baseProjects = [
       {
         heading: "Goal and Scope",
         body:
-          "This workflow improves how an SDR works a defined territory by converting manual profile-by-profile qualification into a repeatable pipeline from one search URL.",
+          "This workflow improves how a Sales Development Representative (SDR) works a defined territory by converting manual profile-by-profile qualification into a repeatable pipeline from one search URL.",
         bullets: [
           "Support the SDR motion of booking demos that Account Executives close as PRO subscriptions.",
           "Apply explicit regular-user vs PRO-user targeting logic at scale.",
@@ -370,8 +372,8 @@ const baseProjects = [
           "I automated the flow so the SDR can provide the initial search URL and receive a targeted output of non-PRO users with contact info and Active Listings totals.",
         bullets: [
           "Parsed 1,243 Idaho assets and filtered records to enforce non-PRO targeting rules.",
-          "Handled both single-broker and multi-broker assets while excluding rows that violate targeting criteria.",
-          "Deduplicated broker profiles into one outreach-ready target set and enriched with Active Listings totals.",
+          "Handled both single-user and multi-user assets while excluding rows that violate targeting criteria.",
+          "Deduplicated user profiles into one outreach-ready target set and enriched with Active Listings totals.",
           "Produced a clean handoff for SDR calling and AE demo conversion workflows.",
         ],
       },
@@ -389,21 +391,19 @@ const baseProjects = [
       {
         heading: "Step-by-Step Timeline",
         body:
-          "Execution moved from territory input through qualification logic, enrichment, and final SDR handoff output.",
+          "Running this on the Idaho territory moved through five stages from raw assets to outreach-ready user records.",
         bullets: [
-          "1. Started from the Idaho territory search export and validated extraction structure.",
-          "2. Implemented business filters for non-PRO targeting across single- and multi-broker assets.",
-          "3. Generated normalized broker profile URLs and deduplicated records by profile URL.",
-          "4. Produced enrichment-ready broker CSV with stable contact and profile handoff fields.",
-          "5. Implemented async Playwright workers to scrape Active Listings Total from broker profiles.",
-          "6. Added layered fallbacks, request blocking, retries, and backoff for extraction stability.",
-          "7. Delivered AE-ready SDR lead output with 197 / 200 enriched profiles (98.5%) and 3 rows marked N/A.",
+          "Start with one unfiltered Idaho territory export (1,243 assets).",
+          "Apply non-PRO rules across single-user and multi-user assets.",
+          "Normalize user profile links and deduplicate to unique user targets.",
+          "Enrich user records with contact fields and Active Listings totals.",
+          "Run reliability checks and output 200 rows: 197 enriched and 3 true N/A rows.",
         ],
       },
       {
         heading: "Results and Impact (One Territory Snapshot)",
         body:
-          "This Idaho run shows how the automated qualification funnel compresses manual SDR research into a repeatable territory snapshot.",
+          "Running this on the Idaho territory shows how the automated qualification funnel compresses manual SDR research into a repeatable territory snapshot.",
         visual: {
           kind: "mermaid",
           markdown: idahoResultsFlow,
@@ -426,7 +426,7 @@ const baseProjects = [
       "Replaced manual asset-user-profile qualification with a one-URL automated pipeline.",
       "Applied non-PRO targeting logic with lead-quality prioritization tied to recent activity and active inventory.",
       "Generated AE-ready SDR call targets with contact context and Active Listings totals.",
-      "Produced 200 deduped broker targets from 1,243 Idaho assets with 98.5% enrichment coverage.",
+      "Produced 200 deduped user targets from 1,243 Idaho assets with 98.5% enrichment coverage.",
       "Maintained a repeatable territory workflow for ongoing outreach execution and analysis.",
     ],
     cta: [
@@ -440,14 +440,14 @@ const baseProjects = [
     summary:
       "A Retrieval-Augmented Generation chatbot that answers Nestle HR policy questions with concise, policy-grounded responses while minimizing hallucinations.",
     status: "live",
-    tags: ["RAG", "LangChain", "OpenAI", "FAISS", "Gradio"],
+    tags: ["RAG", "LangChain", "OpenAI", "FAISS", "React"],
     atGlance: {
       skills: [
         { label: "RAG", lane: "ai" },
         { label: "LangChain", lane: "ai" },
         { label: "OpenAI", lane: "ai" },
         { label: "FAISS", lane: "ai" },
-        { label: "Gradio", lane: "frontend" },
+        { label: "React", lane: "frontend" },
         { label: "GPT-4.1-nano", lane: "ai" },
       ],
       metrics: [
@@ -458,9 +458,9 @@ const baseProjects = [
     },
     template: "case-study",
     meta: {
-      role: "LLM + Retrieval Engineer",
+      role: "AI Engineer",
       stack:
-        "Python, LangChain, OpenAI text-embedding-3-small, FAISS, GPT-4.1-nano, Gradio",
+        "Python, LangChain, OpenAI text-embedding-3-small, FAISS, GPT-4.1-nano, React, AWS Lambda, API Gateway",
     },
     sections: [
       {
@@ -498,11 +498,11 @@ const baseProjects = [
       {
         heading: "User Interface",
         body:
-          "A lightweight Gradio frontend provides a chat-style experience for policy Q&A.",
+          "A React in-page demo panel provides a chat-style Q&A experience directly on the project detail page.",
         bullets: [
-          "Users submit questions through a text input and receive concise answers.",
-          "An Answer Stats section displays latency, token usage, and estimated cost.",
-          "Performance details are collapsible to keep primary responses uncluttered.",
+          "Users submit policy questions from the project page and receive concise answers.",
+          "Answer Stats display latency, token usage, and estimated cost from the Lambda response.",
+          "Performance details stay collapsible so core answers remain easy to read.",
         ],
       },
       {
@@ -519,7 +519,7 @@ const baseProjects = [
     highlights: [
       "Built a policy-grounded RAG flow using LangChain, OpenAI embeddings, and FAISS.",
       "Implemented prompt constraints that prioritize concise, context-only answers.",
-      "Delivered a Gradio chat interface with built-in latency/token/cost visibility.",
+      "Delivered a React-based chat demo with built-in latency/token/cost visibility.",
       "Designed with modular structure for multi-document and production-ready expansion.",
     ],
     cta: [
@@ -551,10 +551,10 @@ function normalizeProject(project) {
 export const projects = baseProjects.map(normalizeProject);
 
 export const projectCardList = projects.map(
-  ({ slug, title, summary, status, tags, template, atGlance }) => ({
+  ({ slug, title, summary, cardSummary, status, tags, template, atGlance }) => ({
     slug,
     title,
-    summary,
+    summary: cardSummary || summary,
     status,
     tags,
     template,
