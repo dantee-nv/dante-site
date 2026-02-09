@@ -205,7 +205,7 @@ const baseProjects = [
     },
     sections: [
       {
-        heading: "Hero",
+        heading: "Goal and Scope",
         body:
           "Cabbie Quiz is an iOS quiz app focused on city-specific learning, designed to turn local knowledge into a fast, interactive game loop.",
         bullets: [
@@ -333,7 +333,7 @@ const baseProjects = [
     },
     sections: [
       {
-        heading: "Project Snapshot",
+        heading: "Goal and Scope",
         body:
           "I built a data pipeline that turns raw Crexi listing data into a clean broker dataset, then enriches each broker with total active listings from their public Crexi profile.",
         bullets: [
@@ -468,7 +468,7 @@ const baseProjects = [
     },
     sections: [
       {
-        heading: "Project Goal",
+        heading: "Goal and Scope",
         body:
           "This project implements a Retrieval-Augmented Generation chatbot for Nestle Human Resources policy support, with answers constrained to approved HR documents.",
         bullets: [

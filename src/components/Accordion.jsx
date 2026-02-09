@@ -11,7 +11,9 @@ export function Accordion({ items, openId, setOpenId }) {
           <div className="accordion-item" key={item.id}>
             <button
               className="accordion-header"
-              onClick={() => setOpenId(isOpen ? null : item.id)}
+              onClick={() =>
+                setOpenId((currentId) => (currentId === item.id ? null : item.id))
+              }
               aria-expanded={isOpen}
               aria-controls={`${item.id}-panel`}
               id={`${item.id}-trigger`}

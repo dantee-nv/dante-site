@@ -107,6 +107,10 @@ export default function ProjectDetail() {
   const [openAccordionId, setOpenAccordionId] = React.useState(null);
   usePageTitle(project ? project.title : "404");
 
+  React.useEffect(() => {
+    setOpenAccordionId(null);
+  }, [projectSlug]);
+
   if (!project) {
     return <NotFound />;
   }
@@ -114,7 +118,6 @@ export default function ProjectDetail() {
   const ctaActions = project.cta.filter((action) => action?.label && action?.to);
   const atGlanceSkills = project.atGlance?.skills || [];
   const atGlanceMetrics = project.atGlance?.metrics || [];
-  const isSiteProject = project.slug === "site";
   const deepDiveItems = [
     {
       id: "deep-dive",
@@ -150,6 +153,8 @@ export default function ProjectDetail() {
             </div>
           ) : null}
 
+          {project.slug === "rag-hr-chatbot" ? <ProjectDemoPanel /> : null}
+
           {project.highlights.length > 0 ? (
             <section className="project-highlights">
               <h3>Highlights</h3>
@@ -159,12 +164,6 @@ export default function ProjectDetail() {
                 ))}
               </ul>
             </section>
-          ) : null}
-
-          {ctaActions.length > 0 ? (
-            <div className="project-cta-row">
-              {ctaActions.map((action, index) => renderCtaAction(action, index))}
-            </div>
           ) : null}
         </>
       ),
@@ -257,86 +256,23 @@ export default function ProjectDetail() {
           </Motion.section>
         ) : null}
 
-        {isSiteProject ? (
-          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
-            <Accordion
-              items={deepDiveItems}
-              openId={openAccordionId}
-              setOpenId={setOpenAccordionId}
-            />
+        <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+          <Accordion
+            items={deepDiveItems}
+            openId={openAccordionId}
+            setOpenId={setOpenAccordionId}
+          />
+        </Motion.div>
+
+        {ctaActions.length > 0 ? (
+          <Motion.div
+            className="project-cta-row"
+            variants={pop}
+            transition={{ duration: 0.35 }}
+          >
+            {ctaActions.map((action, index) => renderCtaAction(action, index))}
           </Motion.div>
-        ) : (
-          <>
-            {project.template === "stub" ? (
-              <Motion.section
-                className="project-section"
-                variants={pop}
-                transition={{ duration: 0.35 }}
-              >
-                <h3>In Progress</h3>
-                <p>
-                  This page is intentionally lightweight while the project is being
-                  defined and built. It will expand into a full case study as work
-                  ships.
-                </p>
-              </Motion.section>
-            ) : null}
-
-            {project.sections.length > 0 ? (
-              <div className="project-sections">
-                {project.sections.map((section) => (
-                  <Motion.section
-                    className="project-section"
-                    key={section.heading}
-                    variants={pop}
-                    transition={{ duration: 0.35 }}
-                  >
-                    <h3>{section.heading}</h3>
-                    {section.body ? <p>{section.body}</p> : null}
-                    {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
-                      <ul>
-                        {section.bullets.map((bullet) => (
-                          <li key={bullet}>{bullet}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </Motion.section>
-                ))}
-              </div>
-            ) : null}
-
-            {project.slug === "rag-hr-chatbot" ? (
-              <Motion.div variants={pop} transition={{ duration: 0.35 }}>
-                <ProjectDemoPanel />
-              </Motion.div>
-            ) : null}
-
-            {project.highlights.length > 0 ? (
-              <Motion.section
-                className="project-highlights"
-                variants={pop}
-                transition={{ duration: 0.35 }}
-              >
-                <h3>Highlights</h3>
-                <ul>
-                  {project.highlights.map((highlight) => (
-                    <li key={highlight}>{highlight}</li>
-                  ))}
-                </ul>
-              </Motion.section>
-            ) : null}
-
-            {ctaActions.length > 0 ? (
-              <Motion.div
-                className="project-cta-row"
-                variants={pop}
-                transition={{ duration: 0.35 }}
-              >
-                {ctaActions.map((action, index) => renderCtaAction(action, index))}
-              </Motion.div>
-            ) : null}
-          </>
-        )}
+        ) : null}
       </Motion.div>
     </Motion.section>
   );
