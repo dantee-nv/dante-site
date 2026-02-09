@@ -180,14 +180,14 @@ export default function Contact() {
 
   return (
     <Motion.section
-      className="page"
+      className="page contact-page"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.35 }}
     >
       <h2>Contact</h2>
-      <p>Send a message and let&apos;s connect!</p>
+      <p className="contact-intro">Send a message and let&apos;s connect!</p>
 
       <form className="contact-form" onSubmit={handleSubmit} noValidate>
         <div className="contact-field">
@@ -313,7 +313,6 @@ export default function Contact() {
 
       <div className="contact-row">
         <a className="btn ghost" href="https://www.linkedin.com/in/dante-navarro/" target="_blank" rel="noreferrer">LinkedIn</a>
-        <a className="btn ghost" href="https://github.com/dantee-nv" target="_blank" rel="noreferrer">GitHub</a>
         <a className="btn ghost" href={emailActionHref}>Email</a>
       </div>
     </Motion.section>

@@ -3,7 +3,7 @@ import { motion as Motion } from "framer-motion";
 
 export function Accordion({ items, openId, setOpenId }) {
   return (
-    <div className="accordion">
+    <div className="accordion project-accordion">
       {items.map((item) => {
         const isOpen = openId === item.id;
 
