@@ -354,7 +354,7 @@ export default function ProjectDemoPanel() {
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           maxLength={MAX_QUESTION_LENGTH}
-          placeholder="Example: What does the policy say about reporting unplanned absences?"
+          placeholder="Example: What elements are included in Nestle's Total Rewards employee commitment?"
           required
         />
         <div className="project-demo-actions">
