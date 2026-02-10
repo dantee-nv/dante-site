@@ -20,13 +20,13 @@ This folder contains a ready-to-import workflow for the AMC 30-Day Watch form.
 2. Select `amc-30-day-watch-signup.workflow.json`.
 3. Open `AMC Signup Webhook` node and copy the Production URL.
 4. Set frontend env var:
-   - `VITE_AMC_SIGNUP_WEBHOOK_URL=<your-webhook-production-url>`
+   - `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
 5. Activate the workflow.
 
 ## Test request (API format)
 
 ```bash
-curl -X POST "<your-webhook-production-url>" \
+curl -X POST "http://3.16.1.186:5678/webhook/amc-30-day-watch-signup" \
   -H "content-type: application/json" \
   -d '{
     "email": "user@example.com",
