@@ -61,9 +61,9 @@ Resources:
           EMBEDDING_MODEL: !Ref EmbeddingModel
           TOP_K: 6
           MAX_CONTEXT_CHUNKS: 6
-          VECTOR_CANDIDATE_K: 12
-          LEXICAL_CANDIDATE_K: 12
-          MIN_SIMILARITY: 0.18
+          VECTOR_CANDIDATE_K: 20
+          LEXICAL_CANDIDATE_K: 20
+          MIN_SIMILARITY: 0.12
           CHUNK_SIZE: 500
           CHUNK_OVERLAP: 100
           RRF_K: 60
