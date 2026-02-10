@@ -19,7 +19,7 @@ npm run dev
 
 The contact page reads `VITE_CONTACT_API_URL` and posts JSON to that endpoint.
 The Project 3 demo panel reads `VITE_RAG_DEMO_API_URL` and calls the Python RAG demo endpoint.
-The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and posts JSON to an n8n webhook.
+The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and `VITE_AMC_PUBLIC_SIGNUP_ENABLED`.
 
 ## Contact API architecture
 
@@ -76,6 +76,7 @@ Ready-to-import workflow files are in:
 Frontend config:
 
 - `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
+- `VITE_AMC_PUBLIC_SIGNUP_ENABLED=false` (set `true` when public signup rollout is ready)
 
 Frontend payload contract:
 
@@ -188,6 +189,7 @@ In Amplify environment variables, set:
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
 - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
 - `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
+- `VITE_AMC_PUBLIC_SIGNUP_ENABLED=false`
 
 Then trigger a redeploy.
 
@@ -207,6 +209,19 @@ Then trigger a redeploy.
 1. `400 Invalid input`: frontend payload failed backend validation.
 2. `429 Too many requests`: API throttling engaged; wait and retry.
 3. `500 Failed to send message`: check CloudWatch logs and SES identity/sandbox status.
-4. CORS errors: verify site origin matches the configured `AllowedOrigins`.
+4. CORS/network errors on deployed site: verify the current browser origin (for example your Amplify domain) is included in `AllowedOrigins`, then redeploy the RAG API stack:
+   ```bash
+   cd infra/rag-demo-api
+   sam deploy \
+     --stack-name dante-rag-demo-api \
+     --region us-east-2 \
+     --profile dante_nv \
+     --capabilities CAPABILITY_IAM \
+     --resolve-s3 \
+     --parameter-overrides \
+       OpenAIApiKey=<OPENAI_API_KEY> \
+       AllowedOrigins="https://dantenavarro.com,https://www.dantenavarro.com,https://<your-amplify-domain>,http://localhost:5173"
+   ```
+   Then confirm Amplify has `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo` and trigger a frontend rebuild.
 5. If `sam build` fails with an npm 11 error, use Node 20/npm 10 for build, or deploy directly with `sam deploy --template-file template.yaml` after `npm install` in `infra/contact-api`.
 6. If `sam build` fails for `infra/rag-demo-api` with Python runtime mismatch, install `python3.12` locally (the stack runtime is pinned to `python3.12`).
