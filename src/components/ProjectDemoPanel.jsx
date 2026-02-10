@@ -6,19 +6,6 @@ const MAX_FEEDBACK_NOTE_LENGTH = 1000;
 const POLICY_PDF_DOWNLOAD_PATH = "/nestle_hr_policy.pdf";
 const PRODUCTION_RAG_DEMO_API_URL =
   "https://fv9c2ycohg.execute-api.us-east-2.amazonaws.com/rag-demo";
-const PRODUCTION_HOSTNAMES = new Set(["dantenavarro.com", "www.dantenavarro.com"]);
-
-function shouldUseProductionFallback(hostname) {
-  if (!hostname) {
-    return false;
-  }
-
-  if (PRODUCTION_HOSTNAMES.has(hostname)) {
-    return true;
-  }
-
-  return hostname.endsWith(".amplifyapp.com");
-}
 
 function resolveRagDemoApiUrl(rawUrl) {
   const trimmed = normalizeEnvUrlValue(rawUrl);
@@ -75,12 +62,7 @@ function resolveRagDemoApiUrlWithProductionFallback(rawUrl) {
     return configuredUrl;
   }
 
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const hostname = String(window.location.hostname || "").toLowerCase().trim();
-  if (!shouldUseProductionFallback(hostname)) {
+  if (!import.meta.env.PROD) {
     return "";
   }
 
