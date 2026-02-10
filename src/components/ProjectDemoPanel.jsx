@@ -69,6 +69,34 @@ function resolveRagDemoApiUrlWithProductionFallback(rawUrl) {
   return resolveRagDemoApiUrl(PRODUCTION_RAG_DEMO_API_URL);
 }
 
+function buildDemoNetworkErrorMessage(apiUrl) {
+  if (!import.meta.env.PROD) {
+    return "Network error while calling the demo API.";
+  }
+
+  const origin =
+    typeof window !== "undefined" && window?.location?.origin
+      ? window.location.origin
+      : "this site origin";
+  const endpoint = apiUrl || "the configured demo endpoint";
+
+  return `Network error while calling the demo API. Check CORS allowlist includes ${origin} and verify VITE_RAG_DEMO_API_URL points to a live /rag-demo endpoint (${endpoint}).`;
+}
+
+function buildFeedbackNetworkErrorMessage(feedbackApiUrl) {
+  if (!import.meta.env.PROD) {
+    return "Network error while submitting feedback.";
+  }
+
+  const origin =
+    typeof window !== "undefined" && window?.location?.origin
+      ? window.location.origin
+      : "this site origin";
+  const endpoint = feedbackApiUrl || "the configured feedback endpoint";
+
+  return `Network error while submitting feedback. Check CORS allowlist includes ${origin} and verify the /rag-demo/feedback endpoint is reachable (${endpoint}).`;
+}
+
 async function parseResponsePayload(response) {
   const contentType = response.headers.get("content-type") || "";
 
@@ -202,7 +230,7 @@ export default function ProjectDemoPanel() {
         return;
       }
 
-      setError("Network error while calling the demo API.");
+      setError(buildDemoNetworkErrorMessage(apiUrl));
     } finally {
       clearTimeout(timeoutId);
       setIsLoading(false);
@@ -286,7 +314,7 @@ export default function ProjectDemoPanel() {
         return;
       }
 
-      setFeedbackError("Network error while submitting feedback.");
+      setFeedbackError(buildFeedbackNetworkErrorMessage(feedbackApiUrl));
     } finally {
       clearTimeout(timeoutId);
       setIsSubmittingFeedback(false);
@@ -295,7 +323,10 @@ export default function ProjectDemoPanel() {
 
   return (
     <section className="project-demo-panel">
-      <h3>Live Demo</h3>
+      <div className="project-demo-heading">
+        <h3>Live Demo</h3>
+        <span className="project-demo-pill">Try It Now</span>
+      </div>
       <p>
         This demo uses the Nestle HR policy document. The same RAG architecture
         can be applied to any approved document set.

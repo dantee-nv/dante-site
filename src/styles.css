@@ -720,14 +720,43 @@ a{ color: inherit; text-decoration:none; }
 
 .project-demo-panel{
   margin-top: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(127, 214, 255, 0.52);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(126, 216, 255, 0.2), transparent 48%),
+    rgba(255,255,255,0.04);
   border-radius: 18px;
   padding: 18px;
+  box-shadow:
+    0 0 0 1px rgba(127, 214, 255, 0.18),
+    0 14px 28px rgba(36, 138, 196, 0.2);
+}
+
+.project-demo-heading{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .project-demo-panel h3{
-  margin: 0 0 10px;
+  margin: 0;
+}
+
+.project-demo-pill{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(126, 216, 255, 0.58);
+  background: rgba(75, 181, 255, 0.18);
+  color: #c9efff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 4px 10px;
 }
 
 .project-demo-panel p{
