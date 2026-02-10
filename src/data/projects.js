@@ -283,18 +283,6 @@ const baseProjects = [
           "Add content validation and fallback rules for malformed LLM output.",
         ],
       },
-      {
-        heading: "Important Public APIs / Interfaces / Types",
-        body:
-          "The backend-to-app contract and app-side mapping are intentionally explicit to reduce integration ambiguity.",
-        bullets: [
-          "Backend question contract: question: String.",
-          "Backend question contract: decoys: [String].",
-          "Backend question contract: answer: String.",
-          "App-side mapped decode type: JSONQuestion from backend payload.",
-          "View-consumption model: question object with shuffled options via newOptions.",
-        ],
-      },
     ],
     highlights: [
       "Designed and implemented a native iOS trivia loop with structured state transitions.",
