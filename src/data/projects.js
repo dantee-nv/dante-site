@@ -233,12 +233,11 @@ const baseProjects = [
         body:
           "The user flow follows a clear quiz lifecycle from city choice to completion and replay.",
         bullets: [
-          "City selection -> choose a location context for the round.",
-          "Question retrieval and formatting -> decode prompt, answer, and decoys into UI-ready options.",
-          "Answer selection -> user picks one option with submit gating to prevent invalid state.",
-          "Scoring and progress -> track score and question index across the session.",
-          "Completion and restart -> show final result and allow replay from the start.",
-          "Current implementation status: Los Angeles flow is implemented; Austin and Baltimore scaffolds are present.",
+          "City selection chooses a location context for the round.",
+          "Question retrieval and formatting decodes prompts, answers and decoys into UI-ready options.",
+          "User picks one option with submit gating to prevent invalid state.",
+          "Score and question index is tracked across the session.",
+          "Final results are highlighted and replay option is available.",
         ],
       },
       {
@@ -249,7 +248,7 @@ const baseProjects = [
           "Swift and SwiftUI for native interface and interaction design.",
           "MVVM-style state management using ObservableObject and @Published.",
           "JSON decoding and data modeling for question payload ingestion.",
-          "UI state control for option selection, submit gating, and progress tracking.",
+          "UI state control for option selection, submit gating and progress tracking.",
           "API and LLM integration concept with backend communication pipeline (collaborator-owned generation path).",
         ],
       },
@@ -277,8 +276,7 @@ const baseProjects = [
         body:
           "The next phase moves from scaffolded prototype behavior into production-grade reliability and scale.",
         bullets: [
-          "Activate Austin and Baltimore quiz pipelines.",
-          "Replace static JSON stubs with live API responses.",
+          "Activate other city quiz pipelines.",
           "Add real tests across unit and UI layers.",
           "Add content validation and fallback rules for malformed LLM output.",
         ],
@@ -359,10 +357,9 @@ const baseProjects = [
         body:
           "I automated the flow so the SDR can provide the initial search URL and receive a targeted output of non-PRO users with contact info and Active Listings totals.",
         bullets: [
-          "Parsed 1,243 Idaho assets and filtered records to enforce non-PRO targeting rules.",
+          "Parsed 1,243 assets and filtered records to enforce non-PRO targeting rules.",
           "Handled both single-user and multi-user assets while excluding rows that violate targeting criteria.",
           "Deduplicated user profiles into one outreach-ready target set and enriched with Active Listings totals.",
-          "Produced a clean handoff for SDR calling and AE demo conversion workflows.",
         ],
       },
       {
@@ -620,9 +617,6 @@ const baseProjects = [
           "Dynamic web scraping using Playwright-based extraction and fallback strategy.",
           "Data parsing and normalization across JSON-LD, DOM, and network payload variants.",
           "Filtering logic engineering for explicit IMAX evidence and safe exclusion rules.",
-          "CLI hardening with flags, env var support, and stable exit-code behavior.",
-          "Reliability patterns including retries, diagnostics, and source-unavailable handling.",
-          "Test-driven validation with pytest and focused behavioral coverage.",
           "Workflow orchestration in n8n with AWS SES email automation design.",
           "Deployment portability planning through private GitHub and EC2-hosted runtime.",
         ],
@@ -630,7 +624,7 @@ const baseProjects = [
       {
         heading: "n8n Automation Network on EC2",
         body:
-          "The automation network is designed for EC2 hosting so schedules, credentials, and alerting remain under controlled infrastructure.",
+          "The automation network is designed for EC2 hosting so schedules, credentials and alerting remain under controlled infrastructure.",
         visual: {
           kind: "image",
           src: "/projects/amc-n8n-workflow.png",
@@ -640,11 +634,11 @@ const baseProjects = [
             "Live n8n workflow: scheduled scraper execution with success/failure email branches and signup webhook subscriber upsert.",
         },
         bullets: [
-          "Run n8n on EC2 as the orchestration layer for cadence, execution logging, and workflow branching.",
+          "Run n8n on EC2 as the orchestration layer for cadence, execution logging and workflow branching.",
           "Use scheduled trigger nodes for biweekly runs and optional ad-hoc backfill windows.",
-          "Execute scraper jobs from n8n, parse JSON output, and route success payloads to SES email delivery.",
+          "Execute scraper jobs from n8n, parse JSON output and route success payloads to SES email delivery.",
           "Webhook-driven subscriber onboarding is built and in finalization for broader deployment, but public enrollment is held until SES delivery can move beyond verified-recipient-only mode.",
-          "Maintain a separate admin-alert branch for failures, timeout conditions, and empty-data anomalies.",
+          "Maintain a separate admin-alert branch for failures, timeout conditions and empty-data anomalies.",
           "Keep secrets and environment configuration isolated on EC2 with predictable deployment and rollback paths.",
           "Support portability by storing code in private GitHub and promoting the same workflow design across environments.",
         ],
@@ -656,7 +650,7 @@ const baseProjects = [
         bullets: [
           "Removed IMAX false positives by tightening format evidence rules.",
           "Output serves both machines (JSON for n8n) and humans (clean PST/PDT summary).",
-          "Established a production path: scheduled runs, SES email delivery, and failure escalation to admins.",
+          "Established a production path: scheduled runs, SES email delivery and failure escalation to admins.",
         ],
       },
     ],
@@ -664,8 +658,8 @@ const baseProjects = [
       "Delivered IMAX-only showtime extraction for a single Los Angeles AMC theater with layered fallback parsing.",
       "Eliminated non-IMAX contamination through stricter format evidence logic.",
       "Added single-date and rolling 30-day scan behavior with timezone-safe ordering and deduplication.",
-      "Validated behavior through pytest coverage for filtering, windowing, sorting, and summary output.",
-      "Designed an EC2-hosted n8n automation network with biweekly scheduling, SES distribution, and admin failure alerts.",
+      "Validated behavior through pytest coverage for filtering, windowing, sorting and summary output.",
+      "Designed an EC2-hosted n8n automation network with biweekly scheduling, SES distribution and admin failure alerts.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },
