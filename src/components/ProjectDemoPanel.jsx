@@ -4,6 +4,9 @@ import { normalizeEnvUrlValue } from "../utils/envUrl";
 const MAX_QUESTION_LENGTH = 500;
 const MAX_FEEDBACK_NOTE_LENGTH = 1000;
 const POLICY_PDF_DOWNLOAD_PATH = "/nestle_hr_policy.pdf";
+const PRODUCTION_RAG_DEMO_API_URL =
+  "https://fv9c2ycohg.execute-api.us-east-2.amazonaws.com/rag-demo";
+const PRODUCTION_HOSTNAMES = new Set(["dantenavarro.com", "www.dantenavarro.com"]);
 
 function resolveRagDemoApiUrl(rawUrl) {
   const trimmed = normalizeEnvUrlValue(rawUrl);
@@ -52,6 +55,24 @@ function resolveRagDemoFeedbackApiUrl(rawUrl) {
   } catch {
     return "";
   }
+}
+
+function resolveRagDemoApiUrlWithProductionFallback(rawUrl) {
+  const configuredUrl = resolveRagDemoApiUrl(rawUrl);
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const hostname = String(window.location.hostname || "").toLowerCase().trim();
+  if (!PRODUCTION_HOSTNAMES.has(hostname)) {
+    return "";
+  }
+
+  return resolveRagDemoApiUrl(PRODUCTION_RAG_DEMO_API_URL);
 }
 
 async function parseResponsePayload(response) {
@@ -110,12 +131,12 @@ export default function ProjectDemoPanel() {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   const apiUrl = useMemo(
-    () => resolveRagDemoApiUrl(import.meta.env.VITE_RAG_DEMO_API_URL),
+    () => resolveRagDemoApiUrlWithProductionFallback(import.meta.env.VITE_RAG_DEMO_API_URL),
     []
   );
   const feedbackApiUrl = useMemo(
-    () => resolveRagDemoFeedbackApiUrl(import.meta.env.VITE_RAG_DEMO_API_URL),
-    []
+    () => resolveRagDemoFeedbackApiUrl(apiUrl),
+    [apiUrl]
   );
 
   function resetFeedbackState() {
