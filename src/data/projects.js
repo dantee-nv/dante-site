@@ -110,7 +110,7 @@ const baseProjects = [
           "The site is built with React + Vite and routed with React Router. Framer Motion handles page transitions and staggered reveals to keep motion consistent across pages.",
         bullets: [
           "Single app shell with shared header and footer.",
-          "Route-based pages for Home, Projects, Background, and Contact.",
+          "Route-based pages for Home, Projects, Background and Contact.",
           "Reusable animation variants for page and card entry.",
         ],
       },
@@ -141,7 +141,7 @@ const baseProjects = [
           "Contact submissions flow from the frontend to API Gateway, then into a Lambda function that sends mail through SES with validation and response handling.",
         bullets: [
           "Frontend posts JSON payloads from the Contact page.",
-          "Backend validates input, rate-limits, and returns user-safe responses.",
+          "Backend validates input, rate-limits and returns user-safe responses.",
         ],
       },
       {
@@ -483,7 +483,7 @@ const baseProjects = [
       {
         heading: "Technical Overview",
         body:
-          "The ingestion and retrieval pipeline is built so source documents can be swapped without changing the frontend flow. PDFs and text inputs are chunked, embedded, indexed, and retrieved through a hybrid search strategy before answer generation.",
+          "The ingestion and retrieval pipeline is built so source documents can be swapped without changing the frontend flow. PDFs and text inputs are chunked, embedded, indexed and retrieved through a hybrid search strategy before answer generation.",
         bullets: [
           "Policy content is split into retrieval-ready chunks using tighter chunking tuned for a lightweight model (smaller chunks + overlap).",
           "Chunks are embedded with OpenAI `text-embedding-3-small` and indexed in FAISS.",
@@ -494,7 +494,7 @@ const baseProjects = [
       {
         heading: "Model and Prompting Strategy",
         body:
-          "Generation uses GPT-4.1-nano with explicit guardrails designed for lightweight-model reliability, keeping outputs grounded, concise, and constrained to approved policy context.",
+          "Generation uses GPT-4.1-nano with explicit guardrails designed for lightweight-model reliability, keeping outputs grounded, concise and constrained to approved policy context.",
         bullets: [
           "Prompt instructions explicitly call out lightweight-model limitations and prohibit speculative multi-step inference.",
           "Responses are constrained to one or two short sentences and must stay within retrieved policy context.",
@@ -509,9 +509,9 @@ const baseProjects = [
           "The solution is deployed as serverless APIs so it is production-ready and observable. Answer generation and user feedback are separated for clear responsibilities.",
         bullets: [
           "Question requests flow through API Gateway to a Python Lambda RAG handler.",
-          "Responses return answer content plus latency, token usage, and estimated cost.",
+          "Responses return answer content plus latency, token usage and estimated cost.",
           "Feedback submissions flow to a dedicated Lambda and persist into DynamoDB.",
-          "Structured feedback records include helpful flag, optional note, and request context metadata.",
+          "Structured feedback records include helpful flag, optional note and request context metadata.",
         ],
       },
       {
@@ -528,7 +528,7 @@ const baseProjects = [
       {
         heading: "Outcome and Reuse Potential",
         body:
-          "This implementation now acts as a reusable RAG foundation that can be adapted to policy, handbook, operations, or compliance documents while keeping retrieval and feedback loops intact.",
+          "This implementation now acts as a reusable RAG foundation that can be adapted to policy, handbook, operations or compliance documents while keeping retrieval and feedback loops intact.",
         bullets: [
           "Delivered a practical blueprint for deploying document-grounded assistants on AWS serverless infrastructure.",
           "Combined retrieval accuracy controls with user feedback capture for ongoing quality improvement.",
