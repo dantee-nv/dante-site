@@ -30,11 +30,7 @@ curl -X POST "http://3.16.1.186:5678/webhook/amc-30-day-watch-signup" \
   -H "content-type: application/json" \
   -d '{
     "email": "user@example.com",
-    "watchMode": "30_day_watch",
-    "sourceSite": "dantenavarro.com",
-    "sourcePage": "project-detail",
-    "sourceProjectSlug": "amc-imax-scraper-n8n-automation",
-    "submittedAt": "2026-02-09T12:00:00.000Z"
+    "watchMode": "30_day_watch"
   }'
 ```
 

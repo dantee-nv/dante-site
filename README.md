@@ -82,11 +82,7 @@ Frontend payload contract:
 ```json
 {
   "email": "user@example.com",
-  "watchMode": "30_day_watch",
-  "sourceSite": "dantenavarro.com",
-  "sourcePage": "project-detail",
-  "sourceProjectSlug": "amc-imax-scraper-n8n-automation",
-  "submittedAt": "2026-02-09T12:00:00.000Z"
+  "watchMode": "30_day_watch"
 }
 ```
 
@@ -116,15 +112,11 @@ const existing = list.find((entry) => entry.email === email);
 
 if (existing) {
   existing.watchMode = "30_day_watch";
-  existing.sourceProject = "amc-imax-scraper-n8n-automation";
   existing.updatedAt = now;
-  existing.lastSubmittedAt = input.submittedAt || now;
 } else {
   list.push({
     email,
     watchMode: "30_day_watch",
-    sourceProject: "amc-imax-scraper-n8n-automation",
-    submittedAt: input.submittedAt || now,
     updatedAt: now,
   });
 }

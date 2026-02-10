@@ -3,7 +3,6 @@ import { normalizeEnvUrlValue } from "../utils/envUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REQUEST_TIMEOUT_MS = 12000;
-const PROJECT_SLUG = "amc-imax-scraper-n8n-automation";
 
 function resolveWebhookUrl(rawUrl) {
   const trimmed = normalizeEnvUrlValue(rawUrl);
@@ -104,10 +103,6 @@ export default function AmcThirtyDayWatchSignupPanel() {
     const payload = {
       email: normalizedEmail,
       watchMode: "30_day_watch",
-      sourceSite: "dantenavarro.com",
-      sourcePage: "project-detail",
-      sourceProjectSlug: PROJECT_SLUG,
-      submittedAt: new Date().toISOString(),
     };
 
     const controller = new AbortController();
