@@ -29,6 +29,7 @@ Resources:
           - POST
           - OPTIONS
         AllowHeaders:
+          - accept
           - content-type
       DefaultRouteSettings:
         ThrottlingBurstLimit: 8

@@ -146,7 +146,6 @@ export default function Contact() {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          accept: "application/json",
         },
         body: JSON.stringify(normalized),
       });

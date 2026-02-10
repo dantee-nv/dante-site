@@ -113,7 +113,6 @@ export default function AmcThirtyDayWatchSignupPanel() {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          accept: "application/json",
         },
         body: JSON.stringify(payload),
         signal: controller.signal,

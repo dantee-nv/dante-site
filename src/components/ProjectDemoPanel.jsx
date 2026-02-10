@@ -172,7 +172,6 @@ export default function ProjectDemoPanel() {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          accept: "application/json",
         },
         body: JSON.stringify({ question: normalizedQuestion }),
         signal: controller.signal,
@@ -259,7 +258,6 @@ export default function ProjectDemoPanel() {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          accept: "application/json",
         },
         body: JSON.stringify(payload),
         signal: controller.signal,
