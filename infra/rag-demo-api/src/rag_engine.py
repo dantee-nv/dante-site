@@ -43,14 +43,8 @@ VECTOR_CANDIDATE_K = max(TOP_K, int(os.getenv("VECTOR_CANDIDATE_K", str(max(TOP_
 LEXICAL_CANDIDATE_K = max(
     TOP_K, int(os.getenv("LEXICAL_CANDIDATE_K", str(max(TOP_K * 2, 10))))
 )
-MIN_SIMILARITY = float(os.getenv("MIN_SIMILARITY", "0.12"))
+MIN_SIMILARITY = float(os.getenv("MIN_SIMILARITY", "0.18"))
 RRF_K = max(1, int(os.getenv("RRF_K", "60")))
-EXTRACTIVE_FALLBACK_MIN_OVERLAP = float(
-    os.getenv("EXTRACTIVE_FALLBACK_MIN_OVERLAP", "0.22")
-)
-EXTRACTIVE_FALLBACK_MIN_SHARED_TERMS = max(
-    1, int(os.getenv("EXTRACTIVE_FALLBACK_MIN_SHARED_TERMS", "1"))
-)
 
 # Chunking defaults are tighter to reduce context dilution for small/cheap models.
 CHUNK_SIZE = max(150, int(os.getenv("CHUNK_SIZE", "500")))
@@ -476,63 +470,6 @@ def _truncate_words(text: str, max_words: int = 65) -> str:
     return f"{truncated}..."
 
 
-def _is_not_found_answer(answer: str) -> bool:
-    normalized_answer = " ".join(answer.strip().lower().split())
-    normalized_not_found = " ".join(NOT_FOUND_MESSAGE.lower().split())
-    return normalized_answer == normalized_not_found
-
-
-def _count_shared_terms(question_terms: Set[str], chunk_terms: Set[str]) -> int:
-    if not question_terms or not chunk_terms:
-        return 0
-
-    shared = set(question_terms & chunk_terms)
-    chunk_only = chunk_terms - shared
-
-    for question_term in question_terms - shared:
-        if len(question_term) < 5:
-            continue
-        for chunk_term in chunk_only:
-            if question_term.startswith(chunk_term) or chunk_term.startswith(question_term):
-                shared.add(question_term)
-                break
-
-    return len(shared)
-
-
-def _question_overlap_signal(question: str, retrieved_context: Sequence[RetrievalHit]) -> Tuple[int, float]:
-    question_terms = _extract_terms(question)
-    if not question_terms:
-        return 0, 0.0
-
-    denominator = max(1, min(len(question_terms), 8))
-    strongest_shared_terms = 0
-    strongest_overlap = 0.0
-
-    for hit in retrieved_context[:3]:
-        chunk_terms = _extract_terms(_strip_page_prefix(hit.text))
-        shared_terms = _count_shared_terms(question_terms, chunk_terms)
-        overlap = shared_terms / denominator
-        if overlap > strongest_overlap:
-            strongest_overlap = overlap
-            strongest_shared_terms = shared_terms
-
-    return strongest_shared_terms, strongest_overlap
-
-
-def _should_apply_extractive_fallback(
-    question: str, retrieved_context: Sequence[RetrievalHit]
-) -> bool:
-    if not retrieved_context:
-        return False
-
-    shared_terms, overlap = _question_overlap_signal(question, retrieved_context)
-    return (
-        shared_terms >= EXTRACTIVE_FALLBACK_MIN_SHARED_TERMS
-        and overlap >= EXTRACTIVE_FALLBACK_MIN_OVERLAP
-    )
-
-
 def _offline_answer(retrieved_context: Sequence[RetrievalHit]) -> str:
     if not retrieved_context:
         return NOT_FOUND_MESSAGE
@@ -576,10 +513,8 @@ def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
         "Use only the supplied policy context. "
         "Because you are a lightweight model, avoid multi-step inference and avoid speculation. "
         "Prefer direct policy wording from the context, and keep responses concise (one or two sentences). "
-        "Only use the not-found fallback when none of the provided snippets are relevant to the question. "
-        "If one or more snippets are relevant, answer from the closest snippet even if it is partial. "
-        "When no relevant snippet exists, respond exactly with: "
-        f"'{NOT_FOUND_MESSAGE}'. "
+        "If the context does not contain the answer, respond exactly with: "
+        f"'{NOT_FOUND_MESSAGE}' "
         "Do not provide legal advice."
     )
 
@@ -605,10 +540,6 @@ def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
 
     if not answer_text:
         answer_text = NOT_FOUND_MESSAGE
-
-    if _is_not_found_answer(answer_text) and _should_apply_extractive_fallback(question, context_hits):
-        logger.info("rag_extractive_fallback_applied")
-        answer_text = _offline_answer(context_hits)
 
     answer_text = _append_page_citation(answer_text, context_hits)
 
