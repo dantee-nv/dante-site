@@ -8,6 +8,18 @@ const PRODUCTION_RAG_DEMO_API_URL =
   "https://fv9c2ycohg.execute-api.us-east-2.amazonaws.com/rag-demo";
 const PRODUCTION_HOSTNAMES = new Set(["dantenavarro.com", "www.dantenavarro.com"]);
 
+function shouldUseProductionFallback(hostname) {
+  if (!hostname) {
+    return false;
+  }
+
+  if (PRODUCTION_HOSTNAMES.has(hostname)) {
+    return true;
+  }
+
+  return hostname.endsWith(".amplifyapp.com");
+}
+
 function resolveRagDemoApiUrl(rawUrl) {
   const trimmed = normalizeEnvUrlValue(rawUrl);
   if (!trimmed) {
@@ -68,7 +80,7 @@ function resolveRagDemoApiUrlWithProductionFallback(rawUrl) {
   }
 
   const hostname = String(window.location.hostname || "").toLowerCase().trim();
-  if (!PRODUCTION_HOSTNAMES.has(hostname)) {
+  if (!shouldUseProductionFallback(hostname)) {
     return "";
   }
 
