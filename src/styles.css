@@ -485,6 +485,13 @@ a{ color: inherit; text-decoration:none; }
   height: auto;
 }
 
+.project-diagram-image-media{
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
 .project-diagram-fallback{
   margin: 0;
   color: var(--muted);
@@ -890,6 +897,27 @@ a{ color: inherit; text-decoration:none; }
   margin: 0 0 8px;
 }
 
+.amc-signup-title{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.amc-signup-soon-pill{
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 194, 82, 0.45);
+  background: rgba(255, 194, 82, 0.16);
+  color: #ffd78d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+}
+
 .amc-signup-panel p{
   margin: 0;
   max-width: none;
@@ -958,6 +986,12 @@ a{ color: inherit; text-decoration:none; }
 .amc-signup-status.error{
   background: rgba(255, 110, 110, 0.12);
   border-color: rgba(255, 110, 110, 0.30);
+}
+
+.amc-signup-status.pending{
+  margin-top: 12px;
+  background: rgba(255, 194, 82, 0.14);
+  border-color: rgba(255, 194, 82, 0.34);
 }
 
 .project-cta-row{

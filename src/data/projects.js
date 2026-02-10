@@ -631,10 +631,19 @@ const baseProjects = [
         heading: "n8n Automation Network on EC2",
         body:
           "The automation network is designed for EC2 hosting so schedules, credentials, and alerting remain under controlled infrastructure.",
+        visual: {
+          kind: "image",
+          src: "/projects/amc-n8n-workflow.png",
+          alt:
+            "n8n workflow with schedule trigger, scraper execution, success and failure email branches, plus signup webhook subscriber upsert flow.",
+          caption:
+            "Live n8n workflow: scheduled scraper execution with success/failure email branches and signup webhook subscriber upsert.",
+        },
         bullets: [
           "Run n8n on EC2 as the orchestration layer for cadence, execution logging, and workflow branching.",
           "Use scheduled trigger nodes for biweekly runs and optional ad-hoc backfill windows.",
           "Execute scraper jobs from n8n, parse JSON output, and route success payloads to SES email delivery.",
+          "Webhook-driven subscriber onboarding is built and in finalization for broader deployment, but public enrollment is held until SES delivery can move beyond verified-recipient-only mode.",
           "Maintain a separate admin-alert branch for failures, timeout conditions, and empty-data anomalies.",
           "Keep secrets and environment configuration isolated on EC2 with predictable deployment and rollback paths.",
           "Support portability by storing code in private GitHub and promoting the same workflow design across environments.",

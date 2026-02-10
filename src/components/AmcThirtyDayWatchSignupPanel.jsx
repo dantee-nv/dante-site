@@ -46,6 +46,13 @@ export default function AmcThirtyDayWatchSignupPanel() {
   const [fieldError, setFieldError] = useState("");
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isPublicSignupEnabled = useMemo(
+    () =>
+      String(import.meta.env.VITE_AMC_PUBLIC_SIGNUP_ENABLED || "")
+        .trim()
+        .toLowerCase() === "true",
+    []
+  );
 
   const webhookUrl = useMemo(
     () => resolveWebhookUrl(import.meta.env.VITE_AMC_SIGNUP_WEBHOOK_URL),
@@ -70,6 +77,15 @@ export default function AmcThirtyDayWatchSignupPanel() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (!isPublicSignupEnabled) {
+      setSubmitState({
+        status: "error",
+        message:
+          "Public signup is coming soon. The webhook rollout is being finalized, and AWS SES currently supports verified recipient emails only.",
+      });
+      return;
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
@@ -161,62 +177,74 @@ export default function AmcThirtyDayWatchSignupPanel() {
 
   return (
     <section className="amc-signup-panel">
-      <h3>IMAX 30-Day Watch</h3>
+      <h3 className="amc-signup-title">
+        IMAX 30-Day Watch
+        <span className="amc-signup-soon-pill">Coming Soon</span>
+      </h3>
       <p>
-        Follow the rolling 30-day IMAX schedule feed from this scraper project.
-        Join with one email to get updates from the automated run.
+        Follow the rolling 30-day IMAX schedule feed from this scraper project. The
+        webhook signup flow is being finalized for broader deployment. While AWS SES
+        remains in verified-recipient mode, public enrollment is not enabled yet.
       </p>
 
-      <form className="amc-signup-form" onSubmit={handleSubmit} noValidate>
-        <label className="amc-signup-label" htmlFor="amc-watch-email">
-          Email
-        </label>
-        <input
-          id="amc-watch-email"
-          className="amc-signup-input"
-          name="email"
-          type="email"
-          autoComplete="email"
-          maxLength={320}
-          value={email}
-          onChange={handleEmailChange}
-          aria-invalid={Boolean(fieldError)}
-          aria-describedby={fieldError ? "amc-watch-email-error" : undefined}
-          required
-        />
-
-        <div className="amc-signup-honeypot" aria-hidden="true">
-          <label htmlFor="amc-watch-company">Leave this field blank</label>
+      {!isPublicSignupEnabled ? (
+        <p className="amc-signup-status pending" role="status">
+          Public signup is coming soon. The webhook feature is being finalized for
+          external users, and email delivery is currently limited to AWS SES verified
+          recipients.
+        </p>
+      ) : (
+        <form className="amc-signup-form" onSubmit={handleSubmit} noValidate>
+          <label className="amc-signup-label" htmlFor="amc-watch-email">
+            Email
+          </label>
           <input
-            id="amc-watch-company"
-            type="text"
-            name="company"
-            autoComplete="off"
-            tabIndex={-1}
-            value={honeypot}
-            onChange={handleHoneypotChange}
+            id="amc-watch-email"
+            className="amc-signup-input"
+            name="email"
+            type="email"
+            autoComplete="email"
+            maxLength={320}
+            value={email}
+            onChange={handleEmailChange}
+            aria-invalid={Boolean(fieldError)}
+            aria-describedby={fieldError ? "amc-watch-email-error" : undefined}
+            required
           />
-        </div>
 
-        <div className="amc-signup-actions">
-          <span className="amc-signup-helper">Mode: 30-Day Watch</span>
-          <button className="btn primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Joining..." : "Join 30-Day Watch"}
-          </button>
-        </div>
+          <div className="amc-signup-honeypot" aria-hidden="true">
+            <label htmlFor="amc-watch-company">Leave this field blank</label>
+            <input
+              id="amc-watch-company"
+              type="text"
+              name="company"
+              autoComplete="off"
+              tabIndex={-1}
+              value={honeypot}
+              onChange={handleHoneypotChange}
+            />
+          </div>
 
-        {fieldError ? (
-          <p id="amc-watch-email-error" className="amc-signup-status error" role="status">
-            {fieldError}
-          </p>
-        ) : null}
+          <div className="amc-signup-actions">
+            <span className="amc-signup-helper">Mode: 30-Day Watch</span>
+            <button className="btn primary" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Joining..." : "Join 30-Day Watch"}
+            </button>
+          </div>
 
-        {submitState.status === "success" || submitState.status === "error" ? (
-          <p className={`amc-signup-status ${submitState.status}`} role="status">
-            {submitState.message}
-          </p>
-        ) : null}
-      </form>
+          {fieldError ? (
+            <p id="amc-watch-email-error" className="amc-signup-status error" role="status">
+              {fieldError}
+            </p>
+          ) : null}
+
+          {submitState.status === "success" || submitState.status === "error" ? (
+            <p className={`amc-signup-status ${submitState.status}`} role="status">
+              {submitState.message}
+            </p>
+          ) : null}
+        </form>
+      )}
     </section>
   );
 }

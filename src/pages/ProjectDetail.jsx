@@ -152,6 +152,23 @@ export default function ProjectDetail() {
                         ariaLabel={section.visual.caption || `${section.heading} diagram`}
                       />
                     ) : null}
+                    {section.visual?.kind === "image" && section.visual.src ? (
+                      <figure className="project-diagram project-diagram-image">
+                        <img
+                          className="project-diagram-image-media"
+                          src={section.visual.src}
+                          alt={
+                            section.visual.alt || section.visual.caption || `${section.heading} visual`
+                          }
+                          loading="lazy"
+                        />
+                        {section.visual.caption ? (
+                          <figcaption className="project-diagram-caption">
+                            {section.visual.caption}
+                          </figcaption>
+                        ) : null}
+                      </figure>
+                    ) : null}
                     {Array.isArray(section.bullets) && section.bullets.length > 0 ? (
                       <ul>
                         {section.bullets.map((bullet) => (
