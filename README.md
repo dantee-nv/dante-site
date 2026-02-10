@@ -68,9 +68,14 @@ The AMC project detail page signup pipeline is:
 
 `React AMC signup panel -> n8n webhook -> n8n Code node (workflow static JSON upsert)`
 
+Ready-to-import workflow files are in:
+
+- `infra/n8n/amc-30-day-watch-signup.workflow.json`
+- `infra/n8n/README.md`
+
 Frontend config:
 
-- `VITE_AMC_SIGNUP_WEBHOOK_URL=https://<n8n-domain>/webhook/<token>`
+- `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
 
 Frontend payload contract:
 
@@ -190,7 +195,7 @@ In Amplify environment variables, set:
 
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
 - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
-- `VITE_AMC_SIGNUP_WEBHOOK_URL=https://<n8n-domain>/webhook/<token>`
+- `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
 
 Then trigger a redeploy.
 

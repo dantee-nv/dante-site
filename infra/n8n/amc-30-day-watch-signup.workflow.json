@@ -1,0 +1,55 @@
+{
+  "name": "AMC 30-Day Watch Signup",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "amc-30-day-watch-signup",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a77a2cf2-c760-4d90-a4db-2f2f3a84dc51",
+      "name": "AMC Signup Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ],
+      "webhookId": "amc-30-day-watch-signup"
+    },
+    {
+      "parameters": {
+        "jsCode": "const EMAIL_PATTERN = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nconst input = $json ?? {};\nconst email = String(input.email || \"\").trim().toLowerCase();\nconst watchMode = String(input.watchMode || \"30_day_watch\").trim() || \"30_day_watch\";\n\nif (!email || !EMAIL_PATTERN.test(email)) {\n  return [{ json: { ok: false, message: \"Invalid email.\" } }];\n}\n\nif (watchMode !== \"30_day_watch\") {\n  return [{ json: { ok: false, message: \"Unsupported watch mode.\" } }];\n}\n\nconst store = getWorkflowStaticData(\"global\");\nif (!Array.isArray(store.amcThirtyDayWatchSubscribers)) {\n  store.amcThirtyDayWatchSubscribers = [];\n}\n\nconst now = new Date().toISOString();\nconst list = store.amcThirtyDayWatchSubscribers;\nconst sourceProject = String(input.sourceProjectSlug || \"amc-imax-scraper-n8n-automation\");\nconst existing = list.find((entry) => entry.email === email);\n\nif (existing) {\n  existing.watchMode = \"30_day_watch\";\n  existing.sourceProject = sourceProject;\n  existing.lastSubmittedAt = String(input.submittedAt || now);\n  existing.updatedAt = now;\n\n  return [{\n    json: {\n      ok: true,\n      message: \"Already on 30-Day Watch. Subscription refreshed.\",\n      subscriberCount: list.length,\n    },\n  }];\n}\n\nlist.push({\n  email,\n  watchMode: \"30_day_watch\",\n  sourceProject,\n  submittedAt: String(input.submittedAt || now),\n  updatedAt: now,\n});\n\nreturn [{\n  json: {\n    ok: true,\n    message: \"Added to 30-Day Watch.\",\n    subscriberCount: list.length,\n  },\n}];"
+      },
+      "id": "7fa02e59-cb58-48df-a7f0-51d8a32bb87c",
+      "name": "Upsert Subscriber JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "AMC Signup Webhook": {
+      "main": [
+        [
+          {
+            "node": "Upsert Subscriber JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "versionId": "0d65af23-a59d-46f0-9e89-4cf630eb056f"
+}
