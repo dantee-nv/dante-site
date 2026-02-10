@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion as Motion } from "framer-motion";
 import usePageTitle from "../hooks/usePageTitle";
+import { normalizeEnvUrlValue } from "../utils/envUrl";
 
 const INITIAL_VALUES = {
   name: "",
@@ -13,11 +14,7 @@ const INITIAL_VALUES = {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function resolveContactApiUrl(rawUrl) {
-  if (typeof rawUrl !== "string") {
-    return "";
-  }
-
-  const trimmedUrl = rawUrl.trim();
+  const trimmedUrl = normalizeEnvUrlValue(rawUrl);
   if (!trimmedUrl) {
     return "";
   }

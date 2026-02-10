@@ -1,15 +1,12 @@
 import React, { useMemo, useState } from "react";
+import { normalizeEnvUrlValue } from "../utils/envUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REQUEST_TIMEOUT_MS = 12000;
 const PROJECT_SLUG = "amc-imax-scraper-n8n-automation";
 
 function resolveWebhookUrl(rawUrl) {
-  if (typeof rawUrl !== "string") {
-    return "";
-  }
-
-  const trimmed = rawUrl.trim();
+  const trimmed = normalizeEnvUrlValue(rawUrl);
   if (!trimmed) {
     return "";
   }

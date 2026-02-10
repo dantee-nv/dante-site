@@ -1,15 +1,12 @@
 import React, { useMemo, useState } from "react";
+import { normalizeEnvUrlValue } from "../utils/envUrl";
 
 const MAX_QUESTION_LENGTH = 500;
 const MAX_FEEDBACK_NOTE_LENGTH = 1000;
 const POLICY_PDF_DOWNLOAD_PATH = "/nestle_hr_policy.pdf";
 
 function resolveRagDemoApiUrl(rawUrl) {
-  if (typeof rawUrl !== "string") {
-    return "";
-  }
-
-  const trimmed = rawUrl.trim();
+  const trimmed = normalizeEnvUrlValue(rawUrl);
   if (!trimmed) {
     return "";
   }
@@ -31,11 +28,7 @@ function resolveRagDemoApiUrl(rawUrl) {
 }
 
 function resolveRagDemoFeedbackApiUrl(rawUrl) {
-  if (typeof rawUrl !== "string") {
-    return "";
-  }
-
-  const trimmed = rawUrl.trim();
+  const trimmed = normalizeEnvUrlValue(rawUrl);
   if (!trimmed) {
     return "";
   }
