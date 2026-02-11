@@ -422,6 +422,23 @@ a{ color: inherit; text-decoration:none; }
   background: rgba(255,255,255,0.04);
 }
 
+.project-detail-title-row{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.project-detail-title-row h2{
+  margin: 0;
+}
+
+.project-detail-title-row .project-status{
+  align-self: center;
+  line-height: 1;
+}
+
 .project-detail-meta{
   margin-top: 14px;
   display: flex;

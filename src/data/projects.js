@@ -70,7 +70,7 @@ const baseProjects = [
     cardSummary:
       "AWS Amplify-hosted portfolio with polished React UX and a production contact pipeline.",
     status: "live",
-    tags: ["React", "Vite", "React Router", "Framer Motion", "AWS", "Amplify"],
+    tags: [],
     atGlance: {
       skills: [
         { label: "React", lane: "frontend" },
