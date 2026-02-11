@@ -60,7 +60,7 @@ export default function Home() {
           transition={{ delay: 0.55, duration: 0.6 }}
         >
           <Link to="/projects" className="card">
-            <div className="card-title">Featured Builds</div>
+            <div className="card-title">Projects</div>
             <div className="card-desc">
               Automation, dashboards and “small tools with big leverage.”
             </div>
