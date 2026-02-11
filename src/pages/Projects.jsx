@@ -94,7 +94,7 @@ export default function Projects() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        Explore shipped work, in-progress builds, and upcoming experiments.
+        Explore shipped work, in-progress builds and upcoming experiments.
       </Motion.p>
 
       <Motion.div className="grid" variants={grid} initial="initial" animate="animate">

@@ -552,7 +552,7 @@ const baseProjects = [
     summary:
       "An automation pipeline that captures IMAX-only showtimes for one Los Angeles AMC theater and delivers scheduled Pacific-time email summaries via n8n and AWS SES.",
     cardSummary:
-      "IMAX-only AMC showtime scraper with n8n scheduling, SES email delivery, and EC2-hosted workflow reliability.",
+      "IMAX-only AMC showtime scraper with n8n scheduling, SES email delivery and EC2-hosted workflow reliability.",
     status: "live",
     tags: [
       "Python",
