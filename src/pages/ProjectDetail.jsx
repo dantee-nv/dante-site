@@ -186,8 +186,6 @@ export default function ProjectDetail() {
             </div>
           ) : null}
 
-          {project.slug === "rag-hr-chatbot" ? <ProjectDemoPanel /> : null}
-
           {project.highlights.length > 0 ? (
             <section className="project-highlights">
               <h3>Highlights</h3>
@@ -287,6 +285,12 @@ export default function ProjectDetail() {
               </div>
             ) : null}
           </Motion.section>
+        ) : null}
+
+        {project.slug === "rag-hr-chatbot" ? (
+          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+            <ProjectDemoPanel />
+          </Motion.div>
         ) : null}
 
         <Motion.div variants={pop} transition={{ duration: 0.35 }}>

@@ -328,8 +328,10 @@ export default function ProjectDemoPanel() {
         <span className="project-demo-pill">Try It Now</span>
       </div>
       <p>
-        This demo uses the Nestle HR policy document. The same RAG architecture
-        can be applied to any approved document set.
+        This demo uses the Nestle HR policy document. It was optimized to reduce LLM
+        hallucinations by grounding responses in retrieved policy text and, when
+        applicable, pointing to the exact page where the answer comes from. The
+        same RAG architecture can be applied to any approved document set.
       </p>
 
       <form className="project-demo-form" onSubmit={handleSubmit}>
