@@ -30,7 +30,8 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4 }}
         >
-          R&D Engineer • Automation Builder • LA
+          <span className="badge-location">LA Based</span>
+          <span className="badge-copy">R&D Engineer • Automation Builder</span>
         </Motion.p>
 
         <Motion.h1
