@@ -120,9 +120,7 @@ export default function ProjectDetail() {
   const ctaActions = project.cta.filter((action) => action?.label && action?.to);
   const atGlanceSkills = project.atGlance?.skills || [];
   const atGlanceMetrics = project.atGlance?.metrics || [];
-  const showTitleStatus = project.slug === "site" && Boolean(project.status);
-  const showMetaStatus = !showTitleStatus && Boolean(project.status);
-  const hasProjectTags = project.tags.length > 0;
+  const showTitleStatus = Boolean(project.status);
   const shouldRenderAmcSignup = project.slug === "amc-imax-scraper-n8n-automation";
   const deepDiveItems = [
     {
@@ -234,24 +232,6 @@ export default function ProjectDetail() {
             ) : null}
           </div>
           <p>{project.summary}</p>
-          {showMetaStatus || hasProjectTags ? (
-            <div className="project-detail-meta">
-              {showMetaStatus ? (
-                <span className={`project-status ${project.status}`}>
-                  {formatStatus(project.status)}
-                </span>
-              ) : null}
-              {hasProjectTags ? (
-                <div className="project-tags">
-                  {project.tags.map((tag) => (
-                    <span className="project-tag" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
           {renderMetaRows(project.meta)}
         </Motion.header>
 
