@@ -31,8 +31,9 @@ export default function Projects() {
   };
   const liveProjectOrder = {
     "rag-hr-chatbot": 0,
-    "lead-generation": 1,
-    "amc-imax-scraper-n8n-automation": 2,
+    "semantic-paper-search-bedrock": 1,
+    "lead-generation": 2,
+    "amc-imax-scraper-n8n-automation": 3,
   };
 
   const sortedProjects = [...projectCardList].sort((a, b) => {

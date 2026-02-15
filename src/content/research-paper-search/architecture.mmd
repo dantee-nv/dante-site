@@ -1,0 +1,10 @@
+```mermaid
+flowchart LR
+  A["Amplify Hosted React UI"] --> B["API Gateway /search"]
+  B --> C["Lambda Query Handler"]
+  C --> D["Semantic Scholar API<br/>(keyword candidates up to 100)"]
+  C --> E["Bedrock Titan Text Embeddings v2"]
+  C --> F["DynamoDB PaperEmbeddings Cache"]
+  C --> G["DynamoDB RequestRateLimit"]
+  C --> H["Top 10 Ranked Papers"]
+```

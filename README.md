@@ -19,6 +19,7 @@ npm run dev
 
 The contact page reads `VITE_CONTACT_API_URL` and posts JSON to that endpoint.
 The Project 3 demo panel reads `VITE_RAG_DEMO_API_URL` and calls the Python RAG demo endpoint.
+The context-based paper search panel reads `VITE_PAPER_SEARCH_API_URL` and calls the Python semantic rerank endpoint.
 The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and `VITE_AMC_PUBLIC_SIGNUP_ENABLED`.
 
 ## Contact API architecture
@@ -201,12 +202,65 @@ The demo download button serves:
 
 - `/nestle_hr_policy.pdf`
 
+## Context-based paper search API architecture
+
+The context-based paper search demo pipeline is:
+
+`React demo panel -> API Gateway (HTTP API) -> Python Lambda -> Semantic Scholar + Bedrock Titan embeddings -> DynamoDB cache`
+
+Infrastructure and backend code live in:
+
+- `infra/paper-search-api/template.yaml`
+- `backend/paper_search/handler.py`
+- `backend/paper_search/semanticscholar.py`
+- `backend/paper_search/bedrock_embeddings.py`
+- `backend/paper_search/cache.py`
+- `backend/paper_search/rate_limit.py`
+
+Core request behavior:
+
+- Input: `context` (required, max 8000 chars), `k` (optional, clamped to 10).
+- Candidate fetch: Semantic Scholar `/graph/v1/paper/search` (max 100 candidates).
+- Semantic rerank: Bedrock `amazon.titan-embed-text-v2:0`.
+- Cache: DynamoDB `PaperEmbeddings` keyed by `paperId` + `contentHash`.
+- Rate limiting: DynamoDB-backed per-IP per-minute counter.
+- Resilience: circuit breaker for repeated Semantic Scholar `429/5xx`.
+
+## Deploy paper search API (AWS SAM)
+
+Prerequisites:
+
+1. AWS SAM CLI installed.
+2. AWS CLI profile `dante_nv` configured.
+3. Bedrock model access enabled for `amazon.titan-embed-text-v2:0` in `us-east-2`.
+
+Deploy:
+
+```bash
+cd /Users/dante/dante-site
+./scripts/deploy-paper-search.sh \
+  --allowed-origins "https://dantenavarro.com,https://www.dantenavarro.com,http://localhost:5173"
+```
+
+Optional Semantic Scholar key:
+
+```bash
+cd /Users/dante/dante-site
+SEMANTIC_SCHOLAR_API_KEY=<YOUR_KEY> ./scripts/deploy-paper-search.sh \
+  --allowed-origins "https://dantenavarro.com,https://www.dantenavarro.com,http://localhost:5173"
+```
+
+After deploy, use the `PaperSearchApiUrl` stack output as:
+
+- `VITE_PAPER_SEARCH_API_URL=<PaperSearchApiUrl>`
+
 ## Amplify configuration
 
 In Amplify environment variables, set:
 
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
 - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
+- `VITE_PAPER_SEARCH_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/search`
 - `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
 - `VITE_AMC_PUBLIC_SIGNUP_ENABLED=false`
 

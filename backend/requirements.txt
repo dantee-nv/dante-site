@@ -1,0 +1,1 @@
+# Lambda runtime already includes boto3; keep requirements empty for portable SAM builds.

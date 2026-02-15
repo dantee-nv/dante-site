@@ -1,0 +1,188 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Context-based research paper semantic search API (HTTP API -> Python Lambda)
+
+Parameters:
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Description: CORS allowlist origins for browser requests.
+  BedrockRegion:
+    Type: String
+    Default: us-east-2
+    Description: AWS region used for Bedrock model invocation.
+  BedrockEmbedModelId:
+    Type: String
+    Default: amazon.titan-embed-text-v2:0
+    Description: Bedrock embedding model for query and paper embeddings.
+  SemanticScholarBaseUrl:
+    Type: String
+    Default: https://api.semanticscholar.org
+    Description: Base URL for Semantic Scholar API.
+  SemanticScholarApiKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Optional Semantic Scholar API key.
+  CandidateLimit:
+    Type: Number
+    Default: 100
+    MinValue: 10
+    MaxValue: 100
+    Description: Maximum Semantic Scholar candidates fetched per request.
+  MaxContextChars:
+    Type: Number
+    Default: 8000
+    MinValue: 500
+    MaxValue: 20000
+    Description: Maximum accepted context length.
+  MaxK:
+    Type: Number
+    Default: 10
+    MinValue: 1
+    MaxValue: 25
+    Description: Maximum number of results returned.
+  PaperEmbeddingTtlDays:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    MaxValue: 365
+    Description: TTL in days for cached paper embeddings.
+  RateLimitPerMinute:
+    Type: Number
+    Default: 20
+    MinValue: 1
+    MaxValue: 300
+    Description: Per-IP per-minute request limit.
+  CircuitBreakerThreshold:
+    Type: Number
+    Default: 3
+    MinValue: 1
+    MaxValue: 20
+    Description: Number of upstream failures before opening circuit breaker.
+  CircuitBreakerOpenSeconds:
+    Type: Number
+    Default: 30
+    MinValue: 5
+    MaxValue: 300
+    Description: Circuit breaker open duration in seconds.
+  LogRetentionDays:
+    Type: Number
+    Default: 14
+    MinValue: 1
+    MaxValue: 3653
+    Description: CloudWatch log retention period.
+
+Resources:
+  PaperSearchApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: !Ref AllowedOrigins
+        AllowMethods:
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+          - x-requested-with
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 30
+        ThrottlingRateLimit: 15
+
+  PaperEmbeddingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: paperId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: paperId
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  RequestRateLimitTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: bucketKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: bucketKey
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  PaperSearchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend
+      Handler: paper_search.handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 20
+      MemorySize: 1024
+      Environment:
+        Variables:
+          BEDROCK_REGION: !Ref BedrockRegion
+          BEDROCK_EMBED_MODEL_ID: !Ref BedrockEmbedModelId
+          SEMANTIC_SCHOLAR_BASE_URL: !Ref SemanticScholarBaseUrl
+          SEMANTIC_SCHOLAR_API_KEY: !Ref SemanticScholarApiKey
+          CANDIDATE_LIMIT: !Ref CandidateLimit
+          MAX_CONTEXT_CHARS: !Ref MaxContextChars
+          MAX_K: !Ref MaxK
+          PAPER_EMBEDDING_TTL_DAYS: !Ref PaperEmbeddingTtlDays
+          RATE_LIMIT_PER_MINUTE: !Ref RateLimitPerMinute
+          CIRCUIT_BREAKER_THRESHOLD: !Ref CircuitBreakerThreshold
+          CIRCUIT_BREAKER_OPEN_SECONDS: !Ref CircuitBreakerOpenSeconds
+          PAPER_EMBEDDINGS_TABLE_NAME: !Ref PaperEmbeddingsTable
+          REQUEST_RATE_LIMIT_TABLE_NAME: !Ref RequestRateLimitTable
+          EMBEDDING_MAX_WORKERS: 6
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: BedrockInvokeModel
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub arn:aws:bedrock:${BedrockRegion}::foundation-model/${BedrockEmbedModelId}
+            - Sid: PaperSearchDynamoAccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+              Resource:
+                - !GetAtt PaperEmbeddingsTable.Arn
+                - !GetAtt RequestRateLimitTable.Arn
+      Events:
+        SearchPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PaperSearchApi
+            Path: /search
+            Method: POST
+
+  PaperSearchFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${PaperSearchFunction}
+      RetentionInDays: !Ref LogRetentionDays
+
+Outputs:
+  PaperSearchApiBaseUrl:
+    Description: Base URL for the paper search API.
+    Value: !Sub https://${PaperSearchApi}.execute-api.${AWS::Region}.amazonaws.com
+  PaperSearchApiUrl:
+    Description: Paper search endpoint URL.
+    Value: !Sub https://${PaperSearchApi}.execute-api.${AWS::Region}.amazonaws.com/search
+  PaperEmbeddingsTableName:
+    Description: DynamoDB table storing cached paper embeddings.
+    Value: !Ref PaperEmbeddingsTable
+  RequestRateLimitTableName:
+    Description: DynamoDB table storing per-IP request buckets.
+    Value: !Ref RequestRateLimitTable

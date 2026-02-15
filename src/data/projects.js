@@ -1,4 +1,5 @@
 import idahoResultsFlow from "../content/lead-generation/idaho-results-impact.mmd?raw";
+import paperSearchArchitectureFlow from "../content/research-paper-search/architecture.mmd?raw";
 
 const validSkillLanes = new Set([
   "frontend",
@@ -540,6 +541,109 @@ const baseProjects = [
       "Improved retrieval quality with tighter chunking and hybrid vector + lexical ranking.",
       "Delivered a React live demo with downloadable source document and answer observability stats.",
       "Designed the system to be portable across new document sets with minimal integration changes.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
+  {
+    slug: "semantic-paper-search-bedrock",
+    title: "Context-Based Research Paper Search",
+    summary:
+      "A semantic paper search demo that fetches keyword candidates from Semantic Scholar, reranks with Bedrock Titan embeddings, and returns the top 10 papers with relevance scores.",
+    cardSummary:
+      "Semantic Scholar candidate fetch + Bedrock embedding rerank + DynamoDB embedding cache in a live web demo.",
+    status: "live",
+    tags: [
+      "React",
+      "Python",
+      "AWS Lambda",
+      "API Gateway",
+      "Amazon Bedrock",
+      "Semantic Scholar API",
+      "DynamoDB",
+      "SAM",
+    ],
+    atGlance: {
+      skills: [
+        { label: "Context Retrieval UX", lane: "frontend" },
+        { label: "Python Lambda API", lane: "backend" },
+        { label: "Bedrock Embeddings", lane: "ai" },
+        { label: "Semantic Reranking", lane: "ai" },
+        { label: "DynamoDB Cache", lane: "cloud" },
+        { label: "AWS SAM IaC", lane: "cloud" },
+      ],
+      metrics: [
+        { label: "Candidate Pool", value: "Up to 100 papers/query", tone: "info" },
+        { label: "Returned Results", value: "Top 10 semantic matches", tone: "success" },
+        { label: "Cache Strategy", value: "Paper embeddings cached with TTL", tone: "neutral" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "2026",
+      role: "AI + Cloud Engineer",
+      stack:
+        "React, Python, AWS Lambda, API Gateway (HTTP API), Amazon Bedrock Titan Text Embeddings v2, Semantic Scholar API, DynamoDB, SAM",
+    },
+    sections: [
+      {
+        heading: "Goal and Scope",
+        body:
+          "This demo is built for context-first literature discovery. Users can paste notes, an abstract, or a research question and receive the top semantically relevant papers in one response.",
+        bullets: [
+          "Use Semantic Scholar as a candidate source only, because candidate retrieval is mostly keyword-oriented.",
+          "Apply Bedrock Titan embeddings to rerank candidates against full user context for semantic relevance.",
+          "Return practical metadata for each result: title, authors, year, venue, link, abstract snippet, and relevance score.",
+        ],
+      },
+      {
+        heading: "Architecture",
+        body:
+          "The stack keeps the frontend static while centralizing data fetch, reranking, caching, and safeguards in one serverless backend.",
+        visual: {
+          kind: "mermaid",
+          markdown: paperSearchArchitectureFlow,
+          caption:
+            "Amplify-hosted UI to API Gateway/Lambda with Semantic Scholar fetch, Bedrock rerank, and DynamoDB caching.",
+        },
+        bullets: [
+          "Frontend is hosted in the existing Amplify site and calls one POST /search endpoint.",
+          "Lambda fetches up to 100 candidate papers from Semantic Scholar.",
+          "The same Bedrock embedding model is used for query context and candidate paper vectors.",
+          "DynamoDB caches paper embeddings to improve repeat-query latency and reduce embedding calls.",
+        ],
+      },
+      {
+        heading: "Search and Rerank Flow",
+        body:
+          "Each request validates input, enforces rate limits, and runs semantic ranking over cached or newly generated embeddings.",
+        bullets: [
+          "Input validation requires context and enforces an 8000-character cap.",
+          "Per-IP per-minute request limits are enforced with atomic DynamoDB counters.",
+          "Candidate paper embedding cache keys are tied to paperId and content hash to prevent stale vectors.",
+          "Cosine similarity drives ranking and top 10 result selection.",
+          "The API returns request metadata including candidates fetched, cache hits, request ID, and latency.",
+        ],
+      },
+      {
+        heading: "Operational Guardrails",
+        body:
+          "The backend includes practical controls for external API pressure and predictable behavior under load.",
+        bullets: [
+          "Circuit breaker opens on repeated Semantic Scholar throttling or server errors and fails fast until recovery.",
+          "Lambda timeout and bounded embedding concurrency keep requests within expected runtime windows.",
+          "CloudWatch logs capture request IDs, latencies, candidate counts, and cache-hit behavior.",
+          "Semantic Scholar API key support is optional; unauthenticated mode remains the default fallback.",
+        ],
+      },
+    ],
+    highlights: [
+      "Implemented context-based ranking on top of keyword candidate retrieval.",
+      "Shipped Bedrock embedding rerank and DynamoDB embedding cache in a single API endpoint.",
+      "Added request-level controls: payload caps, IP rate limiting, and upstream circuit breaker handling.",
+      "Integrated a live frontend demo into the project detail experience.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },
