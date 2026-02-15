@@ -154,21 +154,40 @@ Prerequisites:
 3. OpenAI API key available for deployment parameter input.
 4. Approved policy document in `infra/rag-demo-api/data/` (replace sample file before production use).
 
-Deploy:
+Deploy (guarded workflow):
+
+For a first-time deploy (or when you want to explicitly update CORS origins), set both `OPENAI_API_KEY` and `ALLOWED_ORIGINS`:
 
 ```bash
 cd infra/rag-demo-api
-sam build
-sam deploy \
-  --stack-name dante-rag-demo-api \
-  --region us-east-2 \
-  --profile dante_nv \
-  --capabilities CAPABILITY_IAM \
-  --resolve-s3 \
-  --parameter-overrides \
-    OpenAIApiKey=<OPENAI_API_KEY> \
-    AllowedOrigins="https://dantenavarro.com,https://www.dantenavarro.com,http://localhost:5173"
+export OPENAI_API_KEY=<OPENAI_API_KEY>
+export ALLOWED_ORIGINS="https://dantenavarro.com,https://www.dantenavarro.com,http://localhost:5173"
+./scripts/deploy.sh
 ```
+
+For redeploys where CORS origins should stay the same, you can omit `ALLOWED_ORIGINS` and reuse the current stack value:
+
+```bash
+cd infra/rag-demo-api
+export OPENAI_API_KEY=<OPENAI_API_KEY>
+./scripts/deploy.sh
+```
+
+Optional CORS override for preview domains:
+
+```bash
+cd infra/rag-demo-api
+export OPENAI_API_KEY=<OPENAI_API_KEY>
+export ALLOWED_ORIGINS="https://dantenavarro.com,https://www.dantenavarro.com,https://<your-amplify-domain>,http://localhost:5173"
+./scripts/deploy.sh
+```
+
+`infra/rag-demo-api/scripts/deploy.sh` adds deployment guardrails:
+
+- Rejects placeholder or too-short OpenAI keys before deploy.
+- Runs `sam build` and deploys from `.aws-sam/build/template.yaml` (not `template.yaml`) to avoid packaging build artifacts.
+- Warns when local `.aws-sam/` is large.
+- Verifies post-deploy Lambda key shape (`sk-` prefix + minimum length).
 
 After deploy, use the `RagDemoApiUrl` stack output as:
 
@@ -212,15 +231,9 @@ Then trigger a redeploy.
 4. CORS/network errors on deployed site: verify the current browser origin (for example your Amplify domain) is included in `AllowedOrigins`, then redeploy the RAG API stack:
    ```bash
    cd infra/rag-demo-api
-   sam deploy \
-     --stack-name dante-rag-demo-api \
-     --region us-east-2 \
-     --profile dante_nv \
-     --capabilities CAPABILITY_IAM \
-     --resolve-s3 \
-     --parameter-overrides \
-       OpenAIApiKey=<OPENAI_API_KEY> \
-       AllowedOrigins="https://dantenavarro.com,https://www.dantenavarro.com,https://<your-amplify-domain>,http://localhost:5173"
+   export OPENAI_API_KEY=<OPENAI_API_KEY>
+   export ALLOWED_ORIGINS="https://dantenavarro.com,https://www.dantenavarro.com,https://<your-amplify-domain>,http://localhost:5173"
+   ./scripts/deploy.sh
    ```
    Then confirm Amplify has `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo` and trigger a frontend rebuild.
 5. If `sam build` fails with an npm 11 error, use Node 20/npm 10 for build, or deploy directly with `sam deploy --template-file template.yaml` after `npm install` in `infra/contact-api`.

@@ -66,7 +66,11 @@ def lambda_handler(event, context):
     try:
         answer, usage = answer_question(question)
     except Exception as error:  # noqa: BLE001
-        logger.error("rag_demo_failed", extra={"error": str(error)})
+        logger.exception(
+            "rag_demo_failed error_type=%s error_message=%s",
+            type(error).__name__,
+            str(error),
+        )
         return _json_response(
             500,
             {"message": "The RAG demo is temporarily unavailable. Please try again."},
