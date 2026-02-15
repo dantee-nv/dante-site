@@ -989,6 +989,7 @@ a{ color: inherit; text-decoration:none; }
 
 .paper-search-demo-panel p{
   margin: 0;
+  max-width: none;
 }
 
 .paper-search-demo-note{
@@ -1482,7 +1483,7 @@ a{ color: inherit; text-decoration:none; }
 }
 
 .project-accordion .accordion-content.open{
-  max-height: 3200px;
+  max-height: 12000px;
   opacity: 1;
   visibility: visible;
   transition:

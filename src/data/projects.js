@@ -606,7 +606,7 @@ const baseProjects = [
           kind: "mermaid",
           markdown: paperSearchArchitectureFlow,
           caption:
-            "Amplify-hosted UI to API Gateway/Lambda with Semantic Scholar fetch, Bedrock rerank, and DynamoDB caching.",
+            "Amplify-hosted UI to API Gateway/Lambda with validation, Semantic Scholar fetch, Bedrock rerank, and DynamoDB caching/rate limiting controls.",
         },
         bullets: [
           "Frontend is hosted in the existing Amplify site and calls one POST /search endpoint.",
@@ -636,6 +636,17 @@ const baseProjects = [
           "Lambda timeout and bounded embedding concurrency keep requests within expected runtime windows.",
           "CloudWatch logs capture request IDs, latencies, candidate counts, and cache-hit behavior.",
           "Semantic Scholar API key support is optional; unauthenticated mode remains the default fallback.",
+        ],
+      },
+      {
+        heading: "Live Rollout and Debugging Learnings",
+        body:
+          "Deployment and testing surfaced concrete reliability behavior that now informs optimization priorities.",
+        bullets: [
+          "Initial unauthenticated runs triggered upstream rate limits and exercised the circuit-breaker fallback path.",
+          "Post-deploy verification confirmed the API key was missing, then confirmed fixed once environment value was populated.",
+          "Warm-cache behavior was validated in production: first run performed cold embedding writes, repeat run showed high cache reuse and lower latency.",
+          "Current next steps are query-quality tuning, adaptive candidate windowing, and UI-side retry guidance for transient upstream throttling.",
         ],
       },
     ],
