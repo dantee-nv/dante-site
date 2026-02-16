@@ -511,11 +511,15 @@ a{ color: inherit; text-decoration:none; }
 
 .project-diagram-svg{
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .project-diagram-svg svg{
   display: block;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
   height: auto;
 }
 

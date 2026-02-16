@@ -17,6 +17,9 @@ async function getMermaidApi() {
     startOnLoad: false,
     securityLevel: "strict",
     theme: "dark",
+    flowchart: {
+      useMaxWidth: false,
+    },
   });
   mermaidIsInitialized = true;
 

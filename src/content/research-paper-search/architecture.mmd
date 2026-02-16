@@ -1,30 +1,19 @@
 ```mermaid
 flowchart TD
-  A["User context (notes/abstract/question)"] --> B["React demo panel"]
-  B --> C["POST /search (k <= 10)"]
-  C --> D["API Gateway (HTTP API)"]
-  D --> E["Lambda handler"]
+  A["User context input"] --> B["React demo UI"]
+  B --> C["POST /search"]
+  C --> D["API Gateway + Lambda"]
+  D --> E["Input checks + safety controls"]
 
-  E --> F{"Input valid? (context required, 8000 char max)"}
-  F -- "No" --> F1["400 validation error"]
-  F -- "Yes" --> G["DynamoDB RequestRateLimit update (IP + minute bucket)"]
+  E --> P["Parallel work"]
+  P --> F["Semantic Scholar<br/>candidate fetch"]
+  P --> G["Bedrock embeddings"]
+  P --> H["DynamoDB cache<br/>lookup/write"]
 
-  G --> H{"Within rate limit?"}
-  H -- "No" --> H1["429 Too many requests"]
-  H -- "Yes" --> I{"Circuit breaker open?"}
-  I -- "Yes" --> I1["503 Retry shortly"]
-  I -- "No" --> J["Semantic Scholar /graph/v1/paper/search\nkeyword-safe query, candidate window"]
+  F --> I["Cosine rerank"]
+  G --> I
+  H --> I
 
-  E --> K["Bedrock Titan embed query context"]
-  J --> L["Candidate list (paperId, title, abstract, authors, year, venue, url)"]
-  L --> M["For each paper: contentHash(title + abstract)"]
-  M --> N{"Cached vector exists\nsame paperId + contentHash?"}
-  N -- "Yes" --> O["Reuse cached embedding"]
-  N -- "No" --> P["Bedrock Titan embed title + abstract (bounded parallelism)"]
-  P --> Q["Store in DynamoDB PaperEmbeddings\nTTL = 30 days"]
-  O --> R["Cosine similarity vs query embedding"]
-  Q --> R
-  R --> S["Sort descending and return top 10"]
-  S --> T["Response: results + meta\n(candidatesFetched, cachedEmbeddingsUsed, requestId, latencyMs)"]
-  T --> B
+  I --> J["Top 10 papers + metadata"]
+  J --> B
 ```

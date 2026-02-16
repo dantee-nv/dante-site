@@ -606,13 +606,13 @@ const baseProjects = [
           kind: "mermaid",
           markdown: paperSearchArchitectureFlow,
           caption:
-            "Amplify-hosted UI to API Gateway/Lambda with validation, Semantic Scholar fetch, Bedrock rerank, and DynamoDB caching/rate limiting controls.",
+            "High-level vertical flow with parallel candidate fetch, embedding, and cache steps converging into reranking and top-10 response.",
         },
         bullets: [
           "Frontend is hosted in the existing Amplify site and calls one POST /search endpoint.",
           "Lambda fetches up to 100 candidate papers from Semantic Scholar.",
           "The same Bedrock embedding model is used for query context and candidate paper vectors.",
-          "DynamoDB caches paper embeddings to improve repeat-query latency and reduce embedding calls.",
+          "DynamoDB caches paper embeddings so reranking can reuse vectors instead of recomputing them on every request.",
         ],
       },
       {
@@ -623,8 +623,21 @@ const baseProjects = [
           "Input validation requires context and enforces an 8000-character cap.",
           "Per-IP per-minute request limits are enforced with atomic DynamoDB counters.",
           "Candidate paper embedding cache keys are tied to paperId and content hash to prevent stale vectors.",
+          "When cache hits exist, Lambda reuses stored vectors; when cache misses occur, only missing vectors are embedded and written back.",
           "Cosine similarity drives ranking and top 10 result selection.",
           "The API returns request metadata including candidates fetched, cache hits, request ID, and latency.",
+        ],
+      },
+      {
+        heading: "Caching Strategy and Lifecycle",
+        body:
+          "Caching focuses on the expensive step: embedding candidate papers. This keeps semantic quality stable while reducing repeat-query cost and latency.",
+        bullets: [
+          "Cache table: `PaperEmbeddings` with `paperId` as primary key plus stored vector, contentHash, updatedAt, and TTL.",
+          "Cache validity: if `paperId` exists and `contentHash(title + abstract)` matches, the vector is reused immediately.",
+          "Cache refresh: if title or abstract changes, contentHash mismatch triggers re-embedding and an in-place cache overwrite.",
+          "TTL policy: embeddings expire automatically (30-day default), so old vectors are cleaned up without manual jobs.",
+          "Observed behavior: first run is cache-cold and slower; follow-up queries show high `cachedEmbeddingsUsed` and faster response times.",
         ],
       },
       {
