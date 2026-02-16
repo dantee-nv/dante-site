@@ -198,12 +198,6 @@ export default function PaperSearchDemoPanel() {
         <ol className="paper-search-results" aria-label="Ranked paper search results">
           {results.map((result, index) => (
             <li className="paper-search-result-card" key={`${result.paperId}-${index}`}>
-              <div className="paper-search-result-head">
-                <p className="paper-search-result-rank">#{index + 1}</p>
-                <p className="paper-search-result-score">
-                  Relevance: {formatScore(result.score)}
-                </p>
-              </div>
               <h4>{result.title || "Untitled paper"}</h4>
               <p className="paper-search-result-meta">
                 {formatAuthors(result.authors)} | {result.year || "Year N/A"}
@@ -212,11 +206,18 @@ export default function PaperSearchDemoPanel() {
               <p className="paper-search-result-snippet">
                 {result.abstractSnippet || "Abstract not available."}
               </p>
-              {result.url ? (
-                <a href={result.url} target="_blank" rel="noreferrer">
-                  Open Paper
-                </a>
-              ) : null}
+              <div className="paper-search-result-actions">
+                {result.url ? (
+                  <a href={result.url} target="_blank" rel="noreferrer">
+                    Open Paper
+                  </a>
+                ) : (
+                  <span />
+                )}
+                <p className="paper-search-result-score">
+                  Relevance: {formatScore(result.score)}
+                </p>
+              </div>
             </li>
           ))}
         </ol>
