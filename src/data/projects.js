@@ -62,12 +62,34 @@ function normalizeAtGlanceMetrics(rawMetrics) {
     .filter(Boolean);
 }
 
+function normalizeOpportunity(rawOpportunity) {
+  if (!rawOpportunity || typeof rawOpportunity !== "object") {
+    return null;
+  }
+
+  const problem = typeof rawOpportunity.problem === "string" ? rawOpportunity.problem.trim() : "";
+  const fix = typeof rawOpportunity.fix === "string" ? rawOpportunity.fix.trim() : "";
+  const outcome = typeof rawOpportunity.outcome === "string" ? rawOpportunity.outcome.trim() : "";
+
+  if (!problem && !fix && !outcome) {
+    return null;
+  }
+
+  return { problem, fix, outcome };
+}
+
 const baseProjects = [
   {
     slug: "site",
     title: "This Site",
     summary:
       "An AWS Amplify-hosted personal site built to ship quickly, look polished and support real outreach through a production contact pipeline.",
+    opportunity: {
+      problem:
+        "I did not have a single accessible place to share my projects, so I built this portfolio as a centralized, browser-first experience.",
+      fix:
+        "Anyone can explore what I am building quickly and use the tools I create. The goal is simple: make it easy to see the ideas, the execution and the thinking behind them.",
+    },
     cardSummary:
       "AWS Amplify-hosted portfolio with polished React UX and a production contact pipeline.",
     status: "live",
@@ -185,6 +207,12 @@ const baseProjects = [
     title: "Cabbie Quiz (iOS)",
     summary:
       "An iOS trivia app that blends LLM-generated local knowledge with quiz UX.",
+    opportunity: {
+      problem:
+        "I enjoy a good trivia night, but often learning about your city feels passive.",
+      fix:
+        "I turned this into an interactive quiz with friendly competition, making local discovery more engaging and replayable.",
+    },
     status: "in-progress",
     tags: ["Swift", "SwiftUI", "MVVM", "JSON Decoding", "iOS", "LLM Integration"],
     atGlance: {
@@ -299,6 +327,12 @@ const baseProjects = [
     title: "Automated Lead Generation",
     summary:
       "Automated sales territory workflows by scraping qualified non-paid user lists from an initial unfiltered searches.",
+    opportunity: {
+      problem:
+        "A friend was manually qualifying leads on a JavaScript-heavy site, navigating multiple pages and running into frequent dead ends.",
+      fix:
+        "I built an automated pipeline for filtering, deduplication and enrichment, turning a slow manual workflow into a repeatable lead generation system.",
+    },
     status: "live",
     tags: ["Python", "Data Pipeline", "Playwright", "Async Scraping", "Data Quality", "Automation"],
     atGlance: {
@@ -425,6 +459,12 @@ const baseProjects = [
     title: "RAG Chatbot",
     summary:
       "A document-agnostic Retrieval-Augmented Generation system that grounds answers in approved source material; the live demo showcases a Nestle HR policy PDF.",
+    opportunity: {
+      problem:
+        "In a regulated workplace setting, hallucinated answers against real content were not acceptable.",
+      fix:
+        "I built a grounded retrieval workflow constrained to verifiable source standards, ensuring responses are specific and defensible.",
+    },
     status: "live",
     tags: [
       "RAG",
@@ -554,6 +594,12 @@ const baseProjects = [
       "A semantic paper search demo that fetches keyword candidates from Semantic Scholar, reranks with Bedrock Titan embeddings, and returns the top 10 papers with relevance scores.",
     cardSummary:
       "Semantic Scholar candidate fetch + Bedrock embedding rerank + DynamoDB embedding cache in a live web demo.",
+    opportunity: {
+      problem:
+        "A friend found that keyword-first paper search often missed work aligned with his actual research intent.",
+      fix:
+        "I implemented semantic reranking to compare abstracts by meaning rather than surface terms, reducing discovery friction and surfacing relevant papers more quickly.",
+    },
     status: "live",
     tags: [
       "React",
@@ -681,6 +727,12 @@ const baseProjects = [
       "An automation pipeline that captures IMAX-only showtimes for one Los Angeles AMC theater and delivers scheduled Pacific-time email summaries via n8n and AWS SES.",
     cardSummary:
       "IMAX-only AMC showtime scraper with n8n scheduling, SES email delivery and EC2-hosted workflow reliability.",
+    opportunity: {
+      problem:
+        "Checking AMC showtimes day by day made planning upcoming IMAX releases tedious and incomplete.",
+      fix:
+        "I built IMAX-focused automation that scans forward looking windows, making it easier to plan earlier and catch scheduling gaps that are easy to miss manually.",
+    },
     status: "live",
     tags: [
       "Python",
@@ -799,11 +851,13 @@ const baseProjects = [
 function normalizeProject(project) {
   const tags = Array.isArray(project.tags) ? project.tags : [];
   const atGlance = project.atGlance || {};
+  const opportunity = normalizeOpportunity(project.opportunity);
 
   return {
     ...project,
     status: project.status || "planned",
     template: project.template || "case-study",
+    opportunity,
     tags,
     atGlance: {
       skills: normalizeAtGlanceSkills(atGlance.skills, tags),

@@ -52,15 +52,15 @@ function formatSkillLane(lane) {
   return `${lane.charAt(0).toUpperCase()}${lane.slice(1)}`;
 }
 
-function renderMetaRows(meta) {
-  if (!meta) {
+function renderMetaRows(meta, extraRows = []) {
+  if (!meta && (!Array.isArray(extraRows) || extraRows.length === 0)) {
     return null;
   }
 
   const rows = [
-    { label: "Timeline", value: meta.timeline },
-    { label: "Role", value: meta.role },
-    { label: "Stack", value: meta.stack },
+    ...extraRows,
+    { label: "Role", value: meta?.role },
+    { label: "Stack", value: meta?.stack },
   ].filter((row) => Boolean(row.value));
 
   if (rows.length === 0) {
@@ -119,10 +119,20 @@ export default function ProjectDetail() {
   }
 
   const ctaActions = project.cta.filter((action) => action?.label && action?.to);
+  const opportunityNarrative = [
+    project.opportunity?.problem || "",
+    project.opportunity?.fix || "",
+    project.opportunity?.outcome || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const atGlanceSkills = project.atGlance?.skills || [];
   const atGlanceMetrics = project.atGlance?.metrics || [];
   const showTitleStatus = Boolean(project.status);
   const shouldRenderAmcSignup = project.slug === "amc-imax-scraper-n8n-automation";
+  const heroMetaRows = opportunityNarrative
+    ? [{ label: "Opportunity", value: opportunityNarrative }]
+    : [];
   const deepDiveItems = [
     {
       id: "deep-dive",
@@ -233,7 +243,7 @@ export default function ProjectDetail() {
             ) : null}
           </div>
           <p>{project.summary}</p>
-          {renderMetaRows(project.meta)}
+          {renderMetaRows(project.meta, heroMetaRows)}
         </Motion.header>
 
         {atGlanceSkills.length > 0 || atGlanceMetrics.length > 0 ? (
