@@ -103,7 +103,12 @@ export default function Projects() {
           const skills = project.atGlance?.skills || [];
 
           return (
-            <Motion.div key={project.slug} variants={tile} transition={{ duration: 0.35 }}>
+            <Motion.div
+              key={project.slug}
+              className="tile-frame"
+              variants={tile}
+              transition={{ duration: 0.35 }}
+            >
               <Link className="tile tile-link" to={`/${project.slug}`}>
                 <div className="tile-top">
                   <h3 className="tile-title">{project.title}</h3>

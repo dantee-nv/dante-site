@@ -312,7 +312,12 @@ a{ color: inherit; text-decoration:none; }
   margin-top: 18px;
   display:grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
+}
+
+.tile-frame{
+  min-width: 0;
+  display: flex;
 }
 .tile{
   border: 1px solid var(--line);
@@ -324,10 +329,11 @@ a{ color: inherit; text-decoration:none; }
 
 .tile-link{
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 12px;
   padding: 18px;
-  height: 100%;
+  width: 100%;
 }
 
 .tile-link:hover{
@@ -546,6 +552,7 @@ a{ color: inherit; text-decoration:none; }
 }
 
 .project-at-glance{
+  margin-top: 14px;
   display: grid;
   gap: 14px;
 }
@@ -559,6 +566,7 @@ a{ color: inherit; text-decoration:none; }
 .project-at-glance > div{
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .project-skill-list{
@@ -599,6 +607,8 @@ a{ color: inherit; text-decoration:none; }
   color: var(--muted);
   font-size: 0.8rem;
   padding: 6px 9px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .tile-link:hover .project-skill-chip-outline{
@@ -608,6 +618,11 @@ a{ color: inherit; text-decoration:none; }
 
 .project-section .project-skill-chip{
   margin-top: 0;
+  max-width: 100%;
+}
+
+.project-section .project-skill-chip span:last-child{
+  overflow-wrap: anywhere;
 }
 
 .project-skill-lane{
@@ -695,6 +710,7 @@ a{ color: inherit; text-decoration:none; }
 
 .project-section .project-metric-pill{
   margin-top: 0;
+  max-width: 100%;
 }
 
 .project-metric-label{
@@ -717,6 +733,7 @@ a{ color: inherit; text-decoration:none; }
   color: var(--muted);
   font-size: 0.84rem;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .project-metric-pill.tone-neutral{
