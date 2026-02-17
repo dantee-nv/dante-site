@@ -137,7 +137,7 @@ export default function PaperSearchDemoPanel() {
     <section className="paper-search-demo-panel">
       <div className="paper-search-demo-heading">
         <h3>Context-Based Paper Search Demo</h3>
-        <span className="paper-search-demo-pill">Live</span>
+        <span className="paper-search-demo-pill">Try It Now</span>
       </div>
       <p>
         Paste notes, an abstract, or a research question. The backend fetches
