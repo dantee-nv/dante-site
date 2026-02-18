@@ -86,7 +86,7 @@ const baseProjects = [
       "An AWS Amplify-hosted personal site built to ship quickly, look polished and support real outreach through a production contact pipeline.",
     opportunity: {
       problem:
-        "I did not have a single accessible place to share my projects, so I built this portfolio as a centralized, browser-first experience.",
+        "I wanted to create a single accessible place to share my projects so I built this portfolio as a centralized, browser-first experience.",
       fix:
         "Anyone can explore what I am building quickly and use the tools I create. The goal is simple: make it easy to see the ideas, the execution and the thinking behind them.",
     },
@@ -209,9 +209,9 @@ const baseProjects = [
       "An iOS trivia app that blends LLM-generated local knowledge with quiz UX.",
     opportunity: {
       problem:
-        "I enjoy a good trivia night, but often learning about your city feels passive.",
+        "Learning about your city often feels passive even through a curated trivia night.",
       fix:
-        "I turned this into an interactive quiz with friendly competition, making local discovery more engaging and replayable.",
+        "I devloped an interactive quiz app with friendly competition, making local discovery more engaging and replayable.",
     },
     status: "in-progress",
     tags: ["Swift", "SwiftUI", "MVVM", "JSON Decoding", "iOS", "LLM Integration"],
@@ -329,9 +329,9 @@ const baseProjects = [
       "Automated sales territory workflows by scraping qualified non-paid user lists from an initial unfiltered searches.",
     opportunity: {
       problem:
-        "A friend was manually qualifying leads on a JavaScript-heavy site, navigating multiple pages and running into frequent dead ends.",
+        "Leads are often qualified on JavaScript-heavy sites, navigating through multiple pages and running into frequent dead ends.",
       fix:
-        "I built an automated pipeline for filtering, deduplication and enrichment, turning a slow manual workflow into a repeatable lead generation system.",
+        "I automated a pipeline for filtering, deduplication and enrichment for lead generation, turning a slow manual workflow into a repeatable system.",
     },
     status: "live",
     tags: ["Python", "Data Pipeline", "Playwright", "Async Scraping", "Data Quality", "Automation"],
@@ -461,9 +461,9 @@ const baseProjects = [
       "A document-agnostic Retrieval-Augmented Generation system that grounds answers in approved source material; the live demo showcases a Nestle HR policy PDF.",
     opportunity: {
       problem:
-        "In a regulated workplace setting, hallucinated answers against real content were not acceptable.",
+        "In a regulated workplace setting, hallucinated answers against real content are not acceptable.",
       fix:
-        "I built a grounded retrieval workflow constrained to verifiable source standards, ensuring responses are specific and defensible.",
+        "I grounded a retrieval workflow to verifiable source standards, ensuring responses are specific and defensible.",
     },
     status: "live",
     tags: [
@@ -596,7 +596,7 @@ const baseProjects = [
       "Semantic Scholar candidate fetch + Bedrock embedding rerank + DynamoDB embedding cache in a live web demo.",
     opportunity: {
       problem:
-        "A friend found that keyword-first paper search often missed work aligned with his actual research intent.",
+        "Keyword-first paper searches often miss research aligned with actual search intent.",
       fix:
         "I implemented semantic reranking to compare abstracts by meaning rather than surface terms, reducing discovery friction and surfacing relevant papers more quickly.",
     },
@@ -731,7 +731,7 @@ const baseProjects = [
       problem:
         "Checking AMC showtimes day by day made planning upcoming IMAX releases tedious and incomplete.",
       fix:
-        "I built IMAX-focused automation that scans forward looking windows, making it easier to plan earlier and catch scheduling gaps that are easy to miss manually.",
+        "I deployed an IMAX-focused automation that scans forward looking windows, making it easier to plan earlier and catch scheduling gaps that are easy to miss manually.",
     },
     status: "live",
     tags: [
