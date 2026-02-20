@@ -37,11 +37,17 @@ export default function Projects() {
   };
 
   const sortedProjects = [...projectCardList].sort((a, b) => {
-    const aIsMainCard = a.slug === "site";
-    const bIsMainCard = b.slug === "site";
+    const aIsSite = a.slug === "site";
+    const bIsSite = b.slug === "site";
+    const aIsCabbie = a.slug === "cabbie-ios";
+    const bIsCabbie = b.slug === "cabbie-ios";
 
-    if (aIsMainCard !== bIsMainCard) {
-      return aIsMainCard ? -1 : 1;
+    if (aIsSite && bIsCabbie) {
+      return -1;
+    }
+
+    if (aIsCabbie && bIsSite) {
+      return 1;
     }
 
     const aRank = statusOrder[a.status] ?? Number.MAX_SAFE_INTEGER;
