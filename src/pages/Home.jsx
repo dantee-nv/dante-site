@@ -9,6 +9,56 @@ const page = {
   exit: { opacity: 0, y: -10, filter: "blur(6px)" },
 };
 
+const homeCards = [
+  {
+    to: "/projects",
+    title: "Projects",
+    icon: "projects",
+    desc: "Automation, dashboards and “small tools with big leverage.”",
+  },
+  {
+    to: "/background",
+    title: "Background",
+    icon: "background",
+    desc: "R&D + verification mindset, applied to software and systems.",
+  },
+  {
+    to: "/contact",
+    title: "Contact",
+    icon: "contact",
+    desc: "If you’re hiring or building, let’s connect.",
+  },
+];
+
+function CardIcon({ icon }) {
+  if (icon === "projects") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="4" y="4" width="6" height="6" rx="1.5" />
+        <rect x="14" y="4" width="6" height="6" rx="1.5" />
+        <rect x="4" y="14" width="6" height="6" rx="1.5" />
+        <rect x="14" y="14" width="6" height="6" rx="1.5" />
+      </svg>
+    );
+  }
+
+  if (icon === "background") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8 5h8.5a2.5 2.5 0 0 1 2.5 2.5V18a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+        <path d="M6 8H5a2 2 0 0 0-2 2v9.5A2.5 2.5 0 0 0 5.5 22H14" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6.5 6h11a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 0 1-2.5 2.5H12l-4 3v-3H6.5A2.5 2.5 0 0 1 4 15.5v-7A2.5 2.5 0 0 1 6.5 6Z" />
+      <path d="M8 11h8M8 14h5" />
+    </svg>
+  );
+}
+
 export default function Home() {
   
   usePageTitle("Home");
@@ -59,26 +109,17 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.55, duration: 0.6 }}
         >
-          <Link to="/projects" className="card">
-            <div className="card-title">Projects</div>
-            <div className="card-desc">
-              Automation, dashboards and “small tools with big leverage.”
-            </div>
-          </Link>
-
-          <Link to="/background" className="card">
-            <div className="card-title">Background</div>
-            <div className="card-desc">
-              R&D + verification mindset, applied to software and systems.
-            </div>
-          </Link>
-
-          <Link to="/contact" className="card">
-            <div className="card-title">Contact</div>
-            <div className="card-desc">
-              If you’re hiring or building, let’s connect.
-            </div>
-          </Link>
+          {homeCards.map((card) => (
+            <Link to={card.to} className="card" key={card.to}>
+              <div className="card-title-row">
+                <span className="card-icon" aria-hidden="true">
+                  <CardIcon icon={card.icon} />
+                </span>
+                <div className="card-title">{card.title}</div>
+              </div>
+              <div className="card-desc">{card.desc}</div>
+            </Link>
+          ))}
         </Motion.div>
       </div>
     </Motion.section>
