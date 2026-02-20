@@ -1417,12 +1417,6 @@ a{ color: inherit; text-decoration:none; }
   .nav-link{
     white-space: nowrap;
   }
-  .logo-home{
-    display: none;
-  }
-  .logo-sep{
-    display: none;
-  }
   .tile-top{
     flex-direction: column;
     align-items: flex-start;
@@ -1531,6 +1525,10 @@ a{ color: inherit; text-decoration:none; }
 .accordion-title{
   font-weight: 650;
   letter-spacing: 0.2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .accordion-actions{
@@ -1566,29 +1564,31 @@ a{ color: inherit; text-decoration:none; }
   border-radius: 999px;
   background: rgba(255,255,255,0.06);
   color: var(--muted);
+  flex: 0 0 auto;
 }
 
 .accordion-content{
   overflow: hidden;
-  will-change: height, opacity;
+  will-change: grid-template-rows, opacity;
 }
 
 .project-accordion .accordion-content{
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   opacity: 0;
   visibility: hidden;
   transition:
-    max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.22s ease,
     visibility 0s linear 0.34s;
 }
 
 .project-accordion .accordion-content.open{
-  max-height: 12000px;
+  grid-template-rows: 1fr;
   opacity: 1;
   visibility: visible;
   transition:
-    max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.22s ease,
     visibility 0s linear 0s;
 }
@@ -1608,6 +1608,11 @@ a{ color: inherit; text-decoration:none; }
 
 .accordion-inner p{
   color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.accordion-inner li{
+  overflow-wrap: anywhere;
 }
 
 .accordion-inner ul{
