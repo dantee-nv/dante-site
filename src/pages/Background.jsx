@@ -75,16 +75,6 @@ function AccordionItem({ id, title, children }) {
   );
 }
 
-function DeepDive({ id, title = "Deep Dive", children }) {
-  return (
-    <div className="background-deep-dive">
-      <AccordionItem id={id} title={title}>
-        {children}
-      </AccordionItem>
-    </div>
-  );
-}
-
 function CompanyHeader({ company, companyUrl, role, meta }) {
   return (
     <div className="company-header">
@@ -1189,42 +1179,40 @@ export default function Background() {
               role="R&D Engineer – Testing and Data Analysis"
               meta="Orange County, CA • 2020–Present"
             />
-            <DeepDive id="work-medtronic-rd-deep-dive">
-              <ul>
-                <li>
-                  Apply large language models (LLMs) within engineering analysis workflows to
-                  synthesize DV data, compare historical results and accelerate technical
-                  reporting under regulatory constraints
-                </li>
-                <li>
-                  Design and deploy Python-based data aggregation and automation pipelines to
-                  process large verification datasets, reducing manual processing and
-                  accelerating engineering analysis throughput
-                </li>
-                <li>
-                  Re-architected a one-year critical-path DV strategy by leveraging legacy data
-                  and risk-based test rationales, enabling FDA submission two months ahead of
-                  schedule
-                </li>
-                <li>
-                  Lead cross-site, cross-disciplinary engineering teams to plan and execute DV
-                  studies supporting global market expansion
-                </li>
-                <li>
-                  Design and fabricate rapid 3D-printed fixtures and test components in SolidWorks
-                  to replicate in-vivo boundary conditions, integrating explanted patient device data
-                  to improve hydrodynamic test realism
-                </li>
-                <li>
-                  Author formal technical rationales and test justifications incorporated into regulatory
-                  submissions to eliminate redundant testing while preserving traceability and risk posture
-                </li>
-                <li>
-                  Manage and mentor direct reports while defining technical hiring criteria to scale verification
-                  and data-focused teams
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Apply large language models (LLMs) within engineering analysis workflows to
+                synthesize DV data, compare historical results and accelerate technical
+                reporting under regulatory constraints
+              </li>
+              <li>
+                Design and deploy Python-based data aggregation and automation pipelines to
+                process large verification datasets, reducing manual processing and
+                accelerating engineering analysis throughput
+              </li>
+              <li>
+                Re-architected a one-year critical-path DV strategy by leveraging legacy data
+                and risk-based test rationales, enabling FDA submission two months ahead of
+                schedule
+              </li>
+              <li>
+                Lead cross-site, cross-disciplinary engineering teams to plan and execute DV
+                studies supporting global market expansion
+              </li>
+              <li>
+                Design and fabricate rapid 3D-printed fixtures and test components in SolidWorks
+                to replicate in-vivo boundary conditions, integrating explanted patient device data
+                to improve hydrodynamic test realism
+              </li>
+              <li>
+                Author formal technical rationales and test justifications incorporated into regulatory
+                submissions to eliminate redundant testing while preserving traceability and risk posture
+              </li>
+              <li>
+                Manage and mentor direct reports while defining technical hiring criteria to scale verification
+                and data-focused teams
+              </li>
+            </ul>
 
             <CompanyHeader
               company="Corrie Health"
@@ -1232,19 +1220,17 @@ export default function Background() {
               role="iOS Software Developer"
               meta="Remote • 2018–2021"
             />
-            <DeepDive id="work-corrie-ios-deep-dive">
-              <ul>
-                <li>
-                  Developed and deployed patient-facing iOS applications for secure collection,
-                  visualization and longitudinal tracking of physiological data used by clinicians
-                  for monitoring trends and outcomes
-                </li>
-                <li>
-                  Integrated Bluetooth-enabled medical devices to stream real-time physiological
-                  signals into mobile applications and managed production App Store releases
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Developed and deployed patient-facing iOS applications for secure collection,
+                visualization and longitudinal tracking of physiological data used by clinicians
+                for monitoring trends and outcomes
+              </li>
+              <li>
+                Integrated Bluetooth-enabled medical devices to stream real-time physiological
+                signals into mobile applications and managed production App Store releases
+              </li>
+            </ul>
 
             <CompanyHeader
               company="Medtronic"
@@ -1252,19 +1238,17 @@ export default function Background() {
               role="Clinical Engineering Intern – Automation and Algorithm Development"
               meta="Miami Lakes, FL • Summer 2019"
             />
-            <DeepDive id="work-medtronic-intern-deep-dive">
-              <ul>
-                <li>
-                  Created an automated testing system implemented on algorithms to examine sensitivity and false positive rates
-                </li>
-                <li>
-                  Built a custom analytics system to assess the significance of circadian disruption in predicting adverse outcomes
-                </li>
-                <li>
-                  Developed an algorithm to identify cardiac preload to non-invasively manage HVAD controller speed
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Created an automated testing system implemented on algorithms to examine sensitivity and false positive rates
+              </li>
+              <li>
+                Built a custom analytics system to assess the significance of circadian disruption in predicting adverse outcomes
+              </li>
+              <li>
+                Developed an algorithm to identify cardiac preload to non-invasively manage HVAD controller speed
+              </li>
+            </ul>
 
             <CompanyHeader
               company="imec"
@@ -1272,22 +1256,20 @@ export default function Background() {
               role="Wearable Technology Integration Intern"
               meta="Leuven, Belgium • Summer 2018"
             />
-            <DeepDive id="work-imec-deep-dive">
-              <ul>
-                <li>
-                  Designed and developed an iOS application to securely ingest and visualize physiological data from a clinical grade wearable prototype
-                </li>
-                <li>
-                  Enabled contextual interpretation of stress trends from physiological stress signals in relation to geolocation and time based patterns
-                </li>
-                <li>
-                  Implemented server communication pipelines to deliver real time derived stress metrics within the mobile application
-                </li>
-                <li>
-                  Independently owned project execution end to end, defining milestones and checkpoints to meet delivery timelines
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Designed and developed an iOS application to securely ingest and visualize physiological data from a clinical grade wearable prototype
+              </li>
+              <li>
+                Enabled contextual interpretation of stress trends from physiological stress signals in relation to geolocation and time based patterns
+              </li>
+              <li>
+                Implemented server communication pipelines to deliver real time derived stress metrics within the mobile application
+              </li>
+              <li>
+                Independently owned project execution end to end, defining milestones and checkpoints to meet delivery timelines
+              </li>
+            </ul>
           </AccordionItem>
         </Motion.div>
 
@@ -1300,46 +1282,36 @@ export default function Background() {
             <div className="skills-grid">
               <div className="skills-column">
                 <h4>AI and Data Systems</h4>
-                <DeepDive id="skills-ai-data-deep-dive">
-                  <ul>
-                    <li>LLM-enabled analytics and workflow integration</li>
-                    <li>Machine learning and predictive modeling</li>
-                    <li>Data pipelines automation and model evaluation</li>
-                  </ul>
-                </DeepDive>
+                <ul>
+                  <li>LLM-enabled analytics and workflow integration</li>
+                  <li>Machine learning and predictive modeling</li>
+                  <li>Data pipelines automation and model evaluation</li>
+                </ul>
 
                 <h4>Software Engineering</h4>
-                <DeepDive id="skills-software-engineering-deep-dive">
-                  <ul>
-                    <li>Python-based analytical and visualization tooling</li>
-                    <li>Algorithm development and verification</li>
-                    <li>User-facing tools for engineering and clinical workflows</li>
-                  </ul>
-                </DeepDive>
+                <ul>
+                  <li>Python-based analytical and visualization tooling</li>
+                  <li>Algorithm development and verification</li>
+                  <li>User-facing tools for engineering and clinical workflows</li>
+                </ul>
               </div>
 
               <div className="skills-column">
                 <h4>Physical Systems</h4>
-                <DeepDive id="skills-physical-systems-deep-dive">
-                  <ul>
-                    <li>3D modeling and rapid prototyping for test systems</li>
-                    <li>CAD-based fixture and experimental setup design</li>
-                    <li>Sensor-integrated prototyping for system-level evaluation</li>
-                  </ul>
-                </DeepDive>
+                <ul>
+                  <li>3D modeling and rapid prototyping for test systems</li>
+                  <li>CAD-based fixture and experimental setup design</li>
+                  <li>Sensor-integrated prototyping for system-level evaluation</li>
+                </ul>
 
                 <h4>Regulated MedTech & Verification</h4>
-                <DeepDive id="skills-regulated-medtech-deep-dive">
-                  <ul>
-                    <li>Design Verification (DV) strategy and execution</li>
-                    <li>Medical device standards and test traceability (ISO 5840)</li>
-                    <li>Experimental design and statistical rigor</li>
-                  </ul>
-                </DeepDive>
+                <ul>
+                  <li>Design Verification (DV) strategy and execution</li>
+                  <li>Medical device standards and test traceability (ISO 5840)</li>
+                  <li>Experimental design and statistical rigor</li>
+                </ul>
               </div>
             </div>
-
-            
 
             <div className="skills-actions">
               <span
@@ -1376,13 +1348,11 @@ export default function Background() {
               role="Author"
               meta="Published in 2024"
             />
-            <DeepDive id="research-jacc-deep-dive">
-              <ul>
-                <li>
-                  Hydrodynamic Assessment of Explanted Degenerated Transcatheter Aortic Valves: Novel Insights Into Noncalcific and Calcific Mechanisms
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Hydrodynamic Assessment of Explanted Degenerated Transcatheter Aortic Valves: Novel Insights Into Noncalcific and Calcific Mechanisms
+              </li>
+            </ul>
 
             <CompanyHeader
               company="Johns Hopkins University"
@@ -1390,39 +1360,35 @@ export default function Background() {
               role="inHealth Precision Medicine – Project Lead"
               meta="Baltimore, MD • 2016–2021"
             />
-            <DeepDive id="research-jhu-inhealth-deep-dive">
-              <ul>
-                <li>
-                  Built machine learning models, including random forest classifiers, to predict patient outcomes using
-                  ambulatory and physiological datasets collected in clinical settings
-                </li>
-                <li>
-                  Developed iOS and watchOS applications to support remote collection of patient-reported pain metrics
-                  and physiological signals, enabling analysis of trends and temporal patterns
-                </li>
-                <li>
-                  Led hospital-based clinical studies under a funded Research Award, coordinating multidisciplinary
-                  teams and ensuring adherence to approved clinical protocol
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Built machine learning models, including random forest classifiers, to predict patient outcomes using
+                ambulatory and physiological datasets collected in clinical settings
+              </li>
+              <li>
+                Developed iOS and watchOS applications to support remote collection of patient-reported pain metrics
+                and physiological signals, enabling analysis of trends and temporal patterns
+              </li>
+              <li>
+                Led hospital-based clinical studies under a funded Research Award, coordinating multidisciplinary
+                teams and ensuring adherence to approved clinical protocol
+              </li>
+            </ul>
 
             <CompanyHeader
               company="Johns Hopkins University"
               role="Master's Thesis Project"
               meta="Baltimore, MD • 2019-2020"
             />
-            <DeepDive id="research-jhu-thesis-deep-dive">
-              <ul>
-                <li>
-                  Integrated IMUs and flex sensors to capture wrist and hand kinematics and wirelessly control an actuated
-                  3D printed hand with embedded tactile sensing using conductive traces and piezoresistive fabric
-                </li>
-                <li>
-                  Developed a Python based graphical interface to visualize tactile sensor activation and monitor system performance in real time
-                </li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>
+                Integrated IMUs and flex sensors to capture wrist and hand kinematics and wirelessly control an actuated
+                3D printed hand with embedded tactile sensing using conductive traces and piezoresistive fabric
+              </li>
+              <li>
+                Developed a Python based graphical interface to visualize tactile sensor activation and monitor system performance in real time
+              </li>
+            </ul>
           </AccordionItem>
         </Motion.div>
 
@@ -1433,23 +1399,19 @@ export default function Background() {
         >
           <AccordionItem id="education" title="Education">
             <CompanyHeader company="Johns Hopkins University" role="Degrees (2020)" meta="" />
-            <DeepDive id="education-jhu-deep-dive">
-              <ul>
-                <li>M.S.E. in Biomedical Engineering – Imaging and Medical Devices</li>
-                <li>B.S. in Biomedical Engineering – Minor: Computer Integrated Surgery</li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>M.S.E. in Biomedical Engineering – Imaging and Medical Devices</li>
+              <li>B.S. in Biomedical Engineering – Minor: Computer Integrated Surgery</li>
+            </ul>
 
             <CompanyHeader
               company="Purdue University"
               role="Certification (2026)"
               meta=""
             />
-            <DeepDive id="education-purdue-deep-dive">
-              <ul>
-                <li>Applied Generative AI Specialization – Building LLM Applications and Agentic Frameworks</li>
-              </ul>
-            </DeepDive>
+            <ul>
+              <li>Applied Generative AI Specialization – Building LLM Applications and Agentic Frameworks</li>
+            </ul>
           </AccordionItem>
         </Motion.div>
 
