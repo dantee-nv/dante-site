@@ -1181,9 +1181,10 @@ export default function Background() {
             />
             <ul>
               <li>
-                Apply large language models (LLMs) within engineering analysis workflows to
-                synthesize DV data, compare historical results and accelerate technical
-                reporting under regulatory constraints
+                Design and deploy RAG powered LLM systems for regulated engineering
+                environments, grounding outputs in controlled document repositories and
+                embedding based similarity search to compare legacy data with current
+                standards
               </li>
               <li>
                 Design and deploy Python-based data aggregation and automation pipelines to
