@@ -226,5 +226,15 @@ RAG_API_URL="$(
     --output text
 )"
 
+CODING_CHAT_API_URL="$(
+  aws cloudformation describe-stacks \
+    --stack-name "$STACK_NAME" \
+    --region "$AWS_REGION" \
+    --profile "$AWS_PROFILE" \
+    --query "Stacks[0].Outputs[?OutputKey=='CodingChallengeChatApiUrl'].OutputValue | [0]" \
+    --output text
+)"
+
 info "Deploy complete."
 info "RagDemoApiUrl: ${RAG_API_URL}"
+info "CodingChallengeChatApiUrl: ${CODING_CHAT_API_URL}"

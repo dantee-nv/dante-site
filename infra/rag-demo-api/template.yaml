@@ -104,6 +104,61 @@ Resources:
             Path: /rag-demo/feedback
             Method: POST
 
+  CodingChallengeChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/coding_chat_handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 25
+      MemorySize: 1024
+      Environment:
+        Variables:
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          CHAT_MODEL: !Ref ChatModel
+          CODING_CHAT_MAX_CHALLENGE_LENGTH: 6000
+          CODING_CHAT_MAX_MESSAGE_LENGTH: 1200
+          CODING_CHAT_MAX_HISTORY_ITEMS: 24
+          CODING_CHAT_HISTORY_WINDOW: 16
+          CODING_CHAT_MAX_REPLY_LENGTH: 12000
+      Events:
+        CodingChallengeChatPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RagDemoApi
+            Path: /coding-chat
+            Method: POST
+
+  CodingChallengeChatFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/coding_chat_feedback_handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 10
+      MemorySize: 512
+      Environment:
+        Variables:
+          FEEDBACK_TABLE_NAME: !Ref RagDemoFeedbackTable
+          CODING_CHAT_MAX_CHALLENGE_LENGTH: 6000
+          CODING_CHAT_MAX_MESSAGE_LENGTH: 1200
+          CODING_CHAT_MAX_REPLY_LENGTH: 12000
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: CodingChallengeFeedbackWrite
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt RagDemoFeedbackTable.Arn
+      Events:
+        CodingChallengeChatFeedbackPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RagDemoApi
+            Path: /coding-chat/feedback
+            Method: POST
+
 Outputs:
   RagDemoApiBaseUrl:
     Description: Base URL for the rag demo API.
@@ -114,3 +169,6 @@ Outputs:
   RagDemoFeedbackTableName:
     Description: DynamoDB table used for rag demo feedback.
     Value: !Ref RagDemoFeedbackTable
+  CodingChallengeChatApiUrl:
+    Description: Coding challenge chatbot endpoint URL.
+    Value: !Sub https://${RagDemoApi}.execute-api.${AWS::Region}.amazonaws.com/coding-chat

@@ -323,6 +323,130 @@ const baseProjects = [
     ],
   },
   {
+    slug: "coding-challenge-chatbot",
+    title: "Coding Challenge Chatbot",
+    summary:
+      "A multi-turn coding challenge assistant that starts with strategic hints and can reveal a full solution with complexity analysis when requested.",
+    cardSummary:
+      "Hints-first coding challenge chatbot with explicit full-solution reveal and feedback capture.",
+    opportunity: {
+      problem:
+        "Most coding challenge demos are single-turn answer dumps that do not support guided learning or iterative follow-up.",
+      fix:
+        "I built a chatbot-style experience that keeps short-term context, teaches with hints first, and still supports an explicit full solution reveal when the user is ready.",
+    },
+    status: "in-progress",
+    tags: [
+      "React",
+      "Python",
+      "OpenAI",
+      "AWS Lambda",
+      "API Gateway",
+      "Prompt Guardrails",
+      "Chat UX",
+    ],
+    atGlance: {
+      skills: [
+        { label: "Chat UX", lane: "frontend" },
+        { label: "Prompt Guardrails", lane: "ai" },
+        { label: "Python Lambda API", lane: "backend" },
+        { label: "OpenAI Chat Models", lane: "ai" },
+        { label: "AWS API Gateway", lane: "cloud" },
+        { label: "Feedback Telemetry", lane: "data" },
+      ],
+      metrics: [
+        { label: "Interaction Mode", value: "Hints-first multi-turn conversation", tone: "info" },
+        { label: "Reveal Flow", value: "Explicit full-solution button", tone: "neutral" },
+        {
+          label: "Feedback",
+          value: "Helpful/not helpful with optional note capture",
+          tone: "success",
+        },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "2026",
+      role: "AI + Full-Stack Engineer",
+      stack:
+        "React, Vite, Python, OpenAI API, AWS Lambda, API Gateway, DynamoDB, SAM",
+    },
+    sections: [
+      {
+        heading: "Goal and Scope",
+        body:
+          "The objective is to make coding challenge support feel like a tutor session, not a one-shot answer generator.",
+        bullets: [
+          "Accept full challenge blocks including constraints and examples.",
+          "Support conversational follow-up so users can ask targeted questions.",
+          "Default to hints-first behavior and keep full solution reveal explicit.",
+        ],
+      },
+      {
+        heading: "Chatbot UX Pattern",
+        body:
+          "The panel is designed around an interview-practice flow where users keep one challenge in focus while iterating with the assistant.",
+        bullets: [
+          "Dedicated challenge field anchors the session context.",
+          "Chat transcript displays user and assistant turns as message bubbles.",
+          "Primary action is Get Hints, with a gated Show Full Solution action.",
+          "Editing challenge text after chat start resets the conversation to avoid context drift.",
+        ],
+      },
+      {
+        heading: "Backend Contract and Session Memory",
+        body:
+          "The API is stateless at the infrastructure layer and uses client-provided message history for short-lived session memory.",
+        bullets: [
+          "POST /coding-chat accepts challenge, message, mode, and history.",
+          "History is validated and trimmed server-side to a bounded window.",
+          "No persistent conversation store is required for v1 behavior.",
+        ],
+      },
+      {
+        heading: "Prompting and Answer Modes",
+        body:
+          "The model receives mode-aware instructions so tutoring and full-solution paths remain distinct and predictable.",
+        bullets: [
+          "Hints mode avoids full final code and focuses on strategy, edge cases, and next steps.",
+          "Full-solution mode returns complete code, complexity, and concise explanation.",
+          "Language defaults to Python when no language is explicitly requested.",
+        ],
+      },
+      {
+        heading: "Feedback and Observability",
+        body:
+          "Each assistant response can collect a quick quality signal to support iterative prompt and UX tuning.",
+        bullets: [
+          "Helpful/not helpful feedback with optional note is submitted per response.",
+          "Feedback records include mode metadata and request context.",
+          "Latency and token stats are surfaced in the UI for transparency.",
+        ],
+      },
+      {
+        heading: "Current Status and Next Iteration",
+        body:
+          "The current milestone focuses on reliability and interaction quality before introducing execution-based verification.",
+        bullets: [
+          "Reasoning-based correctness checks are active in v1.",
+          "Planned next step is optional sandboxed sample-test execution.",
+          "Future iterations can add language-specific templates and richer tutoring controls.",
+        ],
+      },
+    ],
+    highlights: [
+      "Built a true multi-turn coding challenge interaction instead of static Q&A.",
+      "Implemented hints-first control flow with explicit full-solution reveal.",
+      "Added session-consistent reset logic when challenge context changes.",
+      "Integrated feedback capture and response-level telemetry for quality iteration.",
+      "Reused existing AWS serverless stack patterns for fast integration.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
+  {
     slug: "lead-generation",
     title: "Automated Lead Generation",
     summary:

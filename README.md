@@ -19,6 +19,7 @@ npm run dev
 
 The contact page reads `VITE_CONTACT_API_URL` and posts JSON to that endpoint.
 The Project 3 demo panel reads `VITE_RAG_DEMO_API_URL` and calls the Python RAG demo endpoint.
+The coding challenge chatbot panel reads `VITE_CODING_CHAT_API_URL` (or derives from `VITE_RAG_DEMO_API_URL`) and calls the Python coding chat endpoint.
 The context-based paper search panel reads `VITE_PAPER_SEARCH_API_URL` and calls the Python semantic rerank endpoint.
 The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and `VITE_AMC_PUBLIC_SIGNUP_ENABLED`.
 
@@ -142,6 +143,8 @@ Infrastructure and Lambda code live in:
 - `infra/rag-demo-api/src/handler.py`
 - `infra/rag-demo-api/src/rag_engine.py`
 - `infra/rag-demo-api/src/feedback_handler.py`
+- `infra/rag-demo-api/src/coding_chat_handler.py`
+- `infra/rag-demo-api/src/coding_chat_feedback_handler.py`
 - `infra/rag-demo-api/data/nestle_hr_policy.pdf`
 
 The Lambda loads policy content from `infra/rag-demo-api/data/nestle_hr_policy.pdf` (with text fallback), applies tighter chunking with overlap, embeds with `text-embedding-3-small`, retrieves context through hybrid vector + lexical ranking (FAISS + reciprocal rank fusion), and generates final answers with `gpt-4.1-nano` using lightweight-model guardrails (context-only, concise output, no speculation, and not-found fallback).
@@ -202,6 +205,32 @@ The demo download button serves:
 
 - `/nestle_hr_policy.pdf`
 
+## Coding challenge chatbot API architecture
+
+The coding challenge chatbot pipeline is:
+
+`React coding challenge panel -> API Gateway (HTTP API) -> Python Lambda (coding chat handler)`
+
+Feedback pipeline:
+
+`React coding challenge feedback form -> API Gateway (HTTP API) -> Python Lambda (coding chat feedback handler) -> DynamoDB`
+
+Core request behavior:
+
+- Input: `challenge` (required), `message` (required), `mode` (`hints` or `full_solution`), `history` (optional array).
+- Session memory: client-provided history only, validated and trimmed server-side.
+- Hints mode: strategic guidance without full final code.
+- Full solution mode: complete answer with complexity and concise explanation.
+- Language default: Python unless the prompt clearly requests another language.
+
+After deploy, use the `CodingChallengeChatApiUrl` stack output as:
+
+- `VITE_CODING_CHAT_API_URL=<CodingChallengeChatApiUrl>`
+
+The feedback endpoint is deployed at:
+
+- `<RagDemoApiBaseUrl>/coding-chat/feedback`
+
 ## Context-based paper search API architecture
 
 The context-based paper search demo pipeline is:
@@ -260,6 +289,7 @@ In Amplify environment variables, set:
 
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
 - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
+- `VITE_CODING_CHAT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/coding-chat`
 - `VITE_PAPER_SEARCH_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/search`
 - `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`
 - `VITE_AMC_PUBLIC_SIGNUP_ENABLED=false`
@@ -289,6 +319,9 @@ Then trigger a redeploy.
    export ALLOWED_ORIGINS="https://dantenavarro.com,https://www.dantenavarro.com,https://<your-amplify-domain>,http://localhost:5173"
    ./scripts/deploy.sh
    ```
-   Then confirm Amplify has `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo` and trigger a frontend rebuild.
+   Then confirm Amplify has:
+   - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
+   - `VITE_CODING_CHAT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/coding-chat`
+   and trigger a frontend rebuild.
 5. If `sam build` fails with an npm 11 error, use Node 20/npm 10 for build, or deploy directly with `sam deploy --template-file template.yaml` after `npm install` in `infra/contact-api`.
 6. If `sam build` fails for `infra/rag-demo-api` with Python runtime mismatch, install `python3.12` locally (the stack runtime is pinned to `python3.12`).
