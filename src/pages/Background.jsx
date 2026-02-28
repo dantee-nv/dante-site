@@ -1181,10 +1181,10 @@ export default function Background() {
             />
             <ul>
               <li>
-                Design and deploy RAG powered LLM systems for regulated engineering
-                environments, grounding outputs in controlled document repositories and
-                embedding based similarity search to compare legacy data with current
-                standards
+                Appy RAG powered large language models (LLMs) for regulated engineering
+                environments, grounding outputs in controlled document repositories,
+                synthesizing DV data and embedding based similarity search to compare
+                legacy data
               </li>
               <li>
                 Design and deploy Python-based data aggregation and automation pipelines to
