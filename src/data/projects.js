@@ -80,6 +80,105 @@ function normalizeOpportunity(rawOpportunity) {
 
 const baseProjects = [
   {
+    slug: "clinical-ner-finetune",
+    title: "Clinical NER Fine-Tuning",
+    summary:
+      "This project was built as a proof-of-concept clinical NLP pipeline designed to show more than prompting or notebook experimentation. It combines synthetic C-CDA input, public biomedical NER data, QLoRA fine-tuning, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU.",
+    cardSummary:
+      "This project was built as a proof-of-concept clinical NLP pipeline designed to show more than prompting or notebook experimentation.",
+    status: "live",
+    tags: ["Clinical NLP", "QLoRA", "PEFT", "Hugging Face", "PyTorch", "pytest"],
+    atGlance: {
+      skills: [
+        { label: "Clinical NLP", lane: "ai" },
+        { label: "QLoRA", lane: "ai" },
+        { label: "PEFT", lane: "ai" },
+        { label: "Hugging Face", lane: "ai" },
+        { label: "PyTorch", lane: "ai" },
+        { label: "pytest", lane: "backend" },
+      ],
+      metrics: [
+        {
+          label: "Held-Out Eval",
+          value: "Precision 0.8000 • Recall 0.7515 • F1 0.7750 • Exact Match 0.5500",
+          tone: "success",
+        },
+        {
+          label: "Validation Snapshot",
+          value: "500 curated rows • 0 invalid rows",
+          tone: "info",
+        },
+        { label: "Tests", value: "16 passing tests", tone: "success" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "March 2026",
+      role: "AI + ML Engineer",
+      stack:
+        "Python, Hugging Face Transformers, PEFT/QLoRA, TRL, PyTorch, scikit-learn, pytest, XML parsing",
+    },
+    sections: [
+      {
+        heading: "Overview",
+        body:
+          "This project was built as a proof-of-concept clinical NLP pipeline designed to show more than prompting or notebook experimentation. It combines synthetic C-CDA input, public biomedical NER data, QLoRA fine-tuning, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU.",
+      },
+      {
+        heading: "Build",
+        body:
+          "The pipeline starts by parsing a synthetic C-CDA XML example, then curates public biomedical NER datasets into a normalized `problems` / `treatments` / `tests` extraction schema. From there, it validates the generated JSONL training data, fine-tunes `microsoft/Phi-3-mini-4k-instruct` with PEFT/QLoRA, runs CLI-based inference on sample notes, and evaluates held-out performance with saved metrics.",
+        bullets: [
+          "Dataset fallback order is `medical_ner`, then `ncbi_disease`, then `bc5cdr`.",
+          "The training flow uses 4-bit quantization, LoRA adapters, and TRL `SFTTrainer` with Colab T4-friendly defaults.",
+          "The repository is organized into dedicated `data/`, `train/`, `inference/`, `eval/`, and `tests/` modules for end-to-end review.",
+        ],
+      },
+      {
+        heading: "Debugging + Hardening",
+        body:
+          "The most important work was making the project reliable enough to review end to end. That included dataset fallback loading, schema normalization, validation and metrics utilities, Colab and private-repo quickstart fixes, `transformers` `TrainingArguments` compatibility updates, `SFTTrainer` API compatibility handling, a workaround for Colab bfloat16 AMP issues, disabling generation cache behavior that triggered `DynamicCache` failures, and evaluation fixes for zero-class sklearn metric edge cases.",
+        bullets: [
+          "Validation checks cover JSONL parsing, message schema structure, assistant payload JSON, and target-key presence.",
+          "Automated tests cover the parser, curation, validation, and evaluation modules.",
+        ],
+      },
+      {
+        heading: "Results",
+        body:
+          "The project produced committed adapter artifacts, reproducible evaluation outputs, and a tested Python codebase. On the final adapter run, held-out evaluation recorded precision `0.8000`, recall `0.7515`, F1 `0.7750`, and exact match `0.5500` across `80` evaluated examples. The validation snapshot dated March 10, 2026 reported `500` curated rows with `0` invalid rows, and the automated test suite currently passes with `16` tests. This remains a portfolio proof of concept rather than a clinically deployable system: the C-CDA parser is intentionally minimal, the label mapping is heuristic, and the entity schema is simplified.",
+        visual: {
+          kind: "image",
+          src: "/projects/clinical-ner-finetune-sample-results.png",
+          alt:
+            "Terminal screenshot showing the clinical NER adapter predicting diabetes, metformin, and HbA1c from a sample note.",
+          caption:
+            "Sample CLI inference output from the adapter run, showing extracted problems, treatments, and tests for a diabetes note.",
+        },
+        bullets: [
+          "Held-out metrics are saved in `eval/results.json` with `80` evaluated examples and exact match rate `0.5500`.",
+          "The latest validation snapshot used fallback dataset `bc5cdr` and produced `400` train / `50` val / `50` test rows.",
+          "The sample inference screenshot shows the adapter extracting `problems`, `treatments`, and `tests` from a note about diabetes, metformin, and HbA1c.",
+        ],
+      },
+    ],
+    highlights: [
+      "Built and debugged an end-to-end clinical NER fine-tuning workflow on Colab T4.",
+      "Implemented reproducible public-dataset curation with fallback loading and schema normalization.",
+      "Added robust validation and metrics utilities, including zero-class edge-case handling.",
+      "Shipped tested, CLI-first Python modules suitable for portfolio review.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+      {
+        label: "View Full Deep Dive",
+        to: "https://github.com/dantee-nv/clinical-ner-finetune",
+        external: true,
+      },
+    ],
+  },
+  {
     slug: "site",
     title: "This Site",
     summary:

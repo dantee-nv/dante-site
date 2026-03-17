@@ -30,10 +30,11 @@ export default function Projects() {
     "in-progress": 1,
   };
   const liveProjectOrder = {
-    "rag-hr-chatbot": 0,
-    "semantic-paper-search-bedrock": 1,
-    "lead-generation": 2,
-    "amc-imax-scraper-n8n-automation": 3,
+    "clinical-ner-finetune": 0,
+    "rag-hr-chatbot": 1,
+    "semantic-paper-search-bedrock": 2,
+    "lead-generation": 3,
+    "amc-imax-scraper-n8n-automation": 4,
   };
 
   const sortedProjects = [...projectCardList].sort((a, b) => {
