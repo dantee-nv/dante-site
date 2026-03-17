@@ -83,19 +83,26 @@ const baseProjects = [
     slug: "clinical-ner-finetune",
     title: "Clinical NER Fine-Tuning",
     summary:
-      "This project was built as a proof-of-concept clinical NLP pipeline designed to show more than prompting or notebook experimentation. It combines synthetic C-CDA input, public biomedical NER data, QLoRA fine-tuning, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU.",
+      "This project is a proof-of-concept clinical NLP workflow focused on turning structured parsing, dataset curation, validation, and fine-tuning into inspectable Python code rather than notebook-only experimentation. It uses `xml.etree.ElementTree` to parse synthetic C-CDA-like XML, normalizes public biomedical NER data into a `problems` / `treatments` / `tests` schema, validates JSONL training examples, and fine-tunes a Phi-3 adapter with QLoRA on a Colab T4 with reproducible evaluation outputs.",
     cardSummary:
-      "This project was built as a proof-of-concept clinical NLP pipeline designed to show more than prompting or notebook experimentation.",
+      "ElementTree-based clinical XML parsing, dataset curation, validation, and QLoRA fine-tuning in a compact Colab T4 workflow.",
     status: "live",
-    tags: ["Clinical NLP", "QLoRA", "PEFT", "Hugging Face", "PyTorch", "pytest"],
+    tags: [
+      "ElementTree XML Parsing",
+      "Clinical Dataset Curation",
+      "Validation + QA",
+      "QLoRA",
+      "PyTorch",
+      "scikit-learn",
+    ],
     atGlance: {
       skills: [
-        { label: "Clinical NLP", lane: "ai" },
-        { label: "QLoRA", lane: "ai" },
-        { label: "PEFT", lane: "ai" },
-        { label: "Hugging Face", lane: "ai" },
+        { label: "ElementTree XML Parsing", lane: "backend" },
+        { label: "Clinical Dataset Curation", lane: "data" },
+        { label: "Validation + QA", lane: "data" },
+        { label: "QLoRA Fine-Tuning", lane: "ai" },
         { label: "PyTorch", lane: "ai" },
-        { label: "pytest", lane: "backend" },
+        { label: "Reproducible Evaluation", lane: "data" },
       ],
       metrics: [
         {
@@ -116,30 +123,34 @@ const baseProjects = [
       timeline: "March 2026",
       role: "AI + ML Engineer",
       stack:
-        "Python, Hugging Face Transformers, PEFT/QLoRA, TRL, PyTorch, scikit-learn, pytest, XML parsing",
+        "Python, xml.etree.ElementTree, xmltodict, Hugging Face Datasets, Transformers, PEFT/QLoRA, TRL, PyTorch, scikit-learn, pytest",
     },
     sections: [
       {
         heading: "Overview",
         body:
-          "This project was built as a proof-of-concept clinical NLP pipeline designed to show more than prompting or notebook experimentation. It combines synthetic C-CDA input, public biomedical NER data, QLoRA fine-tuning, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU.",
+          "This project is a proof-of-concept clinical NLP workflow focused on turning structured parsing, dataset curation, validation, and fine-tuning into inspectable Python code rather than notebook-only experimentation. It combines synthetic C-CDA-like XML, public biomedical NER data, QLoRA fine-tuning, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU. The current scope uses synthetic C-CDA-like XML plus public and synthetic data, does not claim live PHI or PII handling or FHIR ingestion, and treats PHI-aware and FHIR-based pipelines as adjacent next steps rather than implemented functionality.",
       },
       {
         heading: "Build",
         body:
-          "The pipeline starts by parsing a synthetic C-CDA XML example, then curates public biomedical NER datasets into a normalized `problems` / `treatments` / `tests` extraction schema. From there, it validates the generated JSONL training data, fine-tunes `microsoft/Phi-3-mini-4k-instruct` with PEFT/QLoRA, runs CLI-based inference on sample notes, and evaluates held-out performance with saved metrics.",
+          "The pipeline begins by parsing a synthetic C-CDA-like XML sample in Python with `xml.etree.ElementTree`, using `ET.fromstring(...)`, namespace stripping, `ClinicalDocument/component/structuredBody/component/section` traversal, and `itertext()` flattening plus whitespace normalization to extract section titles and text into inspectable plain-text and JSON outputs. That parsing stage feeds a broader curation workflow that falls back across `medical_ner`, `ncbi_disease`, and `bc5cdr`, maps heterogeneous source labels into a normalized `problems` / `treatments` / `tests` schema, validates the generated JSONL, splits train/val/test deterministically with scikit-learn, and fine-tunes `microsoft/Phi-3-mini-4k-instruct` with PEFT/QLoRA under Colab T4 constraints.",
         bullets: [
+          "The XML parser keeps `ElementTree` as the core standard-library path and also supports an `xmltodict` route that strips namespaces before extracting `section`, `title`, and `text` content.",
+          "Parsed sections are written both as readable plain text and as JSON so the XML extraction stage can be inspected before any downstream training step.",
           "Dataset fallback order is `medical_ner`, then `ncbi_disease`, then `bc5cdr`.",
-          "The training flow uses 4-bit quantization, LoRA adapters, and TRL `SFTTrainer` with Colab T4-friendly defaults.",
-          "The repository is organized into dedicated `data/`, `train/`, `inference/`, `eval/`, and `tests/` modules for end-to-end review.",
+          "The training flow uses 4-bit quantization, LoRA adapters, gradient accumulation, and TRL `SFTTrainer` with Colab T4-friendly defaults.",
         ],
       },
       {
         heading: "Debugging + Hardening",
         body:
-          "The most important work was making the project reliable enough to review end to end. That included dataset fallback loading, schema normalization, validation and metrics utilities, Colab and private-repo quickstart fixes, `transformers` `TrainingArguments` compatibility updates, `SFTTrainer` API compatibility handling, a workaround for Colab bfloat16 AMP issues, disabling generation cache behavior that triggered `DynamicCache` failures, and evaluation fixes for zero-class sklearn metric edge cases.",
+          "The hardening work focused on making each stage fail more explicitly and produce well-characterized outputs. On the XML side that meant tolerating namespace and no-namespace inputs, skipping completely empty sections, and normalizing nested text consistently; on the curation side it meant fallback dataset loading, schema normalization, and deterministic splitting; and on the QA side it meant validating every JSONL row for `system` / `user` / `assistant` structure, required target keys, and assistant JSON parseability before training. Training and evaluation also required `transformers` `TrainingArguments` compatibility updates, `SFTTrainer` API compatibility handling, a workaround for Colab bfloat16 AMP issues, disabling generation cache behavior that triggered `DynamicCache` failures, and sklearn zero-class metric handling so the end-to-end workflow would stay stable.",
         bullets: [
-          "Validation checks cover JSONL parsing, message schema structure, assistant payload JSON, and target-key presence.",
+          "Parser tests cover namespace-wrapped section extraction, empty-section skipping, and readable plain-text rendering.",
+          "Validation checks cover JSONL parsing, message schema structure, `missing_role` failures, assistant payload JSON, and required target-key presence.",
+          "Validation can fail the run when invalid rows exceed the configured threshold, which keeps malformed examples from silently flowing into training.",
+          "Evaluation returns zeroed metrics for zero-class slices instead of letting sklearn raise on an empty class matrix.",
           "Automated tests cover the parser, curation, validation, and evaluation modules.",
         ],
       },
@@ -159,14 +170,15 @@ const baseProjects = [
           "Held-out metrics are saved in `eval/results.json` with `80` evaluated examples and exact match rate `0.5500`.",
           "The latest validation snapshot used fallback dataset `bc5cdr` and produced `400` train / `50` val / `50` test rows.",
           "The sample inference screenshot shows the adapter extracting `problems`, `treatments`, and `tests` from a note about diabetes, metformin, and HbA1c.",
+          "The evaluation stage normalizes entity strings, scores held-out predictions against the curated schema, and persists outputs in a form that can be reviewed independently of the training run.",
         ],
       },
     ],
     highlights: [
-      "Built and debugged an end-to-end clinical NER fine-tuning workflow on Colab T4.",
-      "Implemented reproducible public-dataset curation with fallback loading and schema normalization.",
-      "Added robust validation and metrics utilities, including zero-class edge-case handling.",
-      "Shipped tested, CLI-first Python modules suitable for portfolio review.",
+      "Parsed synthetic C-CDA-like XML with `xml.etree.ElementTree`, namespace handling, and plain-text plus JSON outputs for inspection.",
+      "Curated public biomedical NER data into a normalized `problems` / `treatments` / `tests` extraction schema with dataset fallback handling.",
+      "Added row-level validation and threshold-based QA checks before training.",
+      "Handled trainer, cache, AMP, and zero-class metric edge cases to keep the workflow reproducible on Colab T4.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },
