@@ -83,9 +83,9 @@ const baseProjects = [
     slug: "clinical-ner-finetune",
     title: "Clinical NER Fine-Tuning",
     summary:
-      "This project is a proof-of-concept clinical NLP workflow focused on turning structured parsing, dataset curation, validation, and fine-tuning into inspectable Python code rather than notebook-only experimentation. It uses `xml.etree.ElementTree` to parse synthetic C-CDA-like XML, normalizes public biomedical NER data into a `problems` / `treatments` / `tests` schema, validates JSONL training examples, and fine-tunes a Phi-3 adapter with QLoRA on a Colab T4 with reproducible evaluation outputs.",
+      "This project is a proof-of-concept clinical NLP workflow focused on turning structured parsing, dataset curation, validation, and fine-tuning into inspectable Python code rather than notebook-only experimentation. It uses `xml.etree.ElementTree` to parse synthetic C-CDA-like XML, normalizes public biomedical NER data into a `problems` / `treatments` / `tests` schema, validates JSONL training examples, and fine-tunes a Phi-3 adapter with a PyTorch, Transformers, and QLoRA stack on a Colab T4 with reproducible evaluation outputs.",
     cardSummary:
-      "ElementTree-based clinical XML parsing, dataset curation, validation, and QLoRA fine-tuning in a compact Colab T4 workflow.",
+      "ElementTree XML parsing plus PyTorch / QLoRA fine-tuning for clinical entity extraction on Colab T4.",
     status: "live",
     tags: [
       "ElementTree XML Parsing",
@@ -100,8 +100,8 @@ const baseProjects = [
         { label: "ElementTree XML Parsing", lane: "backend" },
         { label: "Clinical Dataset Curation", lane: "data" },
         { label: "Validation + QA", lane: "data" },
-        { label: "QLoRA Fine-Tuning", lane: "ai" },
-        { label: "PyTorch", lane: "ai" },
+        { label: "PyTorch + Transformers", lane: "ai" },
+        { label: "4-bit QLoRA Fine-Tuning", lane: "ai" },
         { label: "Reproducible Evaluation", lane: "data" },
       ],
       metrics: [
@@ -123,33 +123,36 @@ const baseProjects = [
       timeline: "March 2026",
       role: "AI + ML Engineer",
       stack:
-        "Python, xml.etree.ElementTree, xmltodict, Hugging Face Datasets, Transformers, PEFT/QLoRA, TRL, PyTorch, scikit-learn, pytest",
+        "Python, xml.etree.ElementTree, xmltodict, Hugging Face Datasets, Transformers, BitsAndBytes, PEFT/QLoRA, TRL SFTTrainer, PyTorch, scikit-learn, pytest",
     },
     sections: [
       {
         heading: "Overview",
         body:
-          "This project is a proof-of-concept clinical NLP workflow focused on turning structured parsing, dataset curation, validation, and fine-tuning into inspectable Python code rather than notebook-only experimentation. It combines synthetic C-CDA-like XML, public biomedical NER data, QLoRA fine-tuning, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU. The current scope uses synthetic C-CDA-like XML plus public and synthetic data, does not claim live PHI or PII handling or FHIR ingestion, and treats PHI-aware and FHIR-based pipelines as adjacent next steps rather than implemented functionality.",
+          "This project is a proof-of-concept clinical NLP workflow focused on turning structured parsing, dataset curation, validation, and fine-tuning into inspectable Python code rather than notebook-only experimentation. It combines synthetic C-CDA-like XML, public biomedical NER data, a PyTorch and Transformers-based QLoRA training path for `microsoft/Phi-3-mini-4k-instruct`, and reproducible evaluation in a compact workflow that can run on a Colab T4 GPU. The current scope uses synthetic C-CDA-like XML plus public and synthetic data, does not claim live PHI or PII handling or FHIR ingestion, and treats PHI-aware and FHIR-based pipelines as adjacent next steps rather than implemented functionality.",
       },
       {
         heading: "Build",
         body:
-          "The pipeline begins by parsing a synthetic C-CDA-like XML sample in Python with `xml.etree.ElementTree`, using `ET.fromstring(...)`, namespace stripping, `ClinicalDocument/component/structuredBody/component/section` traversal, and `itertext()` flattening plus whitespace normalization to extract section titles and text into inspectable plain-text and JSON outputs. That parsing stage feeds a broader curation workflow that falls back across `medical_ner`, `ncbi_disease`, and `bc5cdr`, maps heterogeneous source labels into a normalized `problems` / `treatments` / `tests` schema, validates the generated JSONL, splits train/val/test deterministically with scikit-learn, and fine-tunes `microsoft/Phi-3-mini-4k-instruct` with PEFT/QLoRA under Colab T4 constraints.",
+          "The pipeline begins by parsing a synthetic C-CDA-like XML sample in Python with `xml.etree.ElementTree`, using `ET.fromstring(...)`, namespace stripping, `ClinicalDocument/component/structuredBody/component/section` traversal, and `itertext()` flattening plus whitespace normalization to extract section titles and text into inspectable plain-text and JSON outputs. That parsing stage feeds a broader curation workflow that falls back across `medical_ner`, `ncbi_disease`, and `bc5cdr`, maps heterogeneous source labels into a normalized `problems` / `treatments` / `tests` schema, validates the generated JSONL, then loads `microsoft/Phi-3-mini-4k-instruct` through a PyTorch and Hugging Face training path that uses 4-bit `BitsAndBytesConfig` quantization, PEFT LoRA adapters, TRL `SFTTrainer`, and deterministic train/val/test splits for Colab T4-friendly fine-tuning.",
         bullets: [
           "The XML parser keeps `ElementTree` as the core standard-library path and also supports an `xmltodict` route that strips namespaces before extracting `section`, `title`, and `text` content.",
           "Parsed sections are written both as readable plain text and as JSON so the XML extraction stage can be inspected before any downstream training step.",
           "Dataset fallback order is `medical_ner`, then `ncbi_disease`, then `bc5cdr`.",
-          "The training flow uses 4-bit quantization, LoRA adapters, gradient accumulation, and TRL `SFTTrainer` with Colab T4-friendly defaults.",
+          "Training examples are rendered from chat-style `messages` into the text format expected by `SFTTrainer`, using the tokenizer chat template when available and a fallback text renderer when it is not.",
+          "The fine-tuning config uses 4-bit NF4 quantization with double quantization, `torch.float16` compute, batch size `1`, gradient accumulation `8`, gradient checkpointing, cosine scheduling, and `paged_adamw_8bit` optimization.",
+          "The LoRA setup infers practical target modules from the loaded model, then applies adapter settings of `r=16`, `alpha=32`, and `dropout=0.05` before saving the adapter, tokenizer, and serialized run config.",
         ],
       },
       {
         heading: "Debugging + Hardening",
         body:
-          "The hardening work focused on making each stage fail more explicitly and produce well-characterized outputs. On the XML side that meant tolerating namespace and no-namespace inputs, skipping completely empty sections, and normalizing nested text consistently; on the curation side it meant fallback dataset loading, schema normalization, and deterministic splitting; and on the QA side it meant validating every JSONL row for `system` / `user` / `assistant` structure, required target keys, and assistant JSON parseability before training. Training and evaluation also required `transformers` `TrainingArguments` compatibility updates, `SFTTrainer` API compatibility handling, a workaround for Colab bfloat16 AMP issues, disabling generation cache behavior that triggered `DynamicCache` failures, and sklearn zero-class metric handling so the end-to-end workflow would stay stable.",
+          "The hardening work focused on making each stage fail more explicitly and produce well-characterized outputs. On the XML side that meant tolerating namespace and no-namespace inputs, skipping completely empty sections, and normalizing nested text consistently; on the curation side it meant fallback dataset loading, schema normalization, and deterministic splitting; and on the QA side it meant validating every JSONL row for `system` / `user` / `assistant` structure, required target keys, and assistant JSON parseability before training. The PyTorch and fine-tuning path also required `transformers` `TrainingArguments` compatibility updates across `evaluation_strategy` versus `eval_strategy`, `SFTTrainer` constructor compatibility across tokenizer and processing-class APIs, a workaround for Colab bfloat16 AMP issues, disabling generation cache behavior that triggered `DynamicCache` failures, and sklearn zero-class metric handling so the end-to-end workflow would stay stable.",
         bullets: [
           "Parser tests cover namespace-wrapped section extraction, empty-section skipping, and readable plain-text rendering.",
           "Validation checks cover JSONL parsing, message schema structure, `missing_role` failures, assistant payload JSON, and required target-key presence.",
           "Validation can fail the run when invalid rows exceed the configured threshold, which keeps malformed examples from silently flowing into training.",
+          "The training script guards against missing train or validation JSONL files before model loading and writes `run_config.json` so the exact training parameters used for an adapter run can be reviewed later.",
           "Evaluation returns zeroed metrics for zero-class slices instead of letting sklearn raise on an empty class matrix.",
           "Automated tests cover the parser, curation, validation, and evaluation modules.",
         ],
@@ -178,13 +181,14 @@ const baseProjects = [
       "Parsed synthetic C-CDA-like XML with `xml.etree.ElementTree`, namespace handling, and plain-text plus JSON outputs for inspection.",
       "Curated public biomedical NER data into a normalized `problems` / `treatments` / `tests` extraction schema with dataset fallback handling.",
       "Added row-level validation and threshold-based QA checks before training.",
+      "Implemented a PyTorch and Transformers fine-tuning path with 4-bit QLoRA, inferred LoRA target modules, and adapter-only outputs for Colab T4.",
       "Handled trainer, cache, AMP, and zero-class metric edge cases to keep the workflow reproducible on Colab T4.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },
       { label: "Contact Me", to: "/contact" },
       {
-        label: "View Full Deep Dive",
+        label: "GitHub",
         to: "https://github.com/dantee-nv/clinical-ner-finetune",
         external: true,
       },
