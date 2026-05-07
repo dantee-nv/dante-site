@@ -19,6 +19,7 @@ from .semanticscholar import (
     CircuitBreaker,
     CircuitOpenError,
     SemanticScholarClient,
+    UpstreamAuthError,
     UpstreamRateLimitedError,
     UpstreamRequestError,
 )
@@ -82,6 +83,25 @@ def _json_response(status_code: int, payload: dict) -> dict:
         "headers": {"content-type": "application/json"},
         "body": json.dumps(payload),
     }
+
+
+def _json_error_response(status_code: int, message: str, request_id: str = "") -> dict:
+    payload = {"message": message}
+    if request_id:
+        payload["requestId"] = request_id
+    return _json_response(status_code, payload)
+
+
+def _log_upstream_failure(request_id: str, error: Exception) -> None:
+    logger.warning(
+        "paper_search_upstream_failure request_id=%s error_type=%s upstream_status=%s used_api_key=%s fallback_attempted=%s body_excerpt=%s",
+        request_id,
+        type(error).__name__,
+        getattr(error, "status_code", None),
+        getattr(error, "used_api_key", False),
+        getattr(error, "fallback_attempted", False),
+        getattr(error, "body_excerpt", ""),
+    )
 
 
 def _load_settings() -> Settings:
@@ -349,7 +369,7 @@ def lambda_handler(event, context):
     try:
         payload = _parse_body(event)
     except json.JSONDecodeError:
-        return _json_response(400, {"message": "Invalid JSON payload."})
+        return _json_error_response(400, "Invalid JSON payload.", request_id)
 
     try:
         normalized_context, k = validate_search_payload(
@@ -358,11 +378,11 @@ def lambda_handler(event, context):
             max_k=settings.max_k,
         )
     except ValueError as error:
-        return _json_response(400, {"message": str(error)})
+        return _json_error_response(400, str(error), request_id)
 
     if not settings.paper_embeddings_table_name or not settings.request_rate_limit_table_name:
         logger.error("paper_search_missing_table_config")
-        return _json_response(500, {"message": "Service is not configured."})
+        return _json_error_response(500, "Service is not configured.", request_id)
 
     try:
         allowed = check_rate_limit(
@@ -377,33 +397,40 @@ def lambda_handler(event, context):
             str(error),
             request_id,
         )
-        return _json_response(500, {"message": "Rate limiting service is unavailable."})
+        return _json_error_response(500, "Rate limiting service is unavailable.", request_id)
 
     if not allowed:
-        return _json_response(429, {"message": "Too many requests. Please try again shortly."})
+        return _json_error_response(429, "Too many requests. Please try again shortly.", request_id)
 
     try:
         results, meta = _rank_candidates(settings=settings, context=normalized_context, k=k)
     except CircuitOpenError:
-        return _json_response(
+        logger.warning("paper_search_upstream_failure request_id=%s error_type=%s", request_id, "CircuitOpenError")
+        return _json_error_response(
             503,
-            {
-                "message": "Semantic Scholar is temporarily throttled. Please retry shortly.",
-            },
+            "Semantic Scholar is temporarily throttled. Please retry shortly.",
+            request_id,
         )
-    except UpstreamRateLimitedError:
-        return _json_response(
+    except UpstreamRateLimitedError as error:
+        _log_upstream_failure(request_id, error)
+        return _json_error_response(
             503,
-            {
-                "message": "Semantic Scholar is rate limiting requests right now. Please retry shortly.",
-            },
+            "Semantic Scholar is rate limiting requests right now. Please retry shortly.",
+            request_id,
         )
-    except UpstreamRequestError:
-        return _json_response(
+    except UpstreamAuthError as error:
+        _log_upstream_failure(request_id, error)
+        return _json_error_response(
             502,
-            {
-                "message": "Semantic Scholar request failed. Please retry.",
-            },
+            "Semantic Scholar API access failed. Verify the configured API key or upstream access, then retry.",
+            request_id,
+        )
+    except UpstreamRequestError as error:
+        _log_upstream_failure(request_id, error)
+        return _json_error_response(
+            502,
+            "Semantic Scholar request failed. Please retry.",
+            request_id,
         )
     except Exception as error:  # noqa: BLE001
         logger.exception(
@@ -412,11 +439,10 @@ def lambda_handler(event, context):
             str(error),
             request_id,
         )
-        return _json_response(
+        return _json_error_response(
             500,
-            {
-                "message": "Paper search is temporarily unavailable. Please try again.",
-            },
+            "Paper search is temporarily unavailable. Please try again.",
+            request_id,
         )
 
     latency_ms = int((time.perf_counter() - started_at) * 1000)

@@ -63,6 +63,7 @@ export default function PaperSearchDemoPanel() {
   const [results, setResults] = useState([]);
   const [meta, setMeta] = useState(null);
   const [error, setError] = useState("");
+  const [errorRequestId, setErrorRequestId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const apiUrl = useMemo(
     () => resolvePaperSearchApiUrl(import.meta.env.VITE_PAPER_SEARCH_API_URL),
@@ -75,15 +76,18 @@ export default function PaperSearchDemoPanel() {
     const normalizedContext = context.trim();
     if (!normalizedContext) {
       setError("Please paste context text before searching.");
+      setErrorRequestId("");
       return;
     }
 
     if (!apiUrl) {
       setError("Paper search API is not configured yet.");
+      setErrorRequestId("");
       return;
     }
 
     setError("");
+    setErrorRequestId("");
     setIsLoading(true);
     setResults([]);
     setMeta(null);
@@ -111,11 +115,13 @@ export default function PaperSearchDemoPanel() {
             ? "Too many requests. Please wait a minute and try again."
             : "Search request failed. Please try again.";
         setError(payload?.message || defaultMessage);
+        setErrorRequestId(typeof payload?.requestId === "string" ? payload.requestId : "");
         return;
       }
 
       if (!Array.isArray(payload?.results) || typeof payload?.meta !== "object") {
         setError("Search response was invalid.");
+        setErrorRequestId("");
         return;
       }
 
@@ -127,6 +133,7 @@ export default function PaperSearchDemoPanel() {
       } else {
         setError("Network error while calling paper search API.");
       }
+      setErrorRequestId("");
     } finally {
       clearTimeout(timeoutId);
       setIsLoading(false);
@@ -174,9 +181,14 @@ export default function PaperSearchDemoPanel() {
       </form>
 
       {error ? (
-        <p className="paper-search-demo-error" role="status">
-          {error}
-        </p>
+        <div className="paper-search-demo-error" role="status">
+          <p>{error}</p>
+          {errorRequestId ? (
+            <p className="paper-search-demo-error-request-id">
+              Request ID: <code>{errorRequestId}</code>
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {meta ? (

@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 _FIELDS = "paperId,title,abstract,authors,year,venue,url"
+_ERROR_BODY_MAX_CHARS = 240
 
 
 class SemanticScholarError(Exception):
@@ -25,11 +26,54 @@ class CircuitOpenError(SemanticScholarError):
 
 
 class UpstreamRateLimitedError(SemanticScholarError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: Optional[int] = None,
+        body_excerpt: str = "",
+        used_api_key: bool = False,
+        fallback_attempted: bool = False,
+    ):
+        super().__init__(message)
+        self.status_code = status_code
+        self.body_excerpt = body_excerpt
+        self.used_api_key = used_api_key
+        self.fallback_attempted = fallback_attempted
 
 
 class UpstreamRequestError(SemanticScholarError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: Optional[int] = None,
+        body_excerpt: str = "",
+        used_api_key: bool = False,
+        fallback_attempted: bool = False,
+    ):
+        super().__init__(message)
+        self.status_code = status_code
+        self.body_excerpt = body_excerpt
+        self.used_api_key = used_api_key
+        self.fallback_attempted = fallback_attempted
+
+
+class UpstreamAuthError(SemanticScholarError):
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: Optional[int] = None,
+        body_excerpt: str = "",
+        used_api_key: bool = False,
+        fallback_attempted: bool = False,
+    ):
+        super().__init__(message)
+        self.status_code = status_code
+        self.body_excerpt = body_excerpt
+        self.used_api_key = used_api_key
+        self.fallback_attempted = fallback_attempted
 
 
 @dataclass
@@ -77,39 +121,24 @@ class SemanticScholarClient:
         if not self._circuit_breaker.allow_request():
             raise CircuitOpenError("Semantic Scholar circuit breaker is open.")
 
-        params = {
-            "query": query,
-            "limit": str(self._candidate_limit),
-            "fields": _FIELDS,
-        }
-
-        url = f"{self._base_url}/graph/v1/paper/search?{urllib.parse.urlencode(params)}"
-        headers = {
-            "accept": "application/json",
-            "user-agent": "dante-paper-search/1.0",
-        }
-
-        if self._api_key:
-            headers["x-api-key"] = self._api_key
-
-        request = urllib.request.Request(url, headers=headers, method="GET")
-
+        fallback_attempted = False
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout_seconds) as response:
-                body = response.read().decode("utf-8")
-                payload = json.loads(body)
-        except urllib.error.HTTPError as error:
-            self._circuit_breaker.record_failure()
-            if error.code == 429 or error.code >= 500:
-                raise UpstreamRateLimitedError(
-                    f"Semantic Scholar returned status {error.code}."
-                ) from error
-            raise UpstreamRequestError(
-                f"Semantic Scholar returned status {error.code}."
-            ) from error
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
-            self._circuit_breaker.record_failure()
-            raise UpstreamRequestError("Semantic Scholar request failed.") from error
+            payload = self._request_search(query=query, use_api_key=bool(self._api_key))
+        except UpstreamAuthError as error:
+            if not error.used_api_key or not self._api_key:
+                raise
+
+            fallback_attempted = True
+            logger.warning(
+                "semantic_scholar_auth_fallback status=%s body_excerpt=%s",
+                error.status_code,
+                error.body_excerpt,
+            )
+            try:
+                payload = self._request_search(query=query, use_api_key=False)
+            except (UpstreamAuthError, UpstreamRateLimitedError, UpstreamRequestError) as fallback_error:
+                fallback_error.fallback_attempted = True
+                raise
 
         self._circuit_breaker.record_success()
 
@@ -123,8 +152,79 @@ class SemanticScholarClient:
             if paper is not None:
                 papers.append(paper)
 
-        logger.info("semantic_scholar_candidates count=%s", len(papers))
+        logger.info(
+            "semantic_scholar_candidates count=%s fallback_attempted=%s",
+            len(papers),
+            fallback_attempted,
+        )
         return papers
+
+    def _request_search(self, query: str, *, use_api_key: bool) -> dict:
+        params = {
+            "query": query,
+            "limit": str(self._candidate_limit),
+            "fields": _FIELDS,
+        }
+
+        url = f"{self._base_url}/graph/v1/paper/search?{urllib.parse.urlencode(params)}"
+        headers = {
+            "accept": "application/json",
+            "user-agent": "dante-paper-search/1.0",
+        }
+
+        if use_api_key and self._api_key:
+            headers["x-api-key"] = self._api_key
+
+        request = urllib.request.Request(url, headers=headers, method="GET")
+
+        try:
+            with urllib.request.urlopen(request, timeout=self._timeout_seconds) as response:
+                body = response.read().decode("utf-8")
+                payload = json.loads(body)
+        except urllib.error.HTTPError as error:
+            body_excerpt = _extract_error_body(error)
+            if error.code in (401, 403):
+                raise UpstreamAuthError(
+                    f"Semantic Scholar returned status {error.code}.",
+                    status_code=error.code,
+                    body_excerpt=body_excerpt,
+                    used_api_key=use_api_key,
+                ) from error
+
+            self._circuit_breaker.record_failure()
+            if error.code == 429 or error.code >= 500:
+                raise UpstreamRateLimitedError(
+                    f"Semantic Scholar returned status {error.code}.",
+                    status_code=error.code,
+                    body_excerpt=body_excerpt,
+                    used_api_key=use_api_key,
+                ) from error
+            raise UpstreamRequestError(
+                f"Semantic Scholar returned status {error.code}.",
+                status_code=error.code,
+                body_excerpt=body_excerpt,
+                used_api_key=use_api_key,
+            ) from error
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+            self._circuit_breaker.record_failure()
+            raise UpstreamRequestError(
+                "Semantic Scholar request failed.",
+                used_api_key=use_api_key,
+            ) from error
+
+        return payload
+
+
+def _extract_error_body(error: urllib.error.HTTPError) -> str:
+    try:
+        raw_body = error.read().decode("utf-8", errors="ignore")
+    except Exception:  # noqa: BLE001
+        return ""
+
+    normalized = " ".join(raw_body.split())
+    if len(normalized) <= _ERROR_BODY_MAX_CHARS:
+        return normalized
+    return f"{normalized[: _ERROR_BODY_MAX_CHARS - 3].rstrip()}..."
 
 
 def _normalize_candidate(raw: dict) -> Optional[CandidatePaper]:

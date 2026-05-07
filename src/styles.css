@@ -1102,6 +1102,21 @@ a{ color: inherit; text-decoration:none; }
   color: #ffb4b4;
 }
 
+.paper-search-demo-error p{
+  margin: 0;
+}
+
+.paper-search-demo-error-request-id{
+  margin-top: 4px !important;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.paper-search-demo-error-request-id code{
+  color: inherit;
+  font-size: 0.85rem;
+}
+
 .paper-search-demo-meta{
   margin-top: 12px;
   border: 1px solid var(--line);
