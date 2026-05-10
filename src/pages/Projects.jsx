@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
-import { projectCardList } from "../data/projects";
+import { projectCardList, projects } from "../data/projects";
 import usePageTitle from "../hooks/usePageTitle";
+import { buildProjectSearchIndex, searchProjects } from "../utils/projectSearch";
+
+const projectSearchIndex = buildProjectSearchIndex(projects);
 
 const page = {
   initial: { opacity: 0, y: 14, filter: "blur(6px)" },
@@ -25,6 +28,8 @@ const tile = {
 
 export default function Projects() {
   usePageTitle("Projects");
+  const [draftSearchQuery, setDraftSearchQuery] = useState("");
+  const [highlightedProjectSlugList, setHighlightedProjectSlugList] = useState([]);
   const statusOrder = {
     live: 0,
     "in-progress": 1,
@@ -69,6 +74,41 @@ export default function Projects() {
 
     return a.title.localeCompare(b.title);
   });
+  const highlightedProjectSlugs = new Set(highlightedProjectSlugList);
+
+  function handleSearchChange(event) {
+    const nextQuery = event.target.value;
+    setDraftSearchQuery(nextQuery);
+
+    if (!nextQuery.trim()) {
+      setHighlightedProjectSlugList([]);
+    }
+  }
+
+  function runSubmittedSearch(query) {
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      setHighlightedProjectSlugList([]);
+      return;
+    }
+
+    setHighlightedProjectSlugList(searchProjects(trimmedQuery, projectSearchIndex));
+  }
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    runSubmittedSearch(draftSearchQuery);
+  }
+
+  function handleSearchKeyDown(event) {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    runSubmittedSearch(draftSearchQuery);
+  }
 
   function formatStatus(status) {
     if (!status) {
@@ -90,24 +130,76 @@ export default function Projects() {
       exit="exit"
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Motion.h2
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.45 }}
-      >
-        Projects
-      </Motion.h2>
-      <Motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        Explore shipped work, in-progress builds and upcoming experiments.
-      </Motion.p>
+      <div className="projects-header">
+        <div className="projects-header-copy">
+          <Motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.45 }}
+          >
+            Projects
+          </Motion.h2>
+          <Motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            Explore shipped work, in-progress builds and upcoming experiments.
+          </Motion.p>
+        </div>
+
+        <Motion.form
+          className="projects-search"
+          role="search"
+          onSubmit={handleSearchSubmit}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, duration: 0.45 }}
+        >
+          <label className="sr-only" htmlFor="projects-search-input">
+            Search projects
+          </label>
+          <div className="projects-search-control">
+            <input
+              id="projects-search-input"
+              className="projects-search-input"
+              type="search"
+              value={draftSearchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search projects by skill, stack, or outcome"
+              autoComplete="off"
+            />
+            <button className="projects-search-submit" type="submit">
+              Search
+            </button>
+          </div>
+          <div className="projects-search-info-wrap">
+            <button
+              className="projects-search-info"
+              type="button"
+              aria-label="About project search"
+              aria-describedby="projects-search-tooltip"
+            >
+              i
+            </button>
+            <span
+              className="projects-search-tooltip"
+              id="projects-search-tooltip"
+              role="tooltip"
+            >
+              Local search highlights matching project cards from the full project
+              context. No generated answers, snippets, API calls, or RAG. For this use
+              case, simpler retrieval is the right tool.
+            </span>
+          </div>
+        </Motion.form>
+      </div>
 
       <Motion.div className="grid" variants={grid} initial="initial" animate="animate">
         {sortedProjects.map((project) => {
           const skills = project.atGlance?.skills || [];
+          const isSearchMatch = highlightedProjectSlugs.has(project.slug);
 
           return (
             <Motion.div
@@ -116,7 +208,10 @@ export default function Projects() {
               variants={tile}
               transition={{ duration: 0.35 }}
             >
-              <Link className="tile tile-link" to={`/${project.slug}`}>
+              <Link
+                className={`tile tile-link${isSearchMatch ? " search-match" : ""}`}
+                to={`/${project.slug}`}
+              >
                 <div className="tile-top">
                   <h3 className="tile-title">{project.title}</h3>
                   <span className={`project-status ${project.status}`}>
