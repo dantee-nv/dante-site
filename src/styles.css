@@ -372,15 +372,27 @@ a{ color: inherit; text-decoration:none; }
   margin: 0;
 }
 
+.projects-copy-break{
+  display: block;
+}
+
 .projects-search{
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 9px;
   flex: 0 1 620px;
   width: 100%;
   max-width: 620px;
   padding-top: 2px;
+}
+
+.projects-search-main{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
 }
 
 .projects-search-control{
@@ -507,6 +519,85 @@ a{ color: inherit; text-decoration:none; }
 .projects-search-info:focus-visible + .projects-search-tooltip{
   opacity: 1;
   transform: translateY(0);
+}
+
+.projects-search-shortcuts{
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: -4px -4px 0;
+  padding: 4px 4px 12px;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,227,165,0.34) rgba(255,255,255,0.08);
+  user-select: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.projects-search-shortcuts.dragging{
+  cursor: grabbing;
+}
+
+.projects-search-shortcuts::-webkit-scrollbar{
+  height: 7px;
+}
+
+.projects-search-shortcuts::-webkit-scrollbar-track{
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+}
+
+.projects-search-shortcuts::-webkit-scrollbar-thumb{
+  border-radius: 999px;
+  background: rgba(255,227,165,0.34);
+}
+
+.projects-search-shortcuts::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,227,165,0.48);
+}
+
+.projects-search-chip{
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.045);
+  color: rgba(255,255,255,0.72);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 680;
+  line-height: 1;
+  padding: 0 6px;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.projects-search-chip:hover,
+.projects-search-chip:focus-visible,
+.projects-search-chip.active{
+  outline: none;
+  background: rgba(255,214,112,0.11);
+  border-color: rgba(255,227,165,0.42);
+  color: #ffe3a5;
+  box-shadow: 0 0 0 3px rgba(255,214,112,0.08);
+}
+
+.projects-search-chip:hover,
+.projects-search-chip:focus-visible{
+  transform: translateY(-1px);
+}
+
+.projects-search-shortcuts.dragging .projects-search-chip{
+  cursor: grabbing;
 }
 
 .grid{
@@ -1854,6 +1945,9 @@ a{ color: inherit; text-decoration:none; }
   .projects-search{
     max-width: none;
     padding-top: 0;
+  }
+  .projects-search-shortcuts{
+    padding-right: 0;
   }
   .projects-search-tooltip{
     left: 0;

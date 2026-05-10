@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 
@@ -7,6 +7,57 @@ import usePageTitle from "../hooks/usePageTitle";
 import { buildProjectSearchIndex, searchProjects } from "../utils/projectSearch";
 
 const projectSearchIndex = buildProjectSearchIndex(projects);
+
+const quickSearches = [
+  {
+    label: "RAG",
+    query: "rag langchain faiss approved source",
+  },
+  {
+    label: "AWS",
+    query: "aws lambda api gateway dynamodb bedrock ses",
+  },
+  {
+    label: "Healthcare",
+    query: "problems treatments tests",
+  },
+  {
+    label: "AI",
+    query: "llm openai embeddings model",
+  },
+  {
+    label: "Full Stack",
+    query: "react api lambda frontend backend",
+  },
+  {
+    label: "Frontend",
+    query: "react ux browser frontend",
+  },
+  {
+    label: "Backend",
+    query: "python lambda api gateway dynamodb",
+  },
+  {
+    label: "Evals + Guardrails",
+    query: "guardrails grounded approved answers",
+  },
+  {
+    label: "Automation",
+    query: "n8n email automation workflow",
+  },
+  {
+    label: "Semantic Search",
+    query: "titan reranking scholar",
+  },
+  {
+    label: "Clinical NLP",
+    query: "clinical entity extraction qlora biomedical ner",
+  },
+  {
+    label: "Data Pipelines",
+    query: "scraping data pipeline playwright",
+  },
+];
 
 const page = {
   initial: { opacity: 0, y: 14, filter: "blur(6px)" },
@@ -30,6 +81,15 @@ export default function Projects() {
   usePageTitle("Projects");
   const [draftSearchQuery, setDraftSearchQuery] = useState("");
   const [highlightedProjectSlugList, setHighlightedProjectSlugList] = useState([]);
+  const [isDraggingShortcuts, setIsDraggingShortcuts] = useState(false);
+  const [selectedQuickSearchLabel, setSelectedQuickSearchLabel] = useState("");
+  const shortcutDragState = useRef({
+    isDragging: false,
+    pointerId: null,
+    scrollLeft: 0,
+    startX: 0,
+  });
+  const suppressShortcutClick = useRef(false);
   const statusOrder = {
     live: 0,
     "in-progress": 1,
@@ -79,6 +139,7 @@ export default function Projects() {
   function handleSearchChange(event) {
     const nextQuery = event.target.value;
     setDraftSearchQuery(nextQuery);
+    setSelectedQuickSearchLabel("");
 
     if (!nextQuery.trim()) {
       setHighlightedProjectSlugList([]);
@@ -98,7 +159,80 @@ export default function Projects() {
 
   function handleSearchSubmit(event) {
     event.preventDefault();
+    setSelectedQuickSearchLabel("");
     runSubmittedSearch(draftSearchQuery);
+  }
+
+  function handleQuickSearch(quickSearch) {
+    if (suppressShortcutClick.current) {
+      suppressShortcutClick.current = false;
+      return;
+    }
+
+    if (selectedQuickSearchLabel === quickSearch.label) {
+      setSelectedQuickSearchLabel("");
+      setDraftSearchQuery("");
+      setHighlightedProjectSlugList([]);
+      return;
+    }
+
+    setSelectedQuickSearchLabel(quickSearch.label);
+    setDraftSearchQuery("");
+    runSubmittedSearch(quickSearch.query);
+  }
+
+  function handleShortcutPointerDown(event) {
+    if (event.button !== 0) {
+      return;
+    }
+
+    shortcutDragState.current = {
+      isDragging: false,
+      pointerId: event.pointerId,
+      scrollLeft: event.currentTarget.scrollLeft,
+      startX: event.clientX,
+    };
+  }
+
+  function handleShortcutPointerMove(event) {
+    const dragState = shortcutDragState.current;
+
+    if (dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const nextDistance = event.clientX - dragState.startX;
+
+    if (Math.abs(nextDistance) > 4) {
+      dragState.isDragging = true;
+      suppressShortcutClick.current = true;
+      setIsDraggingShortcuts(true);
+
+      if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
+    }
+
+    if (!dragState.isDragging) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.scrollLeft = dragState.scrollLeft - nextDistance;
+  }
+
+  function handleShortcutPointerEnd(event) {
+    if (shortcutDragState.current.pointerId !== event.pointerId) {
+      return;
+    }
+
+    shortcutDragState.current.pointerId = null;
+    shortcutDragState.current.isDragging = false;
+    setIsDraggingShortcuts(false);
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   }
 
   function handleSearchKeyDown(event) {
@@ -144,7 +278,8 @@ export default function Projects() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            Explore shipped work, in-progress builds and upcoming experiments.
+            Explore shipped work, in-progress builds and{" "}
+            <span className="projects-copy-break">upcoming experiments.</span>
           </Motion.p>
         </div>
 
@@ -156,42 +291,66 @@ export default function Projects() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38, duration: 0.45 }}
         >
-          <label className="sr-only" htmlFor="projects-search-input">
-            Search projects
-          </label>
-          <div className="projects-search-control">
-            <input
-              id="projects-search-input"
-              className="projects-search-input"
-              type="search"
-              value={draftSearchQuery}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearchKeyDown}
-              placeholder="Search projects by skill, stack, or outcome"
-              autoComplete="off"
-            />
-            <button className="projects-search-submit" type="submit">
-              Search
-            </button>
+          <div className="projects-search-main">
+            <label className="sr-only" htmlFor="projects-search-input">
+              Search projects
+            </label>
+            <div className="projects-search-control">
+              <input
+                id="projects-search-input"
+                className="projects-search-input"
+                type="search"
+                value={draftSearchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchKeyDown}
+                placeholder="Search projects by skill, stack, or outcome"
+                autoComplete="off"
+              />
+              <button className="projects-search-submit" type="submit">
+                Search
+              </button>
+            </div>
+            <div className="projects-search-info-wrap">
+              <button
+                className="projects-search-info"
+                type="button"
+                aria-label="About project search"
+                aria-describedby="projects-search-tooltip"
+              >
+                i
+              </button>
+              <span
+                className="projects-search-tooltip"
+                id="projects-search-tooltip"
+                role="tooltip"
+              >
+                Local search highlights matching project cards from the full project
+                context. No generated answers, snippets, API calls, or RAG. For this use
+                case, simpler retrieval is the right tool.
+              </span>
+            </div>
           </div>
-          <div className="projects-search-info-wrap">
-            <button
-              className="projects-search-info"
-              type="button"
-              aria-label="About project search"
-              aria-describedby="projects-search-tooltip"
-            >
-              i
-            </button>
-            <span
-              className="projects-search-tooltip"
-              id="projects-search-tooltip"
-              role="tooltip"
-            >
-              Local search highlights matching project cards from the full project
-              context. No generated answers, snippets, API calls, or RAG. For this use
-              case, simpler retrieval is the right tool.
-            </span>
+          <div
+            className={`projects-search-shortcuts${isDraggingShortcuts ? " dragging" : ""}`}
+            aria-label="Suggested project searches"
+            onPointerCancel={handleShortcutPointerEnd}
+            onPointerDown={handleShortcutPointerDown}
+            onPointerMove={handleShortcutPointerMove}
+            onPointerUp={handleShortcutPointerEnd}
+          >
+            {quickSearches.map((quickSearch) => (
+              <button
+                className={`projects-search-chip${
+                  selectedQuickSearchLabel === quickSearch.label ? " active" : ""
+                }`}
+                key={quickSearch.label}
+                type="button"
+                aria-pressed={selectedQuickSearchLabel === quickSearch.label}
+                onClick={() => handleQuickSearch(quickSearch)}
+              >
+                {quickSearch.label}
+              </button>
+            ))}
           </div>
         </Motion.form>
       </div>

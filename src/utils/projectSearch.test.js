@@ -128,6 +128,10 @@ function assertIncludesAll(results, expectedSlugs) {
   });
 }
 
+function assertSameSlugs(results, expectedSlugs, message) {
+  assert.deepEqual([...results].sort(), [...expectedSlugs].sort(), message);
+}
+
 test("matches the RAG project from direct RAG terms", () => {
   const results = searchProjects("rag aws chatbot", index);
 
@@ -215,5 +219,79 @@ test("matches Prompt Senior AI Engineer interviewer search prompts", () => {
 
   promptCases.forEach(({ query, expected }) => {
     assertIncludesAll(searchProjects(query, index), expected);
+  });
+});
+
+test("matches suggested quick-search chips to the intended project strengths", () => {
+  const quickSearchCases = [
+    {
+      label: "RAG",
+      query: "rag langchain faiss approved source",
+      expected: ["rag-hr-chatbot"],
+    },
+    {
+      label: "AWS",
+      query: "aws lambda api gateway dynamodb bedrock ses",
+      expected: [
+        "rag-hr-chatbot",
+        "semantic-paper-search-bedrock",
+        "coding-challenge-chatbot",
+        "amc-imax-scraper-n8n-automation",
+      ],
+    },
+    {
+      label: "Healthcare",
+      query: "problems treatments tests",
+      expected: ["clinical-ner-finetune"],
+    },
+    {
+      label: "AI",
+      query: "llm openai embeddings model",
+      expected: ["rag-hr-chatbot", "semantic-paper-search-bedrock", "clinical-ner-finetune"],
+    },
+    {
+      label: "Full Stack",
+      query: "react api lambda frontend backend",
+      expected: ["rag-hr-chatbot", "coding-challenge-chatbot"],
+    },
+    {
+      label: "Frontend",
+      query: "react ux browser frontend",
+      expected: ["rag-hr-chatbot"],
+    },
+    {
+      label: "Backend",
+      query: "python lambda api gateway dynamodb",
+      expected: ["rag-hr-chatbot", "coding-challenge-chatbot"],
+    },
+    {
+      label: "Evals + Guardrails",
+      query: "guardrails grounded approved answers",
+      expected: ["rag-hr-chatbot"],
+    },
+    {
+      label: "Automation",
+      query: "n8n email automation workflow",
+      expected: ["amc-imax-scraper-n8n-automation", "lead-generation"],
+    },
+    {
+      label: "Semantic Search",
+      query: "titan reranking scholar",
+      expected: ["semantic-paper-search-bedrock"],
+    },
+    {
+      label: "Clinical NLP",
+      query: "clinical entity extraction qlora biomedical ner",
+      expected: ["clinical-ner-finetune"],
+    },
+    {
+      label: "Data Pipelines",
+      query: "scraping data pipeline playwright",
+      expected: ["lead-generation", "amc-imax-scraper-n8n-automation", "clinical-ner-finetune"],
+    },
+  ];
+
+  quickSearchCases.forEach(({ label, query, expected }) => {
+    assertSameSlugs(searchProjects(query, index), expected, label);
   });
 });
