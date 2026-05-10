@@ -226,7 +226,7 @@ test("matches suggested quick-search chips to the intended project strengths", (
   const quickSearchCases = [
     {
       label: "RAG",
-      query: "rag langchain faiss approved source",
+      query: "rag langchain faiss approved",
       expected: ["rag-hr-chatbot"],
     },
     {
@@ -241,7 +241,7 @@ test("matches suggested quick-search chips to the intended project strengths", (
     },
     {
       label: "Healthcare",
-      query: "problems treatments tests",
+      query: "clinical biomedical medical",
       expected: ["clinical-ner-finetune"],
     },
     {
@@ -271,18 +271,13 @@ test("matches suggested quick-search chips to the intended project strengths", (
     },
     {
       label: "Automation",
-      query: "n8n email automation workflow",
+      query: "n8n email automation",
       expected: ["amc-imax-scraper-n8n-automation", "lead-generation"],
     },
     {
       label: "Semantic Search",
       query: "titan reranking scholar",
       expected: ["semantic-paper-search-bedrock"],
-    },
-    {
-      label: "Clinical NLP",
-      query: "clinical entity extraction qlora biomedical ner",
-      expected: ["clinical-ner-finetune"],
     },
     {
       label: "Data Pipelines",

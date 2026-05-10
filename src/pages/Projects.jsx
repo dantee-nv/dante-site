@@ -11,15 +11,18 @@ const projectSearchIndex = buildProjectSearchIndex(projects);
 const quickSearches = [
   {
     label: "RAG",
-    query: "rag langchain faiss approved source",
+    query: "rag langchain faiss approved",
+    excludeSlugs: ["cabbie-ios"],
   },
   {
     label: "AWS",
     query: "aws lambda api gateway dynamodb bedrock ses",
+    excludeSlugs: ["cabbie-ios"],
   },
   {
     label: "Healthcare",
-    query: "problems treatments tests",
+    query: "clinical biomedical medical",
+    excludeSlugs: ["cabbie-ios"],
   },
   {
     label: "AI",
@@ -43,15 +46,12 @@ const quickSearches = [
   },
   {
     label: "Automation",
-    query: "n8n email automation workflow",
+    query: "n8n email automation",
+    excludeSlugs: ["clinical-ner-finetune", "rag-hr-chatbot"],
   },
   {
     label: "Semantic Search",
     query: "titan reranking scholar",
-  },
-  {
-    label: "Clinical NLP",
-    query: "clinical entity extraction qlora biomedical ner",
   },
   {
     label: "Data Pipelines",
@@ -178,7 +178,10 @@ export default function Projects() {
 
     setSelectedQuickSearchLabel(quickSearch.label);
     setDraftSearchQuery("");
-    runSubmittedSearch(quickSearch.query);
+    const excludedSlugs = new Set(quickSearch.excludeSlugs || []);
+    setHighlightedProjectSlugList(
+      searchProjects(quickSearch.query, projectSearchIndex).filter((slug) => !excludedSlugs.has(slug))
+    );
   }
 
   function handleShortcutPointerDown(event) {
