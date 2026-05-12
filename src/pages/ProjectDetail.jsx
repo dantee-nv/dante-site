@@ -5,6 +5,7 @@ import { motion as Motion } from "framer-motion";
 import { Accordion } from "../components/Accordion";
 import AmcThirtyDayWatchSignupPanel from "../components/AmcThirtyDayWatchSignupPanel";
 import CodingChallengeChatPanel from "../components/CodingChallengeChatPanel";
+import ClinicalRagDemoPanel from "../components/ClinicalRagDemoPanel";
 import MermaidDiagram from "../components/MermaidDiagram";
 import PaperSearchDemoPanel from "../components/PaperSearchDemoPanel";
 import ProjectDemoPanel from "../components/ProjectDemoPanel";
@@ -300,6 +301,12 @@ export default function ProjectDetail() {
         {project.slug === "semantic-paper-search-bedrock" ? (
           <Motion.div variants={pop} transition={{ duration: 0.35 }}>
             <PaperSearchDemoPanel />
+          </Motion.div>
+        ) : null}
+
+        {project.slug === "clinical-rag" ? (
+          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+            <ClinicalRagDemoPanel />
           </Motion.div>
         ) : null}
 

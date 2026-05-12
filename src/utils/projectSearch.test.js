@@ -35,6 +35,31 @@ const fixtureProjects = [
     highlights: ["Built a document-agnostic RAG architecture."],
   },
   {
+    slug: "clinical-rag",
+    title: "Clinical RAG Evaluation Lab",
+    summary:
+      "Clinical RAG over public MedQuAD metabolic health data with evals and safety guardrails.",
+    tags: ["Clinical RAG", "MedQuAD", "Safety Guardrails", "Retrieval Evaluation"],
+    atGlance: {
+      skills: [
+        { label: "Clinical RAG", lane: "ai" },
+        { label: "Hybrid Retrieval", lane: "ai" },
+        { label: "Safety Validation", lane: "ai" },
+      ],
+    },
+    meta: {
+      stack: "Python, MedQuAD, retrieval evaluation, API Gateway, Lambda, DynamoDB",
+    },
+    sections: [
+      {
+        heading: "Evaluation",
+        body:
+          "The project measures retrieval hit@k, citation correctness, not-found behavior, and unsafe request blocking for metabolic health questions.",
+      },
+    ],
+    highlights: ["Built a clinical RAG lab with safety checks."],
+  },
+  {
     slug: "amc-imax-scraper-n8n-automation",
     title: "AMC IMAX Scraper to n8n Email Automation",
     summary: "Scrapes AMC showtimes and sends a rolling IMAX watch email.",
@@ -90,7 +115,7 @@ const fixtureProjects = [
   {
     slug: "coding-challenge-chatbot",
     title: "Coding Challenge Chatbot",
-    summary: "An AWS-hosted chatbot for practicing coding interview prompts.",
+    summary: "An AWS-hosted chatbot for practicing coding challenge prompts.",
     tags: ["Chatbot", "AWS Lambda", "API Gateway"],
     atGlance: {
       skills: [{ label: "AWS Lambda", lane: "cloud" }],
@@ -98,7 +123,7 @@ const fixtureProjects = [
     sections: [
       {
         heading: "Chat",
-        body: "The app uses a Lambda API to support an interview practice chatbot.",
+        body: "The app uses a Lambda API to support a coding practice chatbot.",
       },
     ],
   },
@@ -168,11 +193,11 @@ test("ignores empty and stop-word-only searches", () => {
   assert.deepEqual(searchProjects("which project is the", index), []);
 });
 
-test("matches Knownwell AI Product Engineer interviewer search prompts", () => {
-  const knownwellCases = [
+test("matches clinical RAG and AI infrastructure search prompts", () => {
+  const clinicalRagCases = [
     {
       query: "clinical decision support RAG pipeline chunking embeddings vector database reranking evals",
-      expected: ["rag-hr-chatbot", "semantic-paper-search-bedrock"],
+      expected: ["clinical-rag", "rag-hr-chatbot", "semantic-paper-search-bedrock"],
     },
     {
       query: "clinical healthcare data extraction safe medical AI workflow",
@@ -188,16 +213,16 @@ test("matches Knownwell AI Product Engineer interviewer search prompts", () => {
     },
     {
       query: "prompt guardrails model behavior evaluation safe failure modes",
-      expected: ["rag-hr-chatbot"],
+      expected: ["clinical-rag", "rag-hr-chatbot"],
     },
   ];
 
-  knownwellCases.forEach(({ query, expected }) => {
+  clinicalRagCases.forEach(({ query, expected }) => {
     assertIncludesAll(searchProjects(query, index), expected);
   });
 });
 
-test("matches Prompt Senior AI Engineer interviewer search prompts", () => {
+test("matches senior AI engineer search prompts", () => {
   const promptCases = [
     {
       query: "rapid prototyping workflow automation business systems",
@@ -213,7 +238,7 @@ test("matches Prompt Senior AI Engineer interviewer search prompts", () => {
     },
     {
       query: "healthcare software data processing pipeline",
-      expected: ["clinical-ner-finetune", "lead-generation"],
+      expected: ["clinical-rag", "clinical-ner-finetune", "lead-generation"],
     },
   ];
 
@@ -227,7 +252,7 @@ test("matches suggested quick-search chips to the intended project strengths", (
     {
       label: "RAG",
       query: "rag langchain faiss approved",
-      expected: ["rag-hr-chatbot"],
+      expected: ["rag-hr-chatbot", "clinical-rag"],
     },
     {
       label: "AWS",
@@ -237,22 +262,28 @@ test("matches suggested quick-search chips to the intended project strengths", (
         "semantic-paper-search-bedrock",
         "coding-challenge-chatbot",
         "amc-imax-scraper-n8n-automation",
+        "clinical-rag",
       ],
     },
     {
       label: "Healthcare",
       query: "clinical biomedical medical",
-      expected: ["clinical-ner-finetune"],
+      expected: ["clinical-rag", "clinical-ner-finetune"],
     },
     {
       label: "AI",
       query: "llm openai embeddings model",
-      expected: ["rag-hr-chatbot", "semantic-paper-search-bedrock", "clinical-ner-finetune"],
+      expected: [
+        "rag-hr-chatbot",
+        "semantic-paper-search-bedrock",
+        "clinical-ner-finetune",
+        "clinical-rag",
+      ],
     },
     {
       label: "Full Stack",
       query: "react api lambda frontend backend",
-      expected: ["rag-hr-chatbot", "coding-challenge-chatbot"],
+      expected: ["rag-hr-chatbot", "coding-challenge-chatbot", "clinical-rag"],
     },
     {
       label: "Frontend",
@@ -262,12 +293,12 @@ test("matches suggested quick-search chips to the intended project strengths", (
     {
       label: "Backend",
       query: "python lambda api gateway dynamodb",
-      expected: ["rag-hr-chatbot", "coding-challenge-chatbot"],
+      expected: ["rag-hr-chatbot", "coding-challenge-chatbot", "clinical-rag"],
     },
     {
       label: "Evals + Guardrails",
       query: "guardrails grounded approved answers",
-      expected: ["rag-hr-chatbot"],
+      expected: ["clinical-rag", "rag-hr-chatbot"],
     },
     {
       label: "Automation",
@@ -282,7 +313,12 @@ test("matches suggested quick-search chips to the intended project strengths", (
     {
       label: "Data Pipelines",
       query: "scraping data pipeline playwright",
-      expected: ["lead-generation", "amc-imax-scraper-n8n-automation", "clinical-ner-finetune"],
+      expected: [
+        "lead-generation",
+        "amc-imax-scraper-n8n-automation",
+        "clinical-ner-finetune",
+        "clinical-rag",
+      ],
     },
   ];
 

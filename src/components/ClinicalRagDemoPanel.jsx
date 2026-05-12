@@ -350,7 +350,7 @@ export default function ClinicalRagDemoPanel() {
   return (
     <section className="clinical-rag-panel">
       <div className="clinical-rag-heading">
-        <h3>Weight-Inclusive Clinical RAG Demo</h3>
+        <h3>Clinical RAG Demo</h3>
         <span className="clinical-rag-pill">Public Data Only</span>
       </div>
       <p>
