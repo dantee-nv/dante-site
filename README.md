@@ -19,6 +19,7 @@ npm run dev
 
 The contact page reads `VITE_CONTACT_API_URL` and posts JSON to that endpoint.
 The Project 3 demo panel reads `VITE_RAG_DEMO_API_URL` and calls the Python RAG demo endpoint.
+The clinical RAG demo panel reads `VITE_CLINICAL_RAG_API_URL` and calls the Python clinical RAG endpoint.
 The coding challenge chatbot panel reads `VITE_CODING_CHAT_API_URL` (or derives from `VITE_RAG_DEMO_API_URL`) and calls the Python coding chat endpoint.
 The context-based paper search panel reads `VITE_PAPER_SEARCH_API_URL` and calls the Python semantic rerank endpoint.
 The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and `VITE_AMC_PUBLIC_SIGNUP_ENABLED`.
@@ -205,6 +206,56 @@ The demo download button serves:
 
 - `/nestle_hr_policy.pdf`
 
+## Clinical RAG lab
+
+The clinical RAG lab is a separate project from the HR chatbot. It uses a curated public MedQuAD subset focused on metabolic-health topics, neutral safety constraints, and inspectable retrieval behavior:
+
+`React demo panel -> API Gateway (HTTP API) -> Python Lambda (clinical_rag handler)`
+
+Feedback pipeline:
+
+`React demo panel feedback form -> API Gateway (HTTP API) -> Python Lambda (clinical_rag feedback handler) -> DynamoDB`
+
+Core files:
+
+- `backend/clinical_rag/ingestion.py`
+- `backend/clinical_rag/rag_engine.py`
+- `backend/clinical_rag/safety.py`
+- `backend/clinical_rag/handler.py`
+- `backend/clinical_rag/feedback_handler.py`
+- `backend/clinical_rag/data/medquad_weight_inclusive_subset.jsonl`
+- `backend/clinical_rag/data/medquad_weight_inclusive_embeddings.jsonl`
+- `backend/clinical_rag/data/medquad_weight_inclusive_eval.jsonl`
+- `backend/clinical_rag/eval/eval_summary.md`
+- `infra/clinical-rag-api/template.yaml`
+
+Data preparation:
+
+```bash
+./scripts/prepare-clinical-rag-data.sh --corpus-limit 120 --eval-limit 30
+```
+
+The ingestion step writes both the curated JSONL corpus and a precomputed embedding cache.
+The Lambda loads that cache into module memory on cold start, so requests reuse cached chunk
+vectors instead of recomputing corpus embeddings per request.
+
+Evaluation:
+
+```bash
+./scripts/evaluate-clinical-rag.sh
+```
+
+Deploy:
+
+```bash
+./scripts/deploy-clinical-rag.sh \
+  --allowed-origins "https://dantenavarro.com,https://www.dantenavarro.com,http://localhost:5173"
+```
+
+After deploy, use the `ClinicalRagAskApiUrl` stack output as:
+
+- `VITE_CLINICAL_RAG_API_URL=<ClinicalRagAskApiUrl>`
+
 ## Coding challenge chatbot API architecture
 
 The coding challenge chatbot pipeline is:
@@ -289,6 +340,7 @@ In Amplify environment variables, set:
 
 - `VITE_CONTACT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/contact`
 - `VITE_RAG_DEMO_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/rag-demo`
+- `VITE_CLINICAL_RAG_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/clinical-rag/ask`
 - `VITE_CODING_CHAT_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/coding-chat`
 - `VITE_PAPER_SEARCH_API_URL=https://<api-id>.execute-api.us-east-2.amazonaws.com/search`
 - `VITE_AMC_SIGNUP_WEBHOOK_URL=http://3.16.1.186:5678/webhook/amc-30-day-watch-signup`

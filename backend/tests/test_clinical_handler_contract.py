@@ -1,0 +1,80 @@
+import json
+
+import clinical_rag.feedback_handler as feedback_handler
+import clinical_rag.handler as handler
+
+
+class _Context:
+    pass
+
+
+def test_clinical_ask_handler_returns_contract(monkeypatch):
+    monkeypatch.setattr(
+        handler,
+        "answer_question",
+        lambda question: (
+            {
+                "answer": f"Answer for {question}",
+                "citations": [{"documentId": "doc-1"}],
+                "retrieval": {"strategy": "test", "hits": []},
+                "safety": {"answerMode": "grounded", "validationPassed": True},
+            },
+            {
+                "promptTokens": 0,
+                "completionTokens": 0,
+                "totalTokens": 0,
+                "estimatedCostUsd": 0,
+            },
+        ),
+    )
+
+    response = handler.lambda_handler(
+        {"body": json.dumps({"question": "What is diabetes?"})},
+        _Context(),
+    )
+
+    assert response["statusCode"] == 200
+    payload = json.loads(response["body"])
+    assert payload["answer"] == "Answer for What is diabetes?"
+    assert payload["stats"]["latencyMs"] >= 0
+
+
+def test_clinical_ask_handler_rejects_empty_question():
+    response = handler.lambda_handler({"body": json.dumps({"question": "  "})}, _Context())
+
+    assert response["statusCode"] == 400
+
+
+def test_feedback_payload_validation_accepts_metadata():
+    record = feedback_handler.validate_feedback_payload(
+        {
+            "question": "What is diabetes?",
+            "answer": "A grounded answer.",
+            "helpful": True,
+            "citations": [{"documentId": "doc-1"}],
+            "retrieval": {"strategy": "test"},
+            "safety": {"answerMode": "grounded"},
+            "stats": {"latencyMs": 1},
+        }
+    )
+
+    assert record["helpful"] is True
+    assert record["citations"][0]["documentId"] == "doc-1"
+
+
+def test_feedback_payload_requires_helpful_boolean():
+    response = feedback_handler.lambda_handler(
+        {
+            "body": json.dumps(
+                {
+                    "question": "What is diabetes?",
+                    "answer": "A grounded answer.",
+                    "helpful": "yes",
+                }
+            )
+        },
+        _Context(),
+    )
+
+    assert response["statusCode"] == 400
+

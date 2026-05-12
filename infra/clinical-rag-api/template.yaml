@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Clinical RAG API for dantenavarro.com
+
+Parameters:
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Description: CORS allowlist origins for browser requests.
+  ClinicalRagUseLlm:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: Enable optional OpenAI answer synthesis when OPENAI_API_KEY is available.
+  ClinicalRagChatModel:
+    Type: String
+    Default: gpt-4.1-nano
+    Description: Optional chat model used when ClinicalRagUseLlm is true.
+  LogRetentionDays:
+    Type: Number
+    Default: 14
+    MinValue: 1
+    MaxValue: 3653
+    Description: CloudWatch log retention period.
+
+Resources:
+  ClinicalRagApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: !Ref AllowedOrigins
+        AllowMethods:
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - accept
+          - content-type
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 12
+        ThrottlingRateLimit: 6
+
+  ClinicalRagFeedbackTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: feedbackId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: feedbackId
+          KeyType: HASH
+
+  ClinicalRagAskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend
+      Handler: clinical_rag.handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 15
+      MemorySize: 512
+      Environment:
+        Variables:
+          CLINICAL_RAG_DATA_PATH: /var/task/clinical_rag/data/medquad_weight_inclusive_subset.jsonl
+          CLINICAL_RAG_EMBEDDING_CACHE_PATH: /var/task/clinical_rag/data/medquad_weight_inclusive_embeddings.jsonl
+          CLINICAL_RAG_USE_LLM: !Ref ClinicalRagUseLlm
+          CLINICAL_RAG_CHAT_MODEL: !Ref ClinicalRagChatModel
+          CLINICAL_RAG_TOP_K: 5
+          CLINICAL_RAG_VECTOR_CANDIDATE_K: 60
+          CLINICAL_RAG_LEXICAL_CANDIDATE_K: 60
+          CLINICAL_RAG_MIN_SUPPORT_SCORE: 0.05
+          CLINICAL_RAG_MIN_LEXICAL_SUPPORT: 0.25
+      Events:
+        AskPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClinicalRagApi
+            Path: /clinical-rag/ask
+            Method: POST
+
+  ClinicalRagFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend
+      Handler: clinical_rag.feedback_handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 10
+      MemorySize: 512
+      Environment:
+        Variables:
+          CLINICAL_RAG_FEEDBACK_TABLE_NAME: !Ref ClinicalRagFeedbackTable
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: ClinicalRagFeedbackWrite
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt ClinicalRagFeedbackTable.Arn
+      Events:
+        FeedbackPost:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClinicalRagApi
+            Path: /clinical-rag/feedback
+            Method: POST
+
+  ClinicalRagAskFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ClinicalRagAskFunction}
+      RetentionInDays: !Ref LogRetentionDays
+
+  ClinicalRagFeedbackFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ClinicalRagFeedbackFunction}
+      RetentionInDays: !Ref LogRetentionDays
+
+Outputs:
+  ClinicalRagApiBaseUrl:
+    Description: Base URL for the clinical RAG API.
+    Value: !Sub https://${ClinicalRagApi}.execute-api.${AWS::Region}.amazonaws.com
+  ClinicalRagAskApiUrl:
+    Description: Clinical RAG ask endpoint URL.
+    Value: !Sub https://${ClinicalRagApi}.execute-api.${AWS::Region}.amazonaws.com/clinical-rag/ask
+  ClinicalRagFeedbackApiUrl:
+    Description: Clinical RAG feedback endpoint URL.
+    Value: !Sub https://${ClinicalRagApi}.execute-api.${AWS::Region}.amazonaws.com/clinical-rag/feedback
+  ClinicalRagFeedbackTableName:
+    Description: DynamoDB table used for clinical RAG feedback.
+    Value: !Ref ClinicalRagFeedbackTable

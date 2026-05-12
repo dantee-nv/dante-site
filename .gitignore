@@ -12,7 +12,9 @@ dist
 dist-ssr
 *.local
 .aws-sam
+.aws-sam/
 .playwright-cli/
+.claude/
 
 # Editor directories and files
 .vscode/*

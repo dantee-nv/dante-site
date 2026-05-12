@@ -698,14 +698,14 @@ const baseProjects = [
     slug: "clinical-rag",
     title: "Clinical RAG Evaluation Lab",
     summary:
-      "A separate clinical RAG project built around public MedQuAD data, focused on metabolic health, weight-inclusive safety boundaries, retrieval evaluation, and production-shaped API design.",
+      "A separate clinical RAG project built around public MedQuAD data, focused on metabolic health, no-stigma safety boundaries, retrieval evaluation, and production-shaped API design.",
     cardSummary:
       "MedQuAD metabolic-health RAG with hybrid retrieval, safety blocking, citations, feedback capture, and eval artifacts.",
     opportunity: {
       problem:
         "Clinical RAG demos can look convincing while quietly missing source support, safety boundaries, or repeatable evaluation.",
       fix:
-        "I built a narrow public-data system aligned to weight-inclusive metabolic care, making retrieval quality, safety behavior, and operating tradeoffs inspectable.",
+        "I built a narrow public-data system for metabolic health education, making retrieval quality, safety behavior, and operating tradeoffs inspectable.",
       outcome:
         "The result is a focused portfolio lab for showing chunking, embeddings, retrieval, reranking, evals, AWS deployment choices, and API integration.",
     },
