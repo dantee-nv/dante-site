@@ -37,7 +37,7 @@ export function Accordion({ items, openId, setOpenId }) {
               aria-labelledby={`${item.id}-trigger`}
               aria-hidden={!isOpen}
             >
-              <div className="accordion-inner">{item.content}</div>
+              <div className="accordion-inner"><div className="accordion-inner-body">{item.content}</div></div>
             </div>
           </div>
         );
