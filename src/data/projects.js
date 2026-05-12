@@ -81,6 +81,132 @@ function normalizeOpportunity(rawOpportunity) {
 
 const baseProjects = [
   {
+    slug: "clinical-rag",
+    title: "Clinical RAG Evaluation Lab",
+    summary:
+      "A separate clinical RAG project built around public MedQuAD data, focused on metabolic health, no-stigma safety boundaries, retrieval evaluation, and production-shaped API design.",
+    cardSummary:
+      "MedQuAD metabolic-health RAG with hybrid retrieval, safety blocking, citations, feedback capture, and eval artifacts.",
+    opportunity: {
+      problem:
+        "Clinical RAG demos can look convincing while quietly missing source support, safety boundaries, or repeatable evaluation.",
+      fix:
+        "I built a narrow public-data system for metabolic health education, making retrieval quality, safety behavior, and operating tradeoffs inspectable.",
+      outcome:
+        "The result is a focused portfolio lab for showing chunking, embeddings, retrieval, reranking, evals, AWS deployment choices, and API integration.",
+    },
+    status: "live",
+    tags: [
+      "Clinical RAG",
+      "MedQuAD",
+      "Python",
+      "Retrieval Evaluation",
+      "Safety Guardrails",
+      "React",
+      "AWS Lambda",
+      "API Gateway",
+      "DynamoDB",
+    ],
+    atGlance: {
+      skills: [
+        { label: "MedQuAD Ingestion", lane: "data" },
+        { label: "Clinical RAG", lane: "ai" },
+        { label: "Hybrid Retrieval", lane: "ai" },
+        { label: "RRF + Reranking", lane: "ai" },
+        { label: "Safety Validation", lane: "ai" },
+        { label: "Python API", lane: "backend" },
+        { label: "React Demo", lane: "frontend" },
+        { label: "AWS SAM", lane: "cloud" },
+      ],
+      metrics: [
+        { label: "Corpus", value: "120 curated MedQuAD records", tone: "info" },
+        { label: "Eval Snapshot", value: "30 golden questions + safety probes", tone: "success" },
+        { label: "Safety", value: "100% pass on blocked-request checks", tone: "success" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "May 2026",
+      role: "AI + Backend + Cloud Engineer",
+      stack:
+        "Python, MedQuAD, Bedrock Titan embeddings, BM25 lexical retrieval, deterministic local vectors, reciprocal rank fusion, reranking, React, AWS Lambda, API Gateway, DynamoDB, SAM",
+    },
+    sections: [
+      {
+        heading: "Goal and Scope",
+        body:
+          "This project is intentionally separate from the HR chatbot. It demonstrates a production-shaped clinical RAG workflow for public metabolic-health information, with no PHI and no patient-specific medical advice.",
+        bullets: [
+          "Use public MedQuAD data as the source corpus rather than private clinical data.",
+          "Narrow the scope to metabolic-health topics such as diabetes, obesity, hypertension, cholesterol, nutrition, physical activity, and metabolic syndrome.",
+          "Keep the demo small enough that retrieval behavior, safety failures, and eval results can be inspected directly.",
+        ],
+      },
+      {
+        heading: "Architecture",
+        body:
+          "The system uses a curated JSONL artifact at runtime and keeps the heavier Hugging Face parquet download in a repeatable ingestion script.",
+        visual: {
+          kind: "mermaid",
+          markdown: clinicalRagArchitectureFlow,
+          caption:
+            "Clinical RAG flow from MedQuAD ingestion through safety gating, hybrid retrieval, reranking, cited answers, and feedback capture.",
+        },
+        bullets: [
+          "The ingestion script reads the flattened Hugging Face MedQuAD parquet file and filters to metabolic-health source records.",
+          "Runtime retrieval can toggle between zero-cost local cached vectors and Bedrock Titan semantic embeddings fused with BM25 lexical retrieval.",
+          "Reciprocal rank fusion merges candidate sets before deterministic reranking boosts topic and question-type alignment.",
+          "The API returns answer text, citations, retrieval trace, safety status, latency, token usage, and estimated cost.",
+        ],
+      },
+      {
+        heading: "Safety and Validation",
+        body:
+          "The assistant is designed for general medical information only. It blocks requests where clinical RAG systems can fail quietly: individualized decisions, urgent symptoms, and attempts to bypass grounding.",
+        bullets: [
+          "Patient-specific medication, dosing, diagnosis, and start/stop questions are redirected to clinician review.",
+          "Urgent symptom language returns escalation messaging instead of retrieval output.",
+          "Prompt-injection attempts are blocked before retrieval.",
+          "Grounded answers require citations, and weakly supported questions return a fixed not-found response.",
+          "Response language is constrained to avoid blame, shame, and BMI-only conclusions.",
+        ],
+      },
+      {
+        heading: "Evaluation",
+        body:
+          "The project includes an offline eval script that compares retrieval modes across golden questions, not-found cases, and safety probes.",
+        bullets: [
+          "Current eval artifact covers 30 golden MedQuAD questions plus unsafe-request and not-found probes.",
+          "Metrics include retrieval hit@3, citation correctness, not-found accuracy, safety pass rate, average latency, and estimated cost by retrieval mode.",
+          "The checked-in summary is intentionally visible so retrieval quality can be discussed as an iteration target rather than hidden behind demo polish.",
+        ],
+      },
+      {
+        heading: "Production Tradeoffs",
+        body:
+          "The MVP keeps runtime simple for repeatable demos while preserving a clear path to production architecture decisions.",
+        bullets: [
+          "The demo keeps local retrieval as a fast baseline while Bedrock semantic mode shows the production tradeoff between embedding quality, latency, and request cost.",
+          "The API shape is frontend-friendly and separates answer generation from feedback capture.",
+          "DynamoDB feedback records include citations, retrieval metadata, safety status, and stats so quality issues can be reviewed.",
+          "A production version could move the cached embeddings into Aurora pgvector, OpenSearch Serverless, or a managed vector store depending on latency, cost, and model-governance needs.",
+        ],
+      },
+    ],
+    highlights: [
+      "Created a separate clinical RAG namespace, API contract, and React demo panel.",
+      "Generated a repeatable local MedQuAD subset from the flattened Hugging Face parquet dataset.",
+      "Added a retrieval toggle comparing local cached vectors with Bedrock Titan semantic embeddings plus BM25.",
+      "Added safety blocking for urgent symptoms, patient-specific medication/diagnosis requests, and prompt injection.",
+      "Returned retrieval traces, citations, safety state, latency, token, and cost metadata from the API.",
+      "Added a golden-set eval script and checked-in eval summary for quality review.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
+  {
     slug: "clinical-ner-finetune",
     title: "Clinical NER Fine-Tuning",
     summary:
@@ -688,132 +814,6 @@ const baseProjects = [
       "Generated AE-ready SDR call targets with contact context and Active Listings totals.",
       "Produced 200 deduped user targets from 1,243 Idaho assets with 98.5% enrichment coverage.",
       "Maintained a repeatable territory workflow for ongoing outreach execution and analysis.",
-    ],
-    cta: [
-      { label: "Back to Projects", to: "/projects" },
-      { label: "Contact Me", to: "/contact" },
-    ],
-  },
-  {
-    slug: "clinical-rag",
-    title: "Clinical RAG Evaluation Lab",
-    summary:
-      "A separate clinical RAG project built around public MedQuAD data, focused on metabolic health, no-stigma safety boundaries, retrieval evaluation, and production-shaped API design.",
-    cardSummary:
-      "MedQuAD metabolic-health RAG with hybrid retrieval, safety blocking, citations, feedback capture, and eval artifacts.",
-    opportunity: {
-      problem:
-        "Clinical RAG demos can look convincing while quietly missing source support, safety boundaries, or repeatable evaluation.",
-      fix:
-        "I built a narrow public-data system for metabolic health education, making retrieval quality, safety behavior, and operating tradeoffs inspectable.",
-      outcome:
-        "The result is a focused portfolio lab for showing chunking, embeddings, retrieval, reranking, evals, AWS deployment choices, and API integration.",
-    },
-    status: "live",
-    tags: [
-      "Clinical RAG",
-      "MedQuAD",
-      "Python",
-      "Retrieval Evaluation",
-      "Safety Guardrails",
-      "React",
-      "AWS Lambda",
-      "API Gateway",
-      "DynamoDB",
-    ],
-    atGlance: {
-      skills: [
-        { label: "MedQuAD Ingestion", lane: "data" },
-        { label: "Clinical RAG", lane: "ai" },
-        { label: "Hybrid Retrieval", lane: "ai" },
-        { label: "RRF + Reranking", lane: "ai" },
-        { label: "Safety Validation", lane: "ai" },
-        { label: "Python API", lane: "backend" },
-        { label: "React Demo", lane: "frontend" },
-        { label: "AWS SAM", lane: "cloud" },
-      ],
-      metrics: [
-        { label: "Corpus", value: "120 curated MedQuAD records", tone: "info" },
-        { label: "Eval Snapshot", value: "30 golden questions + safety probes", tone: "success" },
-        { label: "Safety", value: "100% pass on blocked-request checks", tone: "success" },
-      ],
-    },
-    template: "case-study",
-    meta: {
-      timeline: "May 2026",
-      role: "AI + Backend + Cloud Engineer",
-      stack:
-        "Python, MedQuAD, Bedrock Titan embeddings, BM25 lexical retrieval, deterministic local vectors, reciprocal rank fusion, reranking, React, AWS Lambda, API Gateway, DynamoDB, SAM",
-    },
-    sections: [
-      {
-        heading: "Goal and Scope",
-        body:
-          "This project is intentionally separate from the HR chatbot. It demonstrates a production-shaped clinical RAG workflow for public metabolic-health information, with no PHI and no patient-specific medical advice.",
-        bullets: [
-          "Use public MedQuAD data as the source corpus rather than private clinical data.",
-          "Narrow the scope to metabolic-health topics such as diabetes, obesity, hypertension, cholesterol, nutrition, physical activity, and metabolic syndrome.",
-          "Keep the demo small enough that retrieval behavior, safety failures, and eval results can be inspected directly.",
-        ],
-      },
-      {
-        heading: "Architecture",
-        body:
-          "The system uses a curated JSONL artifact at runtime and keeps the heavier Hugging Face parquet download in a repeatable ingestion script.",
-        visual: {
-          kind: "mermaid",
-          markdown: clinicalRagArchitectureFlow,
-          caption:
-            "Clinical RAG flow from MedQuAD ingestion through safety gating, hybrid retrieval, reranking, cited answers, and feedback capture.",
-        },
-        bullets: [
-          "The ingestion script reads the flattened Hugging Face MedQuAD parquet file and filters to metabolic-health source records.",
-          "Runtime retrieval can toggle between zero-cost local cached vectors and Bedrock Titan semantic embeddings fused with BM25 lexical retrieval.",
-          "Reciprocal rank fusion merges candidate sets before deterministic reranking boosts topic and question-type alignment.",
-          "The API returns answer text, citations, retrieval trace, safety status, latency, token usage, and estimated cost.",
-        ],
-      },
-      {
-        heading: "Safety and Validation",
-        body:
-          "The assistant is designed for general medical information only. It blocks requests where clinical RAG systems can fail quietly: individualized decisions, urgent symptoms, and attempts to bypass grounding.",
-        bullets: [
-          "Patient-specific medication, dosing, diagnosis, and start/stop questions are redirected to clinician review.",
-          "Urgent symptom language returns escalation messaging instead of retrieval output.",
-          "Prompt-injection attempts are blocked before retrieval.",
-          "Grounded answers require citations, and weakly supported questions return a fixed not-found response.",
-          "Response language is constrained to avoid blame, shame, and BMI-only conclusions.",
-        ],
-      },
-      {
-        heading: "Evaluation",
-        body:
-          "The project includes an offline eval script that compares retrieval modes across golden questions, not-found cases, and safety probes.",
-        bullets: [
-          "Current eval artifact covers 30 golden MedQuAD questions plus unsafe-request and not-found probes.",
-          "Metrics include retrieval hit@3, citation correctness, not-found accuracy, safety pass rate, average latency, and estimated cost by retrieval mode.",
-          "The checked-in summary is intentionally visible so retrieval quality can be discussed as an iteration target rather than hidden behind demo polish.",
-        ],
-      },
-      {
-        heading: "Production Tradeoffs",
-        body:
-          "The MVP keeps runtime simple for repeatable demos while preserving a clear path to production architecture decisions.",
-        bullets: [
-          "The demo keeps local retrieval as a fast baseline while Bedrock semantic mode shows the production tradeoff between embedding quality, latency, and request cost.",
-          "The API shape is frontend-friendly and separates answer generation from feedback capture.",
-          "DynamoDB feedback records include citations, retrieval metadata, safety status, and stats so quality issues can be reviewed.",
-          "A production version could move the cached embeddings into Aurora pgvector, OpenSearch Serverless, or a managed vector store depending on latency, cost, and model-governance needs.",
-        ],
-      },
-    ],
-    highlights: [
-      "Created a separate clinical RAG namespace, API contract, and React demo panel.",
-      "Generated a repeatable local MedQuAD subset from the flattened Hugging Face parquet dataset.",
-      "Added a retrieval toggle comparing local cached vectors with Bedrock Titan semantic embeddings plus BM25.",
-      "Added safety blocking for urgent symptoms, patient-specific medication/diagnosis requests, and prompt injection.",
-      "Returned retrieval traces, citations, safety state, latency, token, and cost metadata from the API.",
-      "Added a golden-set eval script and checked-in eval summary for quality review.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },
