@@ -90,50 +90,7 @@ export default function Projects() {
     startX: 0,
   });
   const suppressShortcutClick = useRef(false);
-  const statusOrder = {
-    live: 0,
-    "in-progress": 1,
-  };
-  const liveProjectOrder = {
-    "clinical-ner-finetune": 0,
-    "rag-hr-chatbot": 1,
-    "semantic-paper-search-bedrock": 2,
-    "lead-generation": 3,
-    "amc-imax-scraper-n8n-automation": 4,
-  };
-
-  const sortedProjects = [...projectCardList].sort((a, b) => {
-    const aIsSite = a.slug === "site";
-    const bIsSite = b.slug === "site";
-    const aIsCabbie = a.slug === "cabbie-ios";
-    const bIsCabbie = b.slug === "cabbie-ios";
-
-    if (aIsSite && bIsCabbie) {
-      return -1;
-    }
-
-    if (aIsCabbie && bIsSite) {
-      return 1;
-    }
-
-    const aRank = statusOrder[a.status] ?? Number.MAX_SAFE_INTEGER;
-    const bRank = statusOrder[b.status] ?? Number.MAX_SAFE_INTEGER;
-
-    if (aRank !== bRank) {
-      return aRank - bRank;
-    }
-
-    if (a.status === "live" && b.status === "live") {
-      const aLiveOrder = liveProjectOrder[a.slug] ?? Number.MAX_SAFE_INTEGER;
-      const bLiveOrder = liveProjectOrder[b.slug] ?? Number.MAX_SAFE_INTEGER;
-
-      if (aLiveOrder !== bLiveOrder) {
-        return aLiveOrder - bLiveOrder;
-      }
-    }
-
-    return a.title.localeCompare(b.title);
-  });
+  const sortedProjects = projectCardList;
   const highlightedProjectSlugs = new Set(highlightedProjectSlugList);
 
   function handleSearchChange(event) {
