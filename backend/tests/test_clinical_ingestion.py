@@ -1,4 +1,5 @@
 from clinical_rag.ingestion import (
+    build_titan_embedding_cache,
     curate_records,
     normalize_medquad_row,
     record_matches_metabolic_scope,
@@ -78,3 +79,31 @@ def test_curate_records_filters_sources_and_builds_eval_set():
     assert len(corpus) == 1
     assert corpus[0]["documentId"] == "doc-1"
     assert eval_records[0]["expectedDocumentId"] == "doc-1"
+
+
+def test_build_titan_embedding_cache_records_model_metadata(monkeypatch):
+    monkeypatch.setattr(
+        "clinical_rag.ingestion.titan_embedding",
+        lambda text, *, region, model_id, dimensions: ([1.0, 0.0], 7),
+    )
+
+    cache = build_titan_embedding_cache(
+        [
+            {
+                "documentId": "doc-1",
+                "questionId": "q-1",
+                "questionFocus": "Diabetes",
+                "questionType": "information",
+                "question": "What is diabetes?",
+                "answer": "Diabetes affects blood glucose.",
+            }
+        ],
+        region="us-east-2",
+        model_id="amazon.titan-embed-text-v2:0",
+        dimensions=2,
+    )
+
+    assert cache[0]["chunkId"] == "doc-1-q-1"
+    assert cache[0]["embeddingModel"] == "amazon.titan-embed-text-v2:0"
+    assert cache[0]["dimensions"] == 2
+    assert cache[0]["inputTextTokenCount"] == 7

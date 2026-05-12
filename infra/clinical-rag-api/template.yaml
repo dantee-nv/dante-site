@@ -63,6 +63,10 @@ Resources:
         Variables:
           CLINICAL_RAG_DATA_PATH: /var/task/clinical_rag/data/medquad_weight_inclusive_subset.jsonl
           CLINICAL_RAG_EMBEDDING_CACHE_PATH: /var/task/clinical_rag/data/medquad_weight_inclusive_embeddings.jsonl
+          CLINICAL_RAG_TITAN_EMBEDDING_CACHE_PATH: /var/task/clinical_rag/data/medquad_weight_inclusive_titan_embeddings.jsonl
+          CLINICAL_RAG_TITAN_EMBEDDING_MODEL: amazon.titan-embed-text-v2:0
+          CLINICAL_RAG_TITAN_EMBEDDING_REGION: !Ref AWS::Region
+          CLINICAL_RAG_TITAN_EMBEDDING_DIMS: 256
           CLINICAL_RAG_USE_LLM: !Ref ClinicalRagUseLlm
           CLINICAL_RAG_CHAT_MODEL: !Ref ClinicalRagChatModel
           CLINICAL_RAG_TOP_K: 5
@@ -70,6 +74,14 @@ Resources:
           CLINICAL_RAG_LEXICAL_CANDIDATE_K: 60
           CLINICAL_RAG_MIN_SUPPORT_SCORE: 0.05
           CLINICAL_RAG_MIN_LEXICAL_SUPPORT: 0.25
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: ClinicalRagBedrockEmbedding
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v2:0
       Events:
         AskPost:
           Type: HttpApi

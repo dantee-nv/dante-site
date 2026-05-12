@@ -8,6 +8,18 @@ const MAX_QUESTION_LENGTH = 700;
 const MAX_FEEDBACK_NOTE_LENGTH = 1000;
 const REQUEST_TIMEOUT_MS = 20000;
 const EXAMPLE_QUESTION = "How can someone prevent type 2 diabetes?";
+const RETRIEVAL_MODES = [
+  {
+    id: "local_hash_vector_plus_lexical_rrf_rerank",
+    label: "Local cached",
+    shortLabel: "Local",
+  },
+  {
+    id: "bedrock_titan_semantic_plus_bm25_rrf_rerank",
+    label: "Bedrock semantic",
+    shortLabel: "Bedrock",
+  },
+];
 
 function resolveClinicalAskApiUrl(rawUrl) {
   const trimmed = normalizeEnvUrlValue(rawUrl);
@@ -73,6 +85,9 @@ function formatCost(cost) {
   }
   if (numericCost <= 0) {
     return "$0.0000";
+  }
+  if (numericCost < 0.0001) {
+    return `$${numericCost.toFixed(8)}`;
   }
   return `$${numericCost.toFixed(4)}`;
 }
@@ -144,6 +159,8 @@ function ClinicalCitationItem({ citation, index }) {
 
 function ClinicalRagEvalDashboard() {
   const summary = clinicalEvalResults.summary || {};
+  const modeSummaries = clinicalEvalResults.modeSummaries || {};
+  const comparisonModes = RETRIEVAL_MODES.filter((mode) => modeSummaries[mode.id]);
   const metrics = [
     {
       label: "Retrieval hit@3",
@@ -188,6 +205,22 @@ function ClinicalRagEvalDashboard() {
           </div>
         ))}
       </div>
+      {comparisonModes.length > 0 ? (
+        <div className="clinical-rag-mode-comparison" aria-label="Retrieval mode comparison">
+          {comparisonModes.map((mode) => {
+            const modeSummary = modeSummaries[mode.id] || {};
+            return (
+              <div key={mode.id}>
+                <strong>{mode.shortLabel}</strong>
+                <span>hit@3 {formatPercent(modeSummary.retrievalHitAt3)}</span>
+                <span>citations {formatPercent(modeSummary.citationCorrectness)}</span>
+                <span>{Math.round(Number(modeSummary.averageLatencyMs) || 0)} ms</span>
+                <span>{formatCost(modeSummary.averageEstimatedCostUsd)}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -204,6 +237,7 @@ export default function ClinicalRagDemoPanel() {
   const [feedbackError, setFeedbackError] = useState("");
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
+  const [retrievalMode, setRetrievalMode] = useState(RETRIEVAL_MODES[0].id);
 
   const apiUrl = useMemo(
     () => resolveClinicalAskApiUrl(import.meta.env.VITE_CLINICAL_RAG_API_URL),
@@ -244,7 +278,7 @@ export default function ClinicalRagDemoPanel() {
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: normalizedQuestion }),
+        body: JSON.stringify({ question: normalizedQuestion, retrievalMode }),
         signal: controller.signal,
       });
       const payload = await parseResponsePayload(response);
@@ -356,7 +390,8 @@ export default function ClinicalRagDemoPanel() {
       <p>
         Ask a general metabolic health question. The backend retrieves from a curated
         MedQuAD subset, reranks evidence, validates safety boundaries, and returns
-        citations with operating stats.
+        citations with operating stats. Toggle between the zero-cost local cached
+        retriever and Bedrock semantic embeddings to compare retrieval behavior.
       </p>
       <p className="clinical-rag-note">
         This is not medical advice and does not use PHI. Patient-specific diagnosis,
@@ -379,6 +414,20 @@ export default function ClinicalRagDemoPanel() {
           placeholder={EXAMPLE_QUESTION}
           required
         />
+        <div className="clinical-rag-mode-toggle" aria-label="Retrieval strategy">
+          {RETRIEVAL_MODES.map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              className={retrievalMode === mode.id ? "selected" : ""}
+              onClick={() => setRetrievalMode(mode.id)}
+              aria-pressed={retrievalMode === mode.id}
+              disabled={isLoading}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
         <button
           className="clinical-rag-example"
           type="button"
@@ -465,8 +514,9 @@ export default function ClinicalRagDemoPanel() {
               <li key={hit.chunkId}>
                 <span>{hit.source} | {hit.questionFocus}</span>
                 <small>
-                  rerank {formatScore(hit.rerankScore)} | lexical{" "}
-                  {formatScore(hit.lexicalScore)}
+                  rerank {formatScore(hit.rerankScore)} | semantic{" "}
+                  {formatScore(hit.semanticScore ?? hit.vectorScore)} | lexical{" "}
+                  {formatScore(hit.lexicalScore)} | rrf {formatScore(hit.rrfScore ?? hit.score)}
                 </small>
               </li>
             ))}
@@ -480,7 +530,11 @@ export default function ClinicalRagDemoPanel() {
           <div className="clinical-rag-stats-grid">
             <p><span>Latency:</span> {stats.latencyMs ?? "N/A"} ms</p>
             <p><span>Total Tokens:</span> {stats.totalTokens ?? "N/A"}</p>
+            <p><span>Embedding Tokens:</span> {stats.embeddingTokens ?? 0}</p>
             <p><span>Estimated Cost:</span> {formatCost(stats.estimatedCostUsd)}</p>
+            <p><span>Mode:</span> {answerPayload.retrieval?.mode || "N/A"}</p>
+            <p><span>Embedding:</span> {answerPayload.retrieval?.embeddingModel || "N/A"}</p>
+            <p><span>Lexical:</span> {answerPayload.retrieval?.lexicalModel || "N/A"}</p>
             <p><span>Strategy:</span> {answerPayload.retrieval?.strategy || "N/A"}</p>
           </div>
         </details>

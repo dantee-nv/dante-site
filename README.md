@@ -225,6 +225,7 @@ Core files:
 - `backend/clinical_rag/feedback_handler.py`
 - `backend/clinical_rag/data/medquad_weight_inclusive_subset.jsonl`
 - `backend/clinical_rag/data/medquad_weight_inclusive_embeddings.jsonl`
+- `backend/clinical_rag/data/medquad_weight_inclusive_titan_embeddings.jsonl`
 - `backend/clinical_rag/data/medquad_weight_inclusive_eval.jsonl`
 - `backend/clinical_rag/eval/eval_summary.md`
 - `infra/clinical-rag-api/template.yaml`
@@ -236,13 +237,22 @@ Data preparation:
 ```
 
 The ingestion step writes both the curated JSONL corpus and a precomputed embedding cache.
-The Lambda loads that cache into module memory on cold start, so requests reuse cached chunk
-vectors instead of recomputing corpus embeddings per request.
+The Lambda loads local and Titan corpus embedding caches into module memory on cold start, so
+requests reuse cached chunk vectors instead of recomputing corpus embeddings per request.
+The demo can toggle between local cached retrieval and Bedrock Titan semantic retrieval fused
+with BM25 lexical search.
 
 Evaluation:
 
 ```bash
 ./scripts/evaluate-clinical-rag.sh
+```
+
+To compare only one retrieval mode:
+
+```bash
+./scripts/evaluate-clinical-rag.sh --retrieval-mode local_hash_vector_plus_lexical_rrf_rerank
+./scripts/evaluate-clinical-rag.sh --retrieval-mode bedrock_titan_semantic_plus_bm25_rrf_rerank
 ```
 
 Deploy:

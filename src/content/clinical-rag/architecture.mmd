@@ -2,12 +2,15 @@
 flowchart TD
   A["MedQuAD parquet<br/>public medical QA"] --> B["Ingestion script"]
   B --> C["Metabolic-health filter<br/>no-stigma safety scope"]
-  C --> D["Curated JSONL corpus<br/>repeatable demo data"]
+  C --> D["Curated JSONL corpus<br/>local + Titan embedding caches"]
 
   E["User question"] --> F["POST /clinical-rag/ask"]
   F --> G["Safety gate<br/>urgent, dosing, injection"]
-  G --> H["Hybrid retrieval<br/>vector + lexical"]
-  H --> I["RRF fusion + deterministic rerank"]
+  G --> H["Retrieval mode toggle<br/>local cached or Bedrock semantic"]
+  H --> M["BM25 lexical candidates"]
+  H --> N["Vector candidates<br/>hash or Titan"]
+  M --> I["RRF fusion + deterministic rerank"]
+  N --> I
   I --> J["Grounded answer<br/>citations + stats"]
   J --> K["React demo"]
   K --> L["Feedback API<br/>DynamoDB"]

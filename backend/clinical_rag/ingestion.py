@@ -7,12 +7,18 @@ import math
 import re
 import shutil
 import ssl
+import subprocess
 import tempfile
 import urllib.parse
 import urllib.request
 from collections import OrderedDict
 from pathlib import Path
 from typing import Iterable, Iterator
+
+try:
+    import boto3
+except ImportError:  # pragma: no cover - local prep can still run without Bedrock
+    boto3 = None
 
 MEDQUAD_PARQUET_URL = (
     "https://huggingface.co/datasets/lavita/MedQuAD/resolve/main/"
@@ -56,7 +62,10 @@ DEFAULT_DATA_DIR = Path(__file__).resolve().parent / "data"
 DEFAULT_CORPUS_PATH = DEFAULT_DATA_DIR / "medquad_weight_inclusive_subset.jsonl"
 DEFAULT_EVAL_PATH = DEFAULT_DATA_DIR / "medquad_weight_inclusive_eval.jsonl"
 DEFAULT_EMBEDDING_CACHE_PATH = DEFAULT_DATA_DIR / "medquad_weight_inclusive_embeddings.jsonl"
+DEFAULT_TITAN_EMBEDDING_CACHE_PATH = DEFAULT_DATA_DIR / "medquad_weight_inclusive_titan_embeddings.jsonl"
 HASH_DIMS = 128
+TITAN_EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
+TITAN_DIMS = 256
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _TERM_PATTERN = re.compile(r"[a-zA-Z][a-zA-Z0-9+\-]{2,}")
@@ -313,6 +322,95 @@ def build_embedding_cache(records: Iterable[dict]) -> list[dict]:
     return cache
 
 
+def titan_embedding(text: str, *, region: str, model_id: str, dimensions: int) -> tuple[list[float], int]:
+    body = json.dumps(
+        {
+            "inputText": text,
+            "dimensions": dimensions,
+            "normalize": True,
+        }
+    )
+
+    if boto3 is None:
+        payload = _invoke_titan_embedding_with_aws_cli(body, region=region, model_id=model_id)
+    else:
+        client = boto3.client("bedrock-runtime", region_name=region)
+        response = client.invoke_model(
+            modelId=model_id,
+            body=body,
+            accept="application/json",
+            contentType="application/json",
+        )
+        payload = json.loads(response["body"].read())
+
+    embedding = payload.get("embedding")
+    if not isinstance(embedding, list) or len(embedding) != dimensions:
+        raise RuntimeError("Bedrock returned an invalid Titan embedding response.")
+    return [round(float(value), 8) for value in embedding], int(payload.get("inputTextTokenCount") or 0)
+
+
+def _invoke_titan_embedding_with_aws_cli(body: str, *, region: str, model_id: str) -> dict:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        body_path = temp_path / "body.json"
+        output_path = temp_path / "response.json"
+        body_path.write_text(body, encoding="utf-8")
+        subprocess.run(
+            [
+                "aws",
+                "bedrock-runtime",
+                "invoke-model",
+                "--region",
+                region,
+                "--model-id",
+                model_id,
+                "--content-type",
+                "application/json",
+                "--accept",
+                "application/json",
+                "--body",
+                f"fileb://{body_path}",
+                str(output_path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(output_path.read_text(encoding="utf-8"))
+
+
+def build_titan_embedding_cache(
+    records: Iterable[dict],
+    *,
+    region: str,
+    model_id: str = TITAN_EMBEDDING_MODEL,
+    dimensions: int = TITAN_DIMS,
+) -> list[dict]:
+    cache = []
+    for index, record in enumerate(records, start=1):
+        document_id = record.get("documentId") or f"medquad-{index}"
+        chunk_id = f"{document_id}-{record.get('questionId') or index}"
+        text = record_to_retrieval_text(record)
+        embedding, token_count = titan_embedding(
+            text,
+            region=region,
+            model_id=model_id,
+            dimensions=dimensions,
+        )
+        cache.append(
+            {
+                "chunkId": chunk_id,
+                "documentId": document_id,
+                "questionId": record.get("questionId") or "",
+                "embeddingModel": model_id,
+                "dimensions": dimensions,
+                "inputTextTokenCount": token_count,
+                "embedding": embedding,
+            }
+        )
+    return cache
+
+
 def _is_url(value: str) -> bool:
     parsed = urllib.parse.urlparse(value)
     return parsed.scheme in {"http", "https"}
@@ -345,6 +443,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--corpus-output", default=str(DEFAULT_CORPUS_PATH))
     parser.add_argument("--eval-output", default=str(DEFAULT_EVAL_PATH))
     parser.add_argument("--embedding-cache-output", default=str(DEFAULT_EMBEDDING_CACHE_PATH))
+    parser.add_argument("--titan-embedding-cache-output", default=str(DEFAULT_TITAN_EMBEDDING_CACHE_PATH))
+    parser.add_argument("--build-titan-cache", action="store_true")
+    parser.add_argument("--titan-region", default="us-east-2")
+    parser.add_argument("--titan-model-id", default=TITAN_EMBEDDING_MODEL)
+    parser.add_argument("--titan-dimensions", type=int, default=TITAN_DIMS)
     parser.add_argument("--corpus-limit", type=int, default=420)
     parser.add_argument("--eval-limit", type=int, default=80)
     return parser.parse_args()
@@ -361,15 +464,28 @@ def main() -> None:
     write_jsonl(Path(args.eval_output), eval_records)
     embedding_cache = build_embedding_cache(corpus)
     write_jsonl(Path(args.embedding_cache_output), embedding_cache)
+    titan_embedding_cache = []
+    if args.build_titan_cache:
+        titan_embedding_cache = build_titan_embedding_cache(
+            corpus,
+            region=args.titan_region,
+            model_id=args.titan_model_id,
+            dimensions=args.titan_dimensions,
+        )
+        write_jsonl(Path(args.titan_embedding_cache_output), titan_embedding_cache)
     print(
         json.dumps(
             {
                 "corpusRecords": len(corpus),
                 "evalRecords": len(eval_records),
                 "embeddingCacheRecords": len(embedding_cache),
+                "titanEmbeddingCacheRecords": len(titan_embedding_cache),
                 "corpusOutput": args.corpus_output,
                 "evalOutput": args.eval_output,
                 "embeddingCacheOutput": args.embedding_cache_output,
+                "titanEmbeddingCacheOutput": (
+                    args.titan_embedding_cache_output if args.build_titan_cache else ""
+                ),
             },
             indent=2,
         )

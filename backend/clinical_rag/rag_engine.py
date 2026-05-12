@@ -6,6 +6,8 @@ import math
 import os
 import re
 import hashlib
+import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -17,20 +19,38 @@ try:
 except ImportError:  # pragma: no cover - optional runtime dependency
     OpenAI = None
 
+try:
+    import boto3
+except ImportError:  # pragma: no cover - Lambda includes boto3
+    boto3 = None
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_PATH = BASE_DIR / "data" / "medquad_weight_inclusive_subset.jsonl"
 DEFAULT_EMBEDDING_CACHE_PATH = BASE_DIR / "data" / "medquad_weight_inclusive_embeddings.jsonl"
+DEFAULT_TITAN_EMBEDDING_CACHE_PATH = (
+    BASE_DIR / "data" / "medquad_weight_inclusive_titan_embeddings.jsonl"
+)
 
 DATA_PATH = Path(os.getenv("CLINICAL_RAG_DATA_PATH", str(DEFAULT_DATA_PATH)))
 EMBEDDING_CACHE_PATH = Path(
     os.getenv("CLINICAL_RAG_EMBEDDING_CACHE_PATH", str(DEFAULT_EMBEDDING_CACHE_PATH))
 )
+TITAN_EMBEDDING_CACHE_PATH = Path(
+    os.getenv("CLINICAL_RAG_TITAN_EMBEDDING_CACHE_PATH", str(DEFAULT_TITAN_EMBEDDING_CACHE_PATH))
+)
 CHAT_MODEL = os.getenv("CLINICAL_RAG_CHAT_MODEL", "gpt-4.1-nano")
 EMBEDDING_MODEL = os.getenv("CLINICAL_RAG_EMBEDDING_MODEL", "local-hash-v1")
+TITAN_EMBEDDING_MODEL = os.getenv("CLINICAL_RAG_TITAN_EMBEDDING_MODEL", "amazon.titan-embed-text-v2:0")
+TITAN_EMBEDDING_REGION = os.getenv("CLINICAL_RAG_TITAN_EMBEDDING_REGION", os.getenv("AWS_REGION", "us-east-2"))
 USE_LLM = os.getenv("CLINICAL_RAG_USE_LLM", "false").lower() == "true"
+
+LOCAL_RETRIEVAL_MODE = "local_hash_vector_plus_lexical_rrf_rerank"
+BEDROCK_RETRIEVAL_MODE = "bedrock_titan_semantic_plus_bm25_rrf_rerank"
+DEFAULT_RETRIEVAL_MODE = LOCAL_RETRIEVAL_MODE
+RETRIEVAL_MODES = {LOCAL_RETRIEVAL_MODE, BEDROCK_RETRIEVAL_MODE}
 
 TOP_K = max(1, int(os.getenv("CLINICAL_RAG_TOP_K", "5")))
 VECTOR_CANDIDATE_K = max(TOP_K, int(os.getenv("CLINICAL_RAG_VECTOR_CANDIDATE_K", "60")))
@@ -39,6 +59,7 @@ MIN_SUPPORT_SCORE = float(os.getenv("CLINICAL_RAG_MIN_SUPPORT_SCORE", "0.05"))
 MIN_LEXICAL_SUPPORT = float(os.getenv("CLINICAL_RAG_MIN_LEXICAL_SUPPORT", "0.25"))
 RRF_K = max(1, int(os.getenv("CLINICAL_RAG_RRF_K", "60")))
 HASH_DIMS = max(32, int(os.getenv("CLINICAL_RAG_HASH_DIMS", "128")))
+TITAN_DIMS = int(os.getenv("CLINICAL_RAG_TITAN_EMBEDDING_DIMS", "256"))
 
 NOT_FOUND_MESSAGE = (
     "I could not find enough support in the approved public medical dataset to answer that. "
@@ -47,6 +68,9 @@ NOT_FOUND_MESSAGE = (
 
 INPUT_COST_PER_MILLION = float(os.getenv("MODEL_INPUT_COST_PER_MILLION", "0.10"))
 OUTPUT_COST_PER_MILLION = float(os.getenv("MODEL_OUTPUT_COST_PER_MILLION", "0.40"))
+TITAN_EMBEDDING_COST_PER_MILLION = float(
+    os.getenv("TITAN_EMBEDDING_COST_PER_MILLION", "0.02")
+)
 
 TERM_PATTERN = re.compile(r"[a-zA-Z][a-zA-Z0-9+\-]{2,}")
 SENTENCE_SPLIT_PATTERN = re.compile(r"(?<=[.!?])\s+")
@@ -150,6 +174,7 @@ CLINICAL_SCOPE_TERMS = {
 
 _UNINITIALIZED = object()
 _CLIENT = _UNINITIALIZED
+_BEDROCK_CLIENT = _UNINITIALIZED
 _KNOWLEDGE_BASE = None
 
 
@@ -165,7 +190,10 @@ class ClinicalChunk:
     answer: str
     text: str
     terms: set[str]
+    term_counts: dict[str, int]
+    term_count: int
     embedding: list[float]
+    semantic_embedding: list[float]
 
 
 @dataclass(frozen=True)
@@ -179,6 +207,7 @@ class RetrievalHit:
     question: str
     text: str
     score: float
+    semantic_score: float
     vector_score: float
     lexical_score: float
     rerank_score: float
@@ -187,11 +216,23 @@ class RetrievalHit:
 @dataclass(frozen=True)
 class KnowledgeBase:
     chunks: list[ClinicalChunk]
+    document_frequency: dict[str, int]
+    average_term_count: float
 
 
 def _extract_terms(text: str) -> set[str]:
     terms = {term.lower() for term in TERM_PATTERN.findall(text)}
     return {term for term in terms if term not in STOP_TERMS}
+
+
+def _term_counts(text: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for term in TERM_PATTERN.findall(text):
+        normalized = term.lower()
+        if normalized in STOP_TERMS:
+            continue
+        counts[normalized] = counts.get(normalized, 0) + 1
+    return counts
 
 
 def _hash_embedding(text: str) -> list[float]:
@@ -248,7 +289,7 @@ def _chunk_id_for_record(record: dict, index: int) -> str:
     return f"{document_id}-{record.get('questionId') or index}"
 
 
-def _load_embedding_cache(path: Path) -> dict[str, list[float]]:
+def _load_embedding_cache(path: Path, *, expected_dimensions: int) -> dict[str, list[float]]:
     cache: dict[str, list[float]] = {}
     for item in _load_jsonl(path):
         chunk_id = str(item.get("chunkId") or "")
@@ -260,7 +301,7 @@ def _load_embedding_cache(path: Path) -> dict[str, list[float]]:
             for value in embedding
             if isinstance(value, int | float)
         ]
-        if len(numeric_embedding) == HASH_DIMS:
+        if len(numeric_embedding) == expected_dimensions:
             cache[chunk_id] = numeric_embedding
     return cache
 
@@ -271,7 +312,13 @@ def load_knowledge_base() -> KnowledgeBase:
         return _KNOWLEDGE_BASE
 
     chunks: list[ClinicalChunk] = []
-    embedding_cache = _load_embedding_cache(EMBEDDING_CACHE_PATH)
+    embedding_cache = _load_embedding_cache(EMBEDDING_CACHE_PATH, expected_dimensions=HASH_DIMS)
+    semantic_embedding_cache = _load_embedding_cache(
+        TITAN_EMBEDDING_CACHE_PATH,
+        expected_dimensions=TITAN_DIMS,
+    )
+    document_frequency: dict[str, int] = {}
+    total_term_count = 0
     for index, record in enumerate(_load_jsonl(DATA_PATH), start=1):
         answer = str(record.get("answer", "")).strip()
         question = str(record.get("question", "")).strip()
@@ -282,6 +329,10 @@ def load_knowledge_base() -> KnowledgeBase:
         chunk_id = _chunk_id_for_record(record, index)
         text = _record_to_text(record)
         embedding = embedding_cache.get(chunk_id) or _hash_embedding(text)
+        term_counts = _term_counts(text)
+        for term in term_counts:
+            document_frequency[term] = document_frequency.get(term, 0) + 1
+        total_term_count += sum(term_counts.values())
         chunks.append(
             ClinicalChunk(
                 chunk_id=chunk_id,
@@ -294,16 +345,25 @@ def load_knowledge_base() -> KnowledgeBase:
                 answer=answer,
                 text=text,
                 terms=_extract_terms(text),
+                term_counts=term_counts,
+                term_count=sum(term_counts.values()),
                 embedding=embedding,
+                semantic_embedding=semantic_embedding_cache.get(chunk_id, []),
             )
         )
 
     logger.info(
-        "clinical_rag_knowledge_base_loaded chunks=%s cached_embeddings=%s",
+        "clinical_rag_knowledge_base_loaded chunks=%s cached_embeddings=%s cached_titan_embeddings=%s",
         len(chunks),
         len(embedding_cache),
+        len(semantic_embedding_cache),
     )
-    _KNOWLEDGE_BASE = KnowledgeBase(chunks=chunks)
+    average_term_count = total_term_count / len(chunks) if chunks else 0.0
+    _KNOWLEDGE_BASE = KnowledgeBase(
+        chunks=chunks,
+        document_frequency=document_frequency,
+        average_term_count=average_term_count,
+    )
     return _KNOWLEDGE_BASE
 
 
@@ -324,6 +384,47 @@ def _lexical_retrieval(question: str, chunks: Sequence[ClinicalChunk], k: int) -
     return [_hit_from_chunk(chunk, lexical_score=score) for score, chunk in scored[:k]]
 
 
+def _bm25_retrieval(
+    question: str,
+    knowledge: KnowledgeBase,
+    k: int,
+    *,
+    k1: float = 1.5,
+    b: float = 0.75,
+) -> list[RetrievalHit]:
+    terms = _extract_terms(question)
+    if not terms or not knowledge.chunks:
+        return []
+
+    scored = []
+    document_count = len(knowledge.chunks)
+    average_term_count = knowledge.average_term_count or 1.0
+    for chunk in knowledge.chunks:
+        score = 0.0
+        for term in terms:
+            term_frequency = chunk.term_counts.get(term, 0)
+            if term_frequency == 0:
+                continue
+            documents_with_term = knowledge.document_frequency.get(term, 0)
+            idf = math.log(1 + ((document_count - documents_with_term + 0.5) / (documents_with_term + 0.5)))
+            denominator = term_frequency + k1 * (
+                1 - b + b * (chunk.term_count / average_term_count)
+            )
+            score += idf * ((term_frequency * (k1 + 1)) / denominator)
+        if score > 0:
+            scored.append((score, chunk))
+
+    if not scored:
+        return []
+
+    max_score = max(score for score, _chunk in scored) or 1.0
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [
+        _hit_from_chunk(chunk, lexical_score=score / max_score)
+        for score, chunk in scored[:k]
+    ]
+
+
 def _vector_retrieval(question: str, chunks: Sequence[ClinicalChunk], k: int) -> list[RetrievalHit]:
     query_embedding = _hash_embedding(question)
     scored = [
@@ -334,10 +435,31 @@ def _vector_retrieval(question: str, chunks: Sequence[ClinicalChunk], k: int) ->
     return [_hit_from_chunk(chunk, vector_score=score) for score, chunk in scored[:k] if score > 0]
 
 
+def _semantic_retrieval(
+    query_embedding: Sequence[float],
+    chunks: Sequence[ClinicalChunk],
+    k: int,
+) -> list[RetrievalHit]:
+    if not query_embedding:
+        return []
+    scored = [
+        (_cosine(query_embedding, chunk.semantic_embedding), chunk)
+        for chunk in chunks
+        if chunk.semantic_embedding
+    ]
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [
+        _hit_from_chunk(chunk, semantic_score=score, vector_score=score)
+        for score, chunk in scored[:k]
+        if score > 0
+    ]
+
+
 def _hit_from_chunk(
     chunk: ClinicalChunk,
     *,
     score: float = 0.0,
+    semantic_score: float = 0.0,
     vector_score: float = 0.0,
     lexical_score: float = 0.0,
     rerank_score: float = 0.0,
@@ -352,6 +474,7 @@ def _hit_from_chunk(
         question=chunk.question,
         text=chunk.answer,
         score=score,
+        semantic_score=semantic_score,
         vector_score=vector_score,
         lexical_score=lexical_score,
         rerank_score=rerank_score,
@@ -374,6 +497,8 @@ def _rrf_fuse(vector_hits: Sequence[RetrievalHit], lexical_hits: Sequence[Retrie
                 **{
                     **existing.__dict__,
                     "lexical_score": max(existing.lexical_score, hit.lexical_score),
+                    "semantic_score": max(existing.semantic_score, hit.semantic_score),
+                    "vector_score": max(existing.vector_score, hit.vector_score),
                 }
             )
         else:
@@ -456,10 +581,24 @@ def _rerank(question: str, hits: Sequence[RetrievalHit], k: int) -> list[Retriev
     return reranked[:k]
 
 
-def retrieve(question: str, *, top_k: int = TOP_K) -> list[RetrievalHit]:
+def retrieve(
+    question: str,
+    *,
+    top_k: int = TOP_K,
+    retrieval_mode: str = DEFAULT_RETRIEVAL_MODE,
+    query_embedding: Sequence[float] | None = None,
+) -> list[RetrievalHit]:
     knowledge = load_knowledge_base()
-    vector_hits = _vector_retrieval(question, knowledge.chunks, VECTOR_CANDIDATE_K)
-    lexical_hits = _lexical_retrieval(question, knowledge.chunks, LEXICAL_CANDIDATE_K)
+    if retrieval_mode == BEDROCK_RETRIEVAL_MODE:
+        vector_hits = _semantic_retrieval(
+            query_embedding or [],
+            knowledge.chunks,
+            VECTOR_CANDIDATE_K,
+        )
+        lexical_hits = _bm25_retrieval(question, knowledge, LEXICAL_CANDIDATE_K)
+    else:
+        vector_hits = _vector_retrieval(question, knowledge.chunks, VECTOR_CANDIDATE_K)
+        lexical_hits = _lexical_retrieval(question, knowledge.chunks, LEXICAL_CANDIDATE_K)
     fused_hits = _rrf_fuse(vector_hits, lexical_hits)
     return _rerank(question, fused_hits, top_k)
 
@@ -512,15 +651,91 @@ def _get_client():
     return _CLIENT
 
 
-def _usage(prompt_tokens: int = 0, completion_tokens: int = 0) -> dict:
-    total_tokens = prompt_tokens + completion_tokens
+def _get_bedrock_client():
+    global _BEDROCK_CLIENT
+    if _BEDROCK_CLIENT is not _UNINITIALIZED:
+        return _BEDROCK_CLIENT
+    if boto3 is None:
+        _BEDROCK_CLIENT = None
+    else:
+        _BEDROCK_CLIENT = boto3.client("bedrock-runtime", region_name=TITAN_EMBEDDING_REGION)
+    return _BEDROCK_CLIENT
+
+
+def _titan_embedding(text: str) -> tuple[list[float], int]:
+    body = json.dumps(
+        {
+            "inputText": text,
+            "dimensions": TITAN_DIMS,
+            "normalize": True,
+        }
+    )
+    client = _get_bedrock_client()
+    if client is None:
+        payload = _invoke_titan_embedding_with_aws_cli(body)
+    else:
+        response = client.invoke_model(
+            modelId=TITAN_EMBEDDING_MODEL,
+            body=body,
+            accept="application/json",
+            contentType="application/json",
+        )
+        payload = json.loads(response["body"].read())
+    embedding = payload.get("embedding")
+    if not isinstance(embedding, list) or len(embedding) != TITAN_DIMS:
+        raise RuntimeError("Bedrock returned an invalid embedding response.")
+    tokens = int(payload.get("inputTextTokenCount") or 0)
+    return [float(value) for value in embedding], tokens
+
+
+def _invoke_titan_embedding_with_aws_cli(body: str) -> dict:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        body_path = temp_path / "body.json"
+        output_path = temp_path / "response.json"
+        body_path.write_text(body, encoding="utf-8")
+        subprocess.run(
+            [
+                "aws",
+                "bedrock-runtime",
+                "invoke-model",
+                "--region",
+                TITAN_EMBEDDING_REGION,
+                "--model-id",
+                TITAN_EMBEDDING_MODEL,
+                "--content-type",
+                "application/json",
+                "--accept",
+                "application/json",
+                "--body",
+                f"fileb://{body_path}",
+                str(output_path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(output_path.read_text(encoding="utf-8"))
+
+
+def _usage(
+    prompt_tokens: int = 0,
+    completion_tokens: int = 0,
+    *,
+    embedding_tokens: int = 0,
+) -> dict:
+    total_tokens = prompt_tokens + completion_tokens + embedding_tokens
+    embedding_cost = (embedding_tokens / 1_000_000) * TITAN_EMBEDDING_COST_PER_MILLION
     cost = (
         (prompt_tokens / 1_000_000) * INPUT_COST_PER_MILLION
         + (completion_tokens / 1_000_000) * OUTPUT_COST_PER_MILLION
+        + embedding_cost
     )
     return {
         "promptTokens": prompt_tokens,
         "completionTokens": completion_tokens,
+        "embeddingTokens": embedding_tokens,
+        "embeddingCostUsd": round(embedding_cost, 8),
         "totalTokens": total_tokens,
         "estimatedCostUsd": round(cost, 8),
     }
@@ -606,19 +821,45 @@ def _serialize_hit(hit: RetrievalHit) -> dict:
         "questionFocus": hit.question_focus,
         "questionType": hit.question_type,
         "score": round(hit.score, 6),
+        "rrfScore": round(hit.score, 6),
+        "semanticScore": round(hit.semantic_score, 6),
         "vectorScore": round(hit.vector_score, 6),
         "lexicalScore": round(hit.lexical_score, 6),
         "rerankScore": round(hit.rerank_score, 6),
     }
 
 
-def answer_question(question: str) -> tuple[dict, dict]:
+def _retrieval_metadata(retrieval_mode: str) -> dict:
+    if retrieval_mode == BEDROCK_RETRIEVAL_MODE:
+        return {
+            "strategy": BEDROCK_RETRIEVAL_MODE,
+            "mode": "bedrock_semantic",
+            "embeddingModel": TITAN_EMBEDDING_MODEL,
+            "lexicalModel": "bm25",
+        }
+    return {
+        "strategy": LOCAL_RETRIEVAL_MODE,
+        "mode": "local_cached",
+        "embeddingModel": EMBEDDING_MODEL,
+        "lexicalModel": "term_overlap",
+    }
+
+
+def answer_question(
+    question: str,
+    *,
+    retrieval_mode: str = DEFAULT_RETRIEVAL_MODE,
+) -> tuple[dict, dict]:
+    if retrieval_mode not in RETRIEVAL_MODES:
+        raise ValueError(f"Unsupported retrieval mode: {retrieval_mode}")
+
     safety_decision = assess_question_safety(question)
     if safety_decision.blocked:
         return {
             "answer": safety_decision.message,
             "citations": [],
             "retrieval": {
+                **_retrieval_metadata(retrieval_mode),
                 "strategy": "blocked_before_retrieval",
                 "topK": TOP_K,
                 "vectorCandidateK": VECTOR_CANDIDATE_K,
@@ -632,8 +873,30 @@ def answer_question(question: str) -> tuple[dict, dict]:
             },
         }, _usage()
 
-    hits = retrieve(question) if _is_in_clinical_scope(question) else []
-    answer, usage = _generate_answer(question, hits)
+    query_embedding = None
+    embedding_tokens = 0
+    if _is_in_clinical_scope(question) and retrieval_mode == BEDROCK_RETRIEVAL_MODE:
+        query_embedding, embedding_tokens = _titan_embedding(question)
+
+    hits = (
+        retrieve(question, retrieval_mode=retrieval_mode, query_embedding=query_embedding)
+        if _is_in_clinical_scope(question)
+        else []
+    )
+    answer, answer_usage = _generate_answer(question, hits)
+    usage = {
+        **answer_usage,
+        "embeddingTokens": embedding_tokens,
+        "embeddingCostUsd": _usage(embedding_tokens=embedding_tokens)["embeddingCostUsd"],
+        "totalTokens": int(answer_usage.get("promptTokens", 0))
+        + int(answer_usage.get("completionTokens", 0))
+        + embedding_tokens,
+        "estimatedCostUsd": round(
+            float(answer_usage.get("estimatedCostUsd", 0))
+            + _usage(embedding_tokens=embedding_tokens)["embeddingCostUsd"],
+            8,
+        ),
+    }
     answer_mode = "not_found" if answer == NOT_FOUND_MESSAGE else "grounded"
     citations = [] if answer_mode == "not_found" else [
         _citation_from_hit(hit, index + 1) for index, hit in enumerate(hits[:3])
@@ -647,8 +910,7 @@ def answer_question(question: str) -> tuple[dict, dict]:
         "answer": answer,
         "citations": citations,
         "retrieval": {
-            "strategy": "local_hash_vector_plus_lexical_rrf_rerank",
-            "embeddingModel": EMBEDDING_MODEL,
+            **_retrieval_metadata(retrieval_mode),
             "topK": TOP_K,
             "vectorCandidateK": VECTOR_CANDIDATE_K,
             "lexicalCandidateK": LEXICAL_CANDIDATE_K,

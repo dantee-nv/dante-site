@@ -743,7 +743,7 @@ const baseProjects = [
       timeline: "May 2026",
       role: "AI + Backend + Cloud Engineer",
       stack:
-        "Python, MedQuAD, deterministic vector retrieval, lexical matching, reciprocal rank fusion, reranking, React, AWS Lambda, API Gateway, DynamoDB, SAM",
+        "Python, MedQuAD, Bedrock Titan embeddings, BM25 lexical retrieval, deterministic local vectors, reciprocal rank fusion, reranking, React, AWS Lambda, API Gateway, DynamoDB, SAM",
     },
     sections: [
       {
@@ -768,7 +768,7 @@ const baseProjects = [
         },
         bullets: [
           "The ingestion script reads the flattened Hugging Face MedQuAD parquet file and filters to metabolic-health source records.",
-          "Runtime retrieval loads the curated corpus, builds deterministic local vectors, and combines vector search with lexical matching.",
+          "Runtime retrieval can toggle between zero-cost local cached vectors and Bedrock Titan semantic embeddings fused with BM25 lexical retrieval.",
           "Reciprocal rank fusion merges candidate sets before deterministic reranking boosts topic and question-type alignment.",
           "The API returns answer text, citations, retrieval trace, safety status, latency, token usage, and estimated cost.",
         ],
@@ -788,10 +788,10 @@ const baseProjects = [
       {
         heading: "Evaluation",
         body:
-          "The project includes an offline eval script that runs golden questions, not-found cases, and safety probes against the same local corpus used by the demo.",
+          "The project includes an offline eval script that compares retrieval modes across golden questions, not-found cases, and safety probes.",
         bullets: [
           "Current eval artifact covers 30 golden MedQuAD questions plus unsafe-request and not-found probes.",
-          "Metrics include retrieval hit@3, citation correctness, not-found accuracy, safety pass rate, average latency, and estimated cost.",
+          "Metrics include retrieval hit@3, citation correctness, not-found accuracy, safety pass rate, average latency, and estimated cost by retrieval mode.",
           "The checked-in summary is intentionally visible so retrieval quality can be discussed as an iteration target rather than hidden behind demo polish.",
         ],
       },
@@ -800,16 +800,17 @@ const baseProjects = [
         body:
           "The MVP keeps runtime simple for repeatable demos while preserving a clear path to production architecture decisions.",
         bullets: [
-          "Current vector search is local and deterministic for repeatable demos; production scale would precompute embeddings and store them in Aurora pgvector, OpenSearch Serverless, or a managed vector store.",
+          "The demo keeps local retrieval as a fast baseline while Bedrock semantic mode shows the production tradeoff between embedding quality, latency, and request cost.",
           "The API shape is frontend-friendly and separates answer generation from feedback capture.",
           "DynamoDB feedback records include citations, retrieval metadata, safety status, and stats so quality issues can be reviewed.",
-          "A production version could move embedding and reranking to Bedrock or SageMaker depending on latency, cost, and model-governance needs.",
+          "A production version could move the cached embeddings into Aurora pgvector, OpenSearch Serverless, or a managed vector store depending on latency, cost, and model-governance needs.",
         ],
       },
     ],
     highlights: [
       "Created a separate clinical RAG namespace, API contract, and React demo panel.",
       "Generated a repeatable local MedQuAD subset from the flattened Hugging Face parquet dataset.",
+      "Added a retrieval toggle comparing local cached vectors with Bedrock Titan semantic embeddings plus BM25.",
       "Added safety blocking for urgent symptoms, patient-specific medication/diagnosis requests, and prompt injection.",
       "Returned retrieval traces, citations, safety state, latency, token, and cost metadata from the API.",
       "Added a golden-set eval script and checked-in eval summary for quality review.",

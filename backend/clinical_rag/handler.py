@@ -6,7 +6,7 @@ import os
 import time
 from base64 import b64decode
 
-from .rag_engine import answer_question
+from .rag_engine import DEFAULT_RETRIEVAL_MODE, RETRIEVAL_MODES, answer_question
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -31,7 +31,7 @@ def _parse_body(event: dict) -> dict:
     return json.loads(raw_body)
 
 
-def validate_ask_payload(payload: dict) -> str:
+def validate_ask_payload(payload: dict) -> tuple[str, str]:
     if not isinstance(payload, dict):
         raise ValueError("Invalid JSON payload.")
 
@@ -46,7 +46,15 @@ def validate_ask_payload(payload: dict) -> str:
     if len(normalized) > MAX_QUESTION_LENGTH:
         raise ValueError(f"question must be {MAX_QUESTION_LENGTH} characters or fewer.")
 
-    return normalized
+    retrieval_mode = payload.get("retrievalMode", DEFAULT_RETRIEVAL_MODE)
+    if not isinstance(retrieval_mode, str):
+        raise ValueError("retrievalMode must be a string.")
+    normalized_retrieval_mode = retrieval_mode.strip() or DEFAULT_RETRIEVAL_MODE
+    if normalized_retrieval_mode not in RETRIEVAL_MODES:
+        allowed_modes = ", ".join(sorted(RETRIEVAL_MODES))
+        raise ValueError(f"retrievalMode must be one of: {allowed_modes}.")
+
+    return normalized, normalized_retrieval_mode
 
 
 def lambda_handler(event, context):  # noqa: ANN001
@@ -58,13 +66,13 @@ def lambda_handler(event, context):  # noqa: ANN001
         return _json_response(400, {"message": "Invalid JSON payload."})
 
     try:
-        question = validate_ask_payload(payload)
+        question, retrieval_mode = validate_ask_payload(payload)
     except ValueError as error:
         return _json_response(400, {"message": str(error)})
 
     started_at = time.perf_counter()
     try:
-        result, usage = answer_question(question)
+        result, usage = answer_question(question, retrieval_mode=retrieval_mode)
     except Exception as error:  # noqa: BLE001
         logger.exception(
             "clinical_rag_failed error_type=%s error_message=%s",
@@ -82,6 +90,8 @@ def lambda_handler(event, context):  # noqa: ANN001
         "promptTokens": int(usage.get("promptTokens", 0)),
         "completionTokens": int(usage.get("completionTokens", 0)),
         "totalTokens": int(usage.get("totalTokens", 0)),
+        "embeddingTokens": int(usage.get("embeddingTokens", 0)),
+        "embeddingCostUsd": float(usage.get("embeddingCostUsd", 0)),
         "estimatedCostUsd": float(usage.get("estimatedCostUsd", 0)),
     }
 
@@ -93,4 +103,3 @@ def lambda_handler(event, context):  # noqa: ANN001
     )
 
     return _json_response(200, {**result, "stats": stats})
-
