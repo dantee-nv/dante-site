@@ -451,7 +451,7 @@ const baseProjects = [
       fix:
         "I built a chatbot-style experience that keeps short-term context, teaches with hints first, and still supports an explicit full solution reveal when the user is ready.",
     },
-    status: "in-progress",
+    status: "live",
     tags: [
       "React",
       "Python",
@@ -709,7 +709,7 @@ const baseProjects = [
       outcome:
         "The result is a focused portfolio lab for showing chunking, embeddings, retrieval, reranking, evals, AWS deployment choices, and API integration.",
     },
-    status: "in-progress",
+    status: "live",
     tags: [
       "Clinical RAG",
       "MedQuAD",
