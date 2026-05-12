@@ -66,7 +66,7 @@ function AccordionItem({ id, title, children }) {
               exit={{ opacity: 0, y: -3, filter: "blur(1px)" }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
             >
-              {children}
+              <div className="accordion-inner-body">{children}</div>
             </Motion.div>
           </Motion.div>
         )}
