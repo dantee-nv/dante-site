@@ -138,19 +138,6 @@ function ClinicalCitationItem({ citation, index }) {
           {citationHref}
         </a>
       ) : null}
-      <span className="clinical-rag-citation-info-wrap">
-        <button
-          type="button"
-          className="clinical-rag-citation-info"
-          aria-label={`Why citation ${citation.index || index + 1} uses an archived source`}
-        >
-          i
-        </button>
-        <span className="clinical-rag-citation-tooltip" role="tooltip">
-          MedQuAD includes older public medical-source URLs. Archived citations keep the
-          demo reproducible even when original pages move or retire.
-        </span>
-      </span>
     </li>
   );
 }
@@ -442,7 +429,22 @@ export default function ClinicalRagDemoPanel() {
 
       {citations.length > 0 ? (
         <div className="clinical-rag-citations">
-          <h4>Citations</h4>
+          <h4>
+            Citations
+            <span className="clinical-rag-citation-info-wrap">
+              <button
+                type="button"
+                className="clinical-rag-citation-info"
+                aria-label="Why citations use archived sources"
+              >
+                i
+              </button>
+              <span className="clinical-rag-citation-tooltip" role="tooltip">
+                MedQuAD includes older public medical-source URLs. Archived citations keep the
+                demo reproducible even when original pages move or retire.
+              </span>
+            </span>
+          </h4>
           <ul>
             {citations.map((citation, index) => (
               <ClinicalCitationItem
