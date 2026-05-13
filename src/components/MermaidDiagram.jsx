@@ -40,6 +40,10 @@ function extractMermaidDefinition(markdown) {
   return markdown.trim();
 }
 
+const ZOOM_STEP = 0.2;
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 2.0;
+
 export default function MermaidDiagram({
   markdown,
   caption,
@@ -47,6 +51,7 @@ export default function MermaidDiagram({
 }) {
   const [renderState, setRenderState] = React.useState("idle");
   const [svg, setSvg] = React.useState("");
+  const [zoom, setZoom] = React.useState(1);
   const definition = React.useMemo(
     () => extractMermaidDefinition(markdown),
     [markdown]
@@ -57,6 +62,16 @@ export default function MermaidDiagram({
     [componentId]
   );
   const resolvedAriaLabel = ariaLabel || caption || "Project flow diagram";
+
+  function zoomIn() {
+    setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 10) / 10));
+  }
+  function zoomOut() {
+    setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 10) / 10));
+  }
+  function zoomReset() {
+    setZoom(1);
+  }
 
   React.useEffect(() => {
     let isCancelled = false;
@@ -120,10 +135,18 @@ export default function MermaidDiagram({
 
   return (
     <figure className="project-diagram" role="img" aria-label={resolvedAriaLabel}>
-      <div
-        className="project-diagram-svg"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+      <div className="project-diagram-zoom-controls">
+        <button onClick={zoomOut} disabled={zoom <= ZOOM_MIN} aria-label="Zoom out" className="project-diagram-zoom-btn">−</button>
+        <button onClick={zoomReset} aria-label="Reset zoom" className="project-diagram-zoom-btn project-diagram-zoom-label">{Math.round(zoom * 100)}%</button>
+        <button onClick={zoomIn} disabled={zoom >= ZOOM_MAX} aria-label="Zoom in" className="project-diagram-zoom-btn">+</button>
+      </div>
+      <div className="project-diagram-scroll">
+        <div
+          className="project-diagram-svg"
+          style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+      </div>
       {caption ? <figcaption className="project-diagram-caption">{caption}</figcaption> : null}
     </figure>
   );

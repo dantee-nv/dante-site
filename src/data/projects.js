@@ -1,6 +1,7 @@
 import idahoResultsFlow from "../content/lead-generation/idaho-results-impact.mmd?raw";
 import clinicalRagArchitectureFlow from "../content/clinical-rag/architecture.mmd?raw";
 import paperSearchArchitectureFlow from "../content/research-paper-search/architecture.mmd?raw";
+import amcBookingAgentArchitectureFlow from "../content/amc-booking-agent/architecture.mmd?raw";
 
 const validSkillLanes = new Set([
   "frontend",
@@ -200,6 +201,135 @@ const baseProjects = [
       "Added safety blocking for urgent symptoms, patient-specific medication/diagnosis requests, and prompt injection.",
       "Returned retrieval traces, citations, safety state, latency, token, and cost metadata from the API.",
       "Added a golden-set eval script and checked-in eval summary for quality review.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
+  {
+    slug: "amc-booking-agent",
+    title: "AMC Booking Agent",
+    summary:
+      "A natural-language AMC showtime discovery system built as a full agentic stack: an MCP server with five typed tools, a Claude Code skill that auto-loads on AMC intent, and a context-isolation subagent for heavy multi-theater queries.",
+    cardSummary:
+      "MCP server, Claude Code skill, and showtime-finder subagent for natural-language AMC discovery across theaters and formats.",
+    opportunity: {
+      problem:
+        "The IMAX scraper solved one theater and one format. Extending it meant a different kind of system — one that could answer arbitrary movie, theater, and format questions without manual query construction.",
+      fix:
+        "I rebuilt the problem as an agentic stack: a typed MCP server the model calls directly, an intent playbook that guides decision-making, and a delegating subagent that absorbs heavy queries before they bloat context.",
+      outcome:
+        "The result is a reusable pattern for wrapping any external API as an MCP surface with skill-guided orchestration and subagent delegation for scale.",
+    },
+    status: "live",
+    tags: ["Python", "MCP", "FastMCP", "Claude Code", "Agent SDK", "httpx", "Pydantic", "Click", "pytest"],
+    atGlance: {
+      skills: [
+        { label: "MCP Server (FastMCP)", lane: "ai" },
+        { label: "Claude Code Skill", lane: "automation" },
+        { label: "Subagent Delegation", lane: "ai" },
+        { label: "Natural Language Dates", lane: "ai" },
+        { label: "Python CLI (Click)", lane: "backend" },
+        { label: "httpx + Retry Logic", lane: "backend" },
+        { label: "Pydantic Validation", lane: "backend" },
+        { label: "pytest + httpx mocks", lane: "data" },
+      ],
+      metrics: [
+        { label: "MCP Tools", value: "5 typed tools via FastMCP", tone: "info" },
+        { label: "Agentic Surfaces", value: "Skill + context-isolation subagent", tone: "success" },
+        { label: "Date Parsing", value: "11 natural-language formats → list[date]", tone: "neutral" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "May 2026",
+      role: "AI Systems + Backend Engineer",
+      stack:
+        "Python, FastMCP, httpx, Pydantic, Click, python-dotenv, pytest, pytest-httpx, Claude Code Agent SDK",
+    },
+    sections: [
+      {
+        heading: "What Was Built",
+        body:
+          "The AMC Booking Agent wraps the AMC API in three agentic surfaces: an MCP server the model calls directly, a CLI for scripted use, and a subagent that absorbs heavy queries. The goal was to go beyond the earlier IMAX scraper and build a system the model can drive autonomously with natural-language intent.",
+        bullets: [
+          "Discovery only — no ticket purchasing in scope, keeping the system narrowly useful and safe to run.",
+          "Configuration-first design: AMC vendor key and theater IDs live in .env, readable by all three surfaces.",
+          "Entry points registered as package scripts: `amc` (CLI) and `amc-mcp` (MCP stdio server).",
+        ],
+      },
+      {
+        heading: "MCP Server",
+        body:
+          "Five typed tools are exposed via FastMCP over stdio. Claude calls them directly through the registered .mcp.json entry — no manual API construction needed.",
+        bullets: [
+          "`resolve_theaters` — maps configured theater IDs to full metadata for diagnostics.",
+          "`find_theaters(name)` — searches the AMC catalog by partial name for discovery.",
+          "`search_movies(name, view)` — fuzzy movie search with view filters: all, now-playing, coming-soon, advance.",
+          "`search_showtimes(date_range, ...)` — the workhorse; accepts 11 natural-language date formats, optional IMAX shorthand, attribute filters, and grouping by day, theater, or movie.",
+          "`get_seat_availability(theater_id, performance_id)` — on-demand seat counts by tier and type (recliner, wheelchair, loveseat, companion).",
+        ],
+      },
+      {
+        heading: "Claude Code Skill",
+        body:
+          "The skill file at `.claude/skills/amc/SKILL.md` auto-loads when AMC-related keywords appear in conversation. It is a pure intent-matching playbook — no executable code — that guides the model through decision-making without requiring the user to know which tool to call.",
+        bullets: [
+          "Decision flow: call `search_movies` first if a movie is named, otherwise go straight to `search_showtimes`.",
+          "Output guidance: return 2–6 line summaries with a compact JSON block for multi-item results, never raw API dumps.",
+          "Best-ranking heuristic: premium format (IMAX > Dolby > RPX > standard) → weekend evening → not sold out → earlier in window.",
+          "Delegation gate: if the query would produce a bloated result (month-long ranges, cross-theater dumps), hand off to the showtime-finder subagent instead.",
+        ],
+      },
+      {
+        heading: "Subagent Delegation",
+        body:
+          "The showtime-finder subagent (`.claude/agents/showtime-finder.md`) is a context-isolation agent. It exists to prevent heavy query results from bloating the main conversation thread.",
+        bullets: [
+          "Triggers on month-long date ranges or cross-theater comparisons where raw output would be hundreds of rows.",
+          "Always requests grouped output (`group_by=\"day\"`) to compact the API result before digesting it.",
+          "Returns only a human-readable summary plus a compact JSON of the showtimes the user is likely to act on — raw data never leaves the subagent.",
+          "Stateless by design: derives the current date at runtime, never hardcodes dates, reads the same skill playbook for decision logic.",
+        ],
+      },
+      {
+        heading: "Architecture",
+        body:
+          "One reusable bundle layer powers all three surfaces. The HTTP client handles pagination via `_embedded` / `_links` and retries rate limits and transient errors with typed exceptions.",
+        visual: {
+          kind: "mermaid",
+          markdown: amcBookingAgentArchitectureFlow,
+          caption:
+            "Agentic stack from Claude Code skill and subagent delegation through MCP tools, bundles, and the AMC API.",
+        },
+        bullets: [
+          "Four bundles (theaters, movies, showtimes, seating) encapsulate all AMC API logic — the MCP server and CLI both call the same functions.",
+          "Showtime bundle flattens theaters × dates, deduplicates by showtime ID, and sorts before returning trimmed records.",
+          "Custom exception hierarchy (AmcAuthError, AmcNotFound, AmcRateLimited, AmcTransient) makes error paths explicit at every surface.",
+          "Tests mock httpx at the transport layer — no live API calls required.",
+        ],
+      },
+      {
+        heading: "Testing",
+        body:
+          "The test suite covers all layers with mocked HTTP responses using pytest-httpx, so no AMC vendor key is needed to run tests.",
+        bullets: [
+          "MCP tool smoke tests: IMAX shorthand expansion, date validation, grouping modes, error propagation.",
+          "Bundle tests: raw API response → trimmed output, deduplication, sorting.",
+          "CLI integration: all four commands with representative option combinations.",
+          "Date parsing: all 11 keyword and ISO formats including edge cases.",
+          "Config loading: .env precedence and `~/.config/amc/.env` fallback path.",
+        ],
+      },
+    ],
+    highlights: [
+      "Built a five-tool MCP server over FastMCP that Claude calls directly via stdio — no manual query construction.",
+      "Wrote a Claude Code skill playbook that auto-loads on AMC intent and guides tool selection, output format, and best-ranking logic.",
+      "Implemented a context-isolation subagent that absorbs heavy queries and returns compact summaries, keeping the main thread clean.",
+      "Added natural-language date parsing for 11 formats (keywords, ISO single-day, ISO range) resolving to per-day lists the AMC endpoint expects.",
+      "Unified three surfaces (MCP server, CLI, subagent) over one bundle layer with shared retry logic, pagination, and typed exceptions.",
+      "Built a full pytest suite with httpx mocking covering MCP tools, bundles, CLI, date parsing, and config loading.",
     ],
     cta: [
       { label: "Back to Projects", to: "/projects" },

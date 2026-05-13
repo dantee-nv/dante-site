@@ -1,0 +1,24 @@
+```mermaid
+flowchart TD
+  A["Claude Code\nSkill (.claude/skills/amc/SKILL.md)"] --> B["Intent match\nmovie or showtime?"]
+  B --> C["MCP Tools\namc-mcp stdio server"]
+  B --> D["Subagent\nshowtime-finder\nheavy queries only"]
+  D --> C
+
+  C --> E["search_showtimes\ndate_range · filters · grouping"]
+  C --> F["search_movies\nname · view"]
+  C --> G["get_seat_availability\ntheater · performance"]
+  C --> H["find_theaters / resolve_theaters"]
+
+  E --> I["Showtimes Bundle\nflatten · dedupe · sort"]
+  F --> J["Movies Bundle"]
+  G --> K["Seating Bundle"]
+  H --> L["Theaters Bundle"]
+
+  I --> M["HTTP Client\nretry · pagination · typed errors"]
+  J --> M
+  K --> M
+  L --> M
+
+  M --> N["AMC API\napi.amctheatres.com"]
+```
