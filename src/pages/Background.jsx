@@ -1184,24 +1184,26 @@ export default function Background() {
             />
             <ul>
               <li>
-                Applied embedding powered retrieval systems over historical DV
-                repositories to support evidence grounded LLM analysis, reducing
-                manual review time and improving traceable reporting under regulatory
-                constraints
+                Applied embedding powered retrieval augmented generation (RAG) systems
+                over historical DV repositories to support evidence grounded LLM analysis
+                with latency/token observability, reducing manual review time by 95% and
+                improving traceable reporting under regulatory constraints for ~40 internal
+                users across R&D
               </li>
               <li>
                 Design and deploy Python-based data aggregation and automation pipelines to
-                process large verification datasets, reducing manual processing and
-                accelerating engineering analysis throughput
+                process large verification datasets with 5M+ data entries, eliminating
+                manual processing and accelerating engineering analysis throughput
               </li>
               <li>
-                Re-architected a one-year critical-path DV strategy by leveraging legacy data
-                and risk-based test rationales, enabling FDA submission two months ahead of
-                schedule
+                Re-architected a critical-path DV strategy by leveraging legacy data and
+                risk-based test rationales, accelerating FDA submission by 2 months and
+                driving program execution through Gantt-based planning in Microsoft Project
               </li>
               <li>
                 Lead cross-site, cross-disciplinary engineering teams to plan and execute DV
-                studies supporting global market expansion
+                studies supporting global market expansion, facilitating Scrum-based sprint
+                cadences and cross-functional delivery alignment
               </li>
               <li>
                 Design and fabricate rapid 3D-printed fixtures and test components in SolidWorks
@@ -1213,8 +1215,8 @@ export default function Background() {
                 submissions to eliminate redundant testing while preserving traceability and risk posture
               </li>
               <li>
-                Manage and mentor direct reports while defining technical hiring criteria to scale verification
-                and data-focused teams
+                Manage and mentor 4 direct reports while defining technical hiring criteria
+                to scale verification and data-focused teams
               </li>
             </ul>
 
