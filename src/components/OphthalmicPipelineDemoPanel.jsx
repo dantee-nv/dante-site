@@ -1,5 +1,7 @@
 import React from "react";
 
+import dagsterAssetGraph from "../assets/ophthalmic-imaging-pipeline/dagster-asset-graph.png";
+
 const stages = [
   { label: "Raw", value: "10 images", detail: "8 valid, 1 corrupt, 1 missing metadata" },
   { label: "Validated", value: "8 passed", detail: "Schema, checksum, and image integrity checks" },
@@ -82,7 +84,7 @@ export default function OphthalmicPipelineDemoPanel() {
         </div>
         <figure className="ophthalmic-dagster-figure">
           <img
-            src="/assets/ophthalmic-imaging-pipeline/dagster-asset-graph.png"
+            src={dagsterAssetGraph}
             alt="Dagster asset graph for the ophthalmic imaging pipeline"
             loading="lazy"
           />
