@@ -1155,10 +1155,13 @@ export default function Background() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        I am a biomedical engineer working at the intersection of data systems,
-        medical device development and regulated engineering environments. My work
-        focuses on building analytical and AI-enabled tools that accelerate verification,
-        decision making and regulatory outcomes without sacrificing rigor.
+        Engineer with 6+ years of experience building production AI systems, leading
+        design verification strategy, and developing data-driven solutions in regulated
+        healthcare. Designs and deploys LLM applications, semantic search, RAG systems,
+        intelligent automation, and scalable data pipelines while leading verification
+        programs supporting FDA submissions and global product launches. Combines the
+        rigor of regulated medical device development with modern AI engineering to
+        deliver reliable, traceable, and production-ready systems.
       </Motion.p>
 
       <Motion.div
@@ -1176,7 +1179,7 @@ export default function Background() {
             <CompanyHeader
               company="Medtronic"
               companyUrl="https://www.medtronic.com/en-us/l/patients/treatments-therapies/transcatheter-aortic-valve-replacement.html"
-              role="R&D Engineer – Testing and Data Analysis"
+              role="Senior R&D Engineer – Testing and Data Analysis"
               meta="Orange County, CA • 2020–Present"
             />
             <ul>
