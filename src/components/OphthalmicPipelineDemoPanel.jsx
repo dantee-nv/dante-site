@@ -68,6 +68,10 @@ export default function OphthalmicPipelineDemoPanel() {
             through validation, lakeFS versioning, Label Studio task creation, annotation
             import, and the final dataset release.
           </p>
+          <p className="ophthalmic-local-dagster-note">
+            The screenshot is the public showcase artifact. The live Dagster UI opens only
+            when the local Dagster server is running on this machine.
+          </p>
           <ul aria-label="Dagster assets shown in the captured graph">
             {dagsterAssets.map((asset) => (
               <li key={asset}>{asset}</li>
@@ -78,8 +82,9 @@ export default function OphthalmicPipelineDemoPanel() {
             href="http://127.0.0.1:3000/locations/ophthalmic_imaging_pipeline.assets/asset-groups/default"
             target="_blank"
             rel="noreferrer"
+            title="Requires Dagster running locally on port 3000"
           >
-            Open local Dagster view
+            Open local Dagster view when running
           </a>
         </div>
         <figure className="ophthalmic-dagster-figure">

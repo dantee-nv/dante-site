@@ -2237,6 +2237,14 @@ a{ color: inherit; text-decoration:none; }
   margin-top: 10px;
 }
 
+.ophthalmic-dagster-copy .ophthalmic-local-dagster-note{
+  border-left: 3px solid rgba(255, 190, 122, 0.55);
+  color: #f4d7bb;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding-left: 10px;
+}
+
 .ophthalmic-dagster-copy ul{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
