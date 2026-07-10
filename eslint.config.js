@@ -5,7 +5,14 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    'backend/ophthalmic_imaging_pipeline/.venv',
+    'backend/ophthalmic_imaging_pipeline/label_studio',
+    'backend/ophthalmic_imaging_pipeline/object_store',
+    'backend/ophthalmic_imaging_pipeline/output',
+    'backend/ophthalmic_imaging_pipeline/sample_data',
+  ]),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

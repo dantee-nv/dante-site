@@ -14,6 +14,15 @@ const artifacts = [
   "dataset_manifest.json",
 ];
 
+const dagsterAssets = [
+  "raw_images",
+  "validated_images",
+  "versioned_dataset",
+  "labeling_tasks",
+  "imported_annotations",
+  "dataset_release",
+];
+
 export default function OphthalmicPipelineDemoPanel() {
   return (
     <section className="ophthalmic-pipeline-panel">
@@ -44,6 +53,43 @@ export default function OphthalmicPipelineDemoPanel() {
             <li key={artifact}>{artifact}</li>
           ))}
         </ul>
+      </div>
+
+      <div className="ophthalmic-dagster-showcase">
+        <div className="ophthalmic-dagster-copy">
+          <div>
+            <span className="ophthalmic-dagster-kicker">Dagster Orchestration Evidence</span>
+            <h4>Asset graph captured from the local PoC run</h4>
+          </div>
+          <p>
+            The Dagster view shows the workflow as executable assets, from raw ingestion
+            through validation, lakeFS versioning, Label Studio task creation, annotation
+            import, and the final dataset release.
+          </p>
+          <ul aria-label="Dagster assets shown in the captured graph">
+            {dagsterAssets.map((asset) => (
+              <li key={asset}>{asset}</li>
+            ))}
+          </ul>
+          <a
+            className="ophthalmic-local-dagster-link"
+            href="http://127.0.0.1:3000/locations/ophthalmic_imaging_pipeline.assets/asset-groups/default"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open local Dagster view
+          </a>
+        </div>
+        <figure className="ophthalmic-dagster-figure">
+          <img
+            src="/assets/ophthalmic-imaging-pipeline/dagster-asset-graph.png"
+            alt="Dagster asset graph for the ophthalmic imaging pipeline"
+            loading="lazy"
+          />
+          <figcaption>
+            Captured Dagster asset graph for the proof-of-concept pipeline.
+          </figcaption>
+        </figure>
       </div>
     </section>
   );
