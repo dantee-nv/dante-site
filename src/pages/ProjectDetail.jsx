@@ -7,6 +7,7 @@ import AmcThirtyDayWatchSignupPanel from "../components/AmcThirtyDayWatchSignupP
 import CodingChallengeChatPanel from "../components/CodingChallengeChatPanel";
 import ClinicalRagDemoPanel from "../components/ClinicalRagDemoPanel";
 import MermaidDiagram from "../components/MermaidDiagram";
+import OphthalmicPipelineDemoPanel from "../components/OphthalmicPipelineDemoPanel";
 import PaperSearchDemoPanel from "../components/PaperSearchDemoPanel";
 import ProjectDemoPanel from "../components/ProjectDemoPanel";
 import { getProjectBySlug } from "../data/projects";
@@ -307,6 +308,12 @@ export default function ProjectDetail() {
         {project.slug === "clinical-rag" ? (
           <Motion.div variants={pop} transition={{ duration: 0.35 }}>
             <ClinicalRagDemoPanel />
+          </Motion.div>
+        ) : null}
+
+        {project.slug === "ophthalmic-imaging-pipeline" ? (
+          <Motion.div variants={pop} transition={{ duration: 0.35 }}>
+            <OphthalmicPipelineDemoPanel />
           </Motion.div>
         ) : null}
 

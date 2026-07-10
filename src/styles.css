@@ -2085,6 +2085,111 @@ a{ color: inherit; text-decoration:none; }
   color: #9be8b6;
 }
 
+.ophthalmic-pipeline-panel{
+  margin-top: 14px;
+  border: 1px solid rgba(255, 190, 122, 0.5);
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow:
+    0 0 0 1px rgba(255, 190, 122, 0.12),
+    0 14px 28px rgba(150, 90, 38, 0.16);
+}
+
+.ophthalmic-pipeline-heading{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ophthalmic-pipeline-heading h3{
+  margin: 0;
+}
+
+.ophthalmic-pipeline-heading span{
+  border: 1px solid rgba(255, 190, 122, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 165, 72, 0.14);
+  color: #ffe4c6;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+}
+
+.ophthalmic-pipeline-panel p{
+  margin: 0;
+  max-width: none;
+}
+
+.ophthalmic-pipeline-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ophthalmic-pipeline-grid article,
+.ophthalmic-pipeline-artifacts{
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  padding: 12px;
+}
+
+.ophthalmic-pipeline-grid strong{
+  display: block;
+  color: #ffe4c6;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.ophthalmic-pipeline-grid span,
+.ophthalmic-pipeline-artifacts h4{
+  display: block;
+  margin: 4px 0 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.ophthalmic-pipeline-grid small{
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.ophthalmic-pipeline-artifacts{
+  margin-top: 10px;
+}
+
+.ophthalmic-pipeline-artifacts h4{
+  margin: 0;
+  font-size: 1rem;
+}
+
+.ophthalmic-pipeline-artifacts ul{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ophthalmic-pipeline-artifacts li{
+  border: 1px solid rgba(255, 190, 122, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 165, 72, 0.1);
+  color: #ffe4c6;
+  font-size: 0.82rem;
+  font-weight: 650;
+  padding: 6px 9px;
+}
+
 .coding-chat-panel{
   margin-top: 14px;
   border: 1px solid rgba(255, 185, 120, 0.5);
@@ -2643,6 +2748,9 @@ a{ color: inherit; text-decoration:none; }
   .clinical-rag-data-list{
     max-height: 320px;
   }
+  .ophthalmic-pipeline-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 480px){
@@ -2670,6 +2778,9 @@ a{ color: inherit; text-decoration:none; }
     grid-template-columns: 1fr;
   }
   .clinical-rag-mode-toggle{
+    grid-template-columns: 1fr;
+  }
+  .ophthalmic-pipeline-grid{
     grid-template-columns: 1fr;
   }
   .card-title-row{

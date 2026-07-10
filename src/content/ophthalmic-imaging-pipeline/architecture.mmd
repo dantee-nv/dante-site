@@ -1,0 +1,20 @@
+flowchart LR
+  raw["Raw Images<br/>Synthetic OCT/RGB or public OCT adapter"] --> s3raw["AWS S3<br/>raw/&lt;image_id&gt;/"]
+  s3raw --> dagster["Dagster Validation Asset<br/>schema, checksum, image integrity"]
+  dagster --> valid["AWS S3<br/>validated/&lt;image_id&gt;/"]
+  dagster --> quarantine["AWS S3<br/>quarantine/&lt;image_id&gt;/"]
+  valid --> lakefs["lakeFS<br/>ingestion-run-001 branch<br/>commit + v1.0 tag"]
+  lakefs --> tasks["Label Studio Tasks<br/>image quality + class review"]
+  tasks --> annotations["Annotation Export Import<br/>supported labels + image_id checks"]
+  annotations --> split["Fixed-Seed Split<br/>80% training / 20% validation"]
+  split --> manifest["Dataset Release<br/>CSV files + manifest + validation report"]
+
+  classDef source fill:#1b2430,stroke:#7cc7ff,color:#eef6ff
+  classDef aws fill:#12342f,stroke:#78d6c0,color:#e9fffa
+  classDef process fill:#33271c,stroke:#ffbd7a,color:#fff3e5
+  classDef release fill:#2d2440,stroke:#bb9aff,color:#f3edff
+
+  class raw source
+  class s3raw,valid,quarantine aws
+  class dagster,lakefs,tasks,annotations,split process
+  class manifest release

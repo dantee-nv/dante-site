@@ -1,0 +1,23 @@
+services:
+  lakefs:
+    image: treeverse/lakefs:latest
+    ports:
+      - "8000:8000"
+    environment:
+      LAKEFS_DATABASE_TYPE: dynamodb
+      LAKEFS_DATABASE_DYNAMODB_TABLE_NAME: ${LAKEFS_DYNAMODB_TABLE_NAME:-ophthalmic-imaging-pipeline-lakefs-kvstore}
+      LAKEFS_AUTH_ENCRYPT_SECRET_KEY: ${LAKEFS_AUTH_ENCRYPT_SECRET_KEY:-replace-this-dev-secret}
+      LAKEFS_BLOCKSTORE_TYPE: s3
+      LAKEFS_BLOCKSTORE_S3_REGION: ${AWS_REGION:-us-east-2}
+      LAKEFS_BLOCKSTORE_S3_PROFILE: ${AWS_PROFILE:-dante_nv}
+      LAKEFS_DATABASE_DYNAMODB_AWS_REGION: ${AWS_REGION:-us-east-2}
+      LAKEFS_DATABASE_DYNAMODB_AWS_PROFILE: ${AWS_PROFILE:-dante_nv}
+    volumes:
+      - ~/.aws:/home/lakefs/.aws:ro
+
+  label-studio:
+    image: heartexlabs/label-studio:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./label_studio:/label-studio/data

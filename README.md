@@ -24,6 +24,29 @@ The coding challenge chatbot panel reads `VITE_CODING_CHAT_API_URL` (or derives 
 The context-based paper search panel reads `VITE_PAPER_SEARCH_API_URL` and calls the Python semantic rerank endpoint.
 The AMC project signup panel reads `VITE_AMC_SIGNUP_WEBHOOK_URL` and `VITE_AMC_PUBLIC_SIGNUP_ENABLED`.
 
+## Ophthalmic imaging pipeline PoC
+
+The ophthalmic imaging project is an interview-ready dataset workflow, not a
+frontend upload tool:
+
+`Synthetic OCT/RGB sample data -> AWS S3 raw zone -> Dagster validation -> S3 validated/quarantine zones -> lakeFS branch/commit/tag -> Label Studio task export/import -> fixed-seed dataset release`
+
+Core files:
+
+- `backend/ophthalmic_imaging_pipeline/README.md`
+- `backend/ophthalmic_imaging_pipeline/assets.py`
+- `infra/ophthalmic-imaging-pipeline/README.md`
+- `src/content/ophthalmic-imaging-pipeline/architecture.mmd`
+
+Defaults:
+
+- `AWS_PROFILE=dante_nv`
+- `AWS_REGION=us-east-2`
+- `OPHTHO_PIPELINE_BUCKET=<terraform output bucket_name>`
+
+Terraform follows a review-first flow: authenticate with AWS SSO, run and review
+`terraform plan`, then apply only when the changes are approved.
+
 ## Contact API architecture
 
 The contact form pipeline is:

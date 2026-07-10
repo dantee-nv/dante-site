@@ -1,5 +1,6 @@
 import idahoResultsFlow from "../content/lead-generation/idaho-results-impact.mmd?raw";
 import clinicalRagArchitectureFlow from "../content/clinical-rag/architecture.mmd?raw";
+import ophthalmicImagingArchitectureFlow from "../content/ophthalmic-imaging-pipeline/architecture.mmd?raw";
 import paperSearchArchitectureFlow from "../content/research-paper-search/architecture.mmd?raw";
 import amcBookingAgentArchitectureFlow from "../content/amc-booking-agent/architecture.mmd?raw";
 
@@ -81,6 +82,127 @@ function normalizeOpportunity(rawOpportunity) {
 }
 
 const baseProjects = [
+  {
+    slug: "ophthalmic-imaging-pipeline",
+    title: "Ophthalmic Imaging Dataset Pipeline",
+    summary:
+      "An AWS-first proof of concept showing how ophthalmic OCT and RGB image data can move from raw ingestion through validation, lakeFS versioning, Label Studio review, and reproducible train/validation release artifacts.",
+    cardSummary:
+      "AWS S3, Dagster, lakeFS, Label Studio, Terraform, and pytest for a compact ophthalmic imaging dataset workflow.",
+    opportunity: {
+      problem:
+        "Medical imaging AI work often gets discussed at the model layer, while the dataset workflow behind it is where quality, traceability, and reproducibility are won or lost.",
+      fix:
+        "I built a small, inspectable pipeline that validates image/metadata pairs, isolates failures, versions accepted data, exports labeling tasks, imports annotations, and emits deterministic release artifacts.",
+      outcome:
+        "The result is an interview-ready systems demo for explaining orchestration, storage layout, data contracts, labeling, dataset versioning, and release reproducibility without using patient data.",
+    },
+    status: "in-progress",
+    tags: [
+      "Ophthalmic Imaging",
+      "Dagster",
+      "AWS S3",
+      "lakeFS",
+      "Label Studio",
+      "Terraform",
+      "Pytest",
+    ],
+    atGlance: {
+      skills: [
+        { label: "Dagster Assets", lane: "data" },
+        { label: "AWS S3 Data Lake", lane: "cloud" },
+        { label: "lakeFS Versioning", lane: "data" },
+        { label: "Label Studio Workflow", lane: "data" },
+        { label: "Terraform IaC", lane: "cloud" },
+        { label: "Python Validation", lane: "backend" },
+        { label: "Pytest Coverage", lane: "backend" },
+        { label: "Synthetic Medical Imaging Data", lane: "ai" },
+      ],
+      metrics: [
+        { label: "Default Demo", value: "10 synthetic images, no patient data", tone: "info" },
+        { label: "Validation", value: "8 accepted, 2 quarantined by design", tone: "success" },
+        { label: "Release", value: "Fixed-seed 80/20 split with manifest", tone: "success" },
+      ],
+    },
+    template: "case-study",
+    meta: {
+      timeline: "July 2026",
+      role: "Data Platform + ML Infrastructure Engineer",
+      stack:
+        "Python, Dagster, AWS S3, lakeFS, Label Studio, Terraform, Docker Compose, Pillow, pytest, React, Mermaid",
+    },
+    sections: [
+      {
+        heading: "Goal and Scope",
+        body:
+          "The goal is to demonstrate the dataset infrastructure around ophthalmic imaging AI, not to train a model. The default dataset uses synthetic OCT-like and fundus-like images so the demo is safe to explain publicly while still exercising image validation paths.",
+        bullets: [
+          "Each image has JSON metadata with image ID, procedure ID, modality, device ID, timestamp, source dataset, source label, and license fields.",
+          "The pipeline supports a documented adapter for a user-downloaded public Kermany/Mendeley OCT subset, but real images are not required for v1 success.",
+          "The site explains the system and release artifacts; it does not add an upload or annotation frontend.",
+        ],
+      },
+      {
+        heading: "Architecture",
+        body:
+          "The workflow keeps every stage explicit: raw data lands in S3, Dagster validates records, valid records are committed through lakeFS, Label Studio tasks are generated, annotations are imported, and a reproducible dataset release is produced.",
+        visual: {
+          kind: "mermaid",
+          markdown: ophthalmicImagingArchitectureFlow,
+          caption:
+            "AWS-first ophthalmic imaging dataset flow from raw images through validation, lakeFS versioning, Label Studio annotation import, and manifest generation.",
+        },
+        bullets: [
+          "S3 prefixes separate raw, validated, quarantine, and release zones so failure handling is visible.",
+          "lakeFS provides a branch, commit, and `v1.0` tag for the accepted dataset state.",
+          "Label Studio integration starts with importable JSON/XML for reliability, with API automation left as a later extension.",
+        ],
+      },
+      {
+        heading: "Validation and Labeling",
+        body:
+          "Validation checks protect the dataset before annotation. Labeling then captures human review as a separate artifact rather than mixing it into acquisition metadata.",
+        bullets: [
+          "Validation checks image existence, metadata existence, required fields, modality, checksum duplicates, and whether Pillow can open the image.",
+          "Invalid images are copied to quarantine with reasons such as corrupt image, missing metadata, or duplicate checksum.",
+          "Label Studio annotations can represent image quality labels or review labels for public OCT classes such as CNV, DME, DRUSEN, and NORMAL.",
+        ],
+      },
+      {
+        heading: "Release Reproducibility",
+        body:
+          "Only records that pass validation and have supported annotations enter the release. The split uses a fixed seed, and the manifest records counts, modalities, and the lakeFS version identity.",
+        bullets: [
+          "`training.csv` and `validation.csv` include image ID, object path, modality, label, checksum, and lakeFS version.",
+          "`validation_report.json` preserves accepted and quarantined record details.",
+          "`dataset_manifest.json` summarizes raw, valid, quarantined, training, and validation counts for interview review.",
+        ],
+      },
+      {
+        heading: "What the Demo Shows",
+        body:
+          "The demo outlines how a small ophthalmic imaging dataset moves from ingestion to a versioned, reviewable release. Each stage makes one part of the data lifecycle visible and gives the next stage a clear contract.",
+        bullets: [
+          "Ingestion and S3 show where source images and metadata enter the workflow.",
+          "Dagster and validation show how quality checks determine whether records continue or move to quarantine.",
+          "lakeFS shows how the accepted dataset state receives a branch, commit, and release tag.",
+          "Label Studio shows the handoff from validated images to human review and imported annotations.",
+          "The split files and manifest show how the final release can be reproduced and inspected.",
+        ],
+      },
+    ],
+    highlights: [
+      "Built a compact Python data pipeline for ophthalmic image/metadata ingestion, validation, quarantine, annotation import, and dataset release.",
+      "Added Terraform for reviewable AWS S3, IAM, and lakeFS DynamoDB prerequisites without storing secrets.",
+      "Kept the default dataset synthetic and public-demo safe, while documenting a real public OCT adapter path.",
+      "Added pytest coverage for validation, duplicate detection, annotation import, deterministic split, CSV schema, and manifest counts.",
+      "Added an editable Mermaid architecture diagram directly into the portfolio project page.",
+    ],
+    cta: [
+      { label: "Back to Projects", to: "/projects" },
+      { label: "Contact Me", to: "/contact" },
+    ],
+  },
   {
     slug: "clinical-rag",
     title: "Clinical RAG Evaluation Lab",
