@@ -52,6 +52,8 @@ export default function MermaidDiagram({
   const [renderState, setRenderState] = React.useState("idle");
   const [svg, setSvg] = React.useState("");
   const [zoom, setZoom] = React.useState(1);
+  const [svgSize, setSvgSize] = React.useState({ width: 0, height: 0 });
+  const svgContainerRef = React.useRef(null);
   const definition = React.useMemo(
     () => extractMermaidDefinition(markdown),
     [markdown]
@@ -112,6 +114,40 @@ export default function MermaidDiagram({
     };
   }, [definition, diagramId]);
 
+  React.useLayoutEffect(() => {
+    if (renderState !== "success" || !svgContainerRef.current) {
+      return undefined;
+    }
+
+    const container = svgContainerRef.current;
+
+    function measureSvg() {
+      const svgElement = container.querySelector("svg");
+
+      if (!svgElement) {
+        return;
+      }
+
+      const width = svgElement.offsetWidth;
+      const height = svgElement.offsetHeight;
+
+      if (width > 0 && height > 0) {
+        setSvgSize((currentSize) => {
+          if (currentSize.width === width && currentSize.height === height) {
+            return currentSize;
+          }
+
+          return { width, height };
+        });
+      }
+    }
+
+    measureSvg();
+    window.addEventListener("resize", measureSvg);
+
+    return () => window.removeEventListener("resize", measureSvg);
+  }, [renderState, svg]);
+
   if (renderState === "error") {
     return (
       <figure className="project-diagram" role="img" aria-label={resolvedAriaLabel}>
@@ -142,10 +178,19 @@ export default function MermaidDiagram({
       </div>
       <div className="project-diagram-scroll">
         <div
+          ref={svgContainerRef}
           className="project-diagram-svg"
-          style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+          style={{
+            width: svgSize.width ? `${svgSize.width * zoom}px` : undefined,
+            height: svgSize.height ? `${svgSize.height * zoom}px` : undefined,
+          }}
+        >
+          <div
+            className="project-diagram-svg-scale"
+            style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
+            dangerouslySetInnerHTML={{ __html: svg }}
+          />
+        </div>
       </div>
       {caption ? <figcaption className="project-diagram-caption">{caption}</figcaption> : null}
     </figure>

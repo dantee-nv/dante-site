@@ -794,9 +794,11 @@ a{ color: inherit; text-decoration:none; }
   margin-top: 14px;
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .project-section{
+  min-width: 0;
   border: 1px solid var(--line);
   background: rgba(255,255,255,0.04);
   border-radius: 18px;
@@ -823,6 +825,10 @@ a{ color: inherit; text-decoration:none; }
 }
 
 .project-diagram{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin: 12px 0 0;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -870,6 +876,10 @@ a{ color: inherit; text-decoration:none; }
 }
 
 .project-diagram-scroll{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   max-height: 520px;
@@ -877,10 +887,16 @@ a{ color: inherit; text-decoration:none; }
 
 .project-diagram-svg{
   display: inline-block;
+  min-width: 100%;
+  min-height: 1px;
+}
+
+.project-diagram-svg-scale{
+  display: inline-block;
   transform-origin: top left;
 }
 
-.project-diagram-svg svg{
+.project-diagram-svg-scale svg{
   display: block;
   width: max-content;
   min-width: 100%;
@@ -2287,8 +2303,9 @@ a{ color: inherit; text-decoration:none; }
   display: block;
   width: 100%;
   aspect-ratio: 3 / 2;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  background: #070b17;
   border-bottom: 1px solid var(--line);
 }
 
