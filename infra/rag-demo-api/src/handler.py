@@ -4,7 +4,7 @@ import os
 import time
 from base64 import b64decode
 
-from .rag_engine import answer_question
+from .rag_engine import RagDemoError, answer_question
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -39,8 +39,18 @@ def _estimate_cost(prompt_tokens, completion_tokens):
     return round(input_cost + output_cost, 8)
 
 
+def _get_request_id(event):
+    request_id = (
+        event.get("requestContext", {}).get("requestId")
+        if isinstance(event, dict)
+        else None
+    )
+    return str(request_id or "unknown")
+
+
 def lambda_handler(event, context):
     del context
+    request_id = _get_request_id(event)
 
     try:
         payload = _parse_body(event)
@@ -65,15 +75,35 @@ def lambda_handler(event, context):
 
     try:
         answer, usage = answer_question(question)
+    except RagDemoError as error:
+        logger.warning(
+            "rag_demo_dependency_failed request_id=%s code=%s message=%s",
+            request_id,
+            error.code,
+            error.message,
+        )
+        return _json_response(
+            error.status_code,
+            {
+                "message": error.message,
+                "code": error.code,
+                "requestId": request_id,
+            },
+        )
     except Exception as error:  # noqa: BLE001
         logger.exception(
-            "rag_demo_failed error_type=%s error_message=%s",
+            "rag_demo_failed request_id=%s error_type=%s error_message=%s",
+            request_id,
             type(error).__name__,
             str(error),
         )
         return _json_response(
             500,
-            {"message": "The RAG demo is temporarily unavailable. Please try again."},
+            {
+                "message": "The RAG demo is temporarily unavailable. Please try again.",
+                "code": "rag_demo_unavailable",
+                "requestId": request_id,
+            },
         )
 
     latency_ms = int((time.perf_counter() - started_at) * 1000)

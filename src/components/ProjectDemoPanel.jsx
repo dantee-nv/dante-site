@@ -138,12 +138,28 @@ function formatCost(cost) {
   return `$${cost.toFixed(4)}`;
 }
 
+function normalizeErrorDetails(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const code = typeof payload.code === "string" ? payload.code.trim() : "";
+  const requestId = typeof payload.requestId === "string" ? payload.requestId.trim() : "";
+
+  if (!code && !requestId) {
+    return null;
+  }
+
+  return { code, requestId };
+}
+
 export default function ProjectDemoPanel() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [answeredQuestion, setAnsweredQuestion] = useState("");
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
+  const [errorDetails, setErrorDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackChoice, setFeedbackChoice] = useState(null);
   const [feedbackNote, setFeedbackNote] = useState("");
@@ -177,16 +193,19 @@ export default function ProjectDemoPanel() {
 
     if (!normalizedQuestion) {
       setError("Please enter a question before submitting.");
+      setErrorDetails(null);
       return;
     }
 
     if (!apiUrl) {
       setError("RAG demo API is not configured yet.");
+      setErrorDetails(null);
       return;
     }
 
     setIsLoading(true);
     setError("");
+    setErrorDetails(null);
     setAnswer("");
     setAnsweredQuestion("");
     setStats(null);
@@ -213,6 +232,7 @@ export default function ProjectDemoPanel() {
             : "The demo request failed. Please try again.";
 
         setError(payload?.message || defaultMessage);
+        setErrorDetails(normalizeErrorDetails(payload));
         return;
       }
 
@@ -227,10 +247,12 @@ export default function ProjectDemoPanel() {
     } catch (requestError) {
       if (requestError.name === "AbortError") {
         setError("The demo timed out. Please try a shorter question.");
+        setErrorDetails(null);
         return;
       }
 
       setError(buildDemoNetworkErrorMessage(apiUrl));
+      setErrorDetails(null);
     } finally {
       clearTimeout(timeoutId);
       setIsLoading(false);
@@ -370,9 +392,16 @@ export default function ProjectDemoPanel() {
       </form>
 
       {error ? (
-        <p className="project-demo-error" role="status">
-          {error}
-        </p>
+        <div className="project-demo-error" role="status">
+          <p>{error}</p>
+          {errorDetails ? (
+            <p className="project-demo-error-meta">
+              {errorDetails.code ? `Error: ${errorDetails.code}` : null}
+              {errorDetails.code && errorDetails.requestId ? " | " : null}
+              {errorDetails.requestId ? `Request ID: ${errorDetails.requestId}` : null}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {answer ? (

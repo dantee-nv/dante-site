@@ -118,16 +118,82 @@ class RetrievalHit:
     score: float
 
 
+class RagDemoError(Exception):
+    def __init__(self, status_code: int, code: str, message: str):
+        super().__init__(message)
+        self.status_code = status_code
+        self.code = code
+        self.message = message
+
+
+def _dependency_unavailable(message: str = "The RAG demo is unavailable because a required dependency is not configured."):
+    return RagDemoError(503, "dependency_unavailable", message)
+
+
+def _map_openai_error(error: Exception) -> RagDemoError:
+    error_text = str(error).lower()
+    error_type = type(error).__name__.lower()
+    status_code = getattr(error, "status_code", None)
+    provider_code = str(getattr(error, "code", "") or "").lower()
+
+    if (
+        provider_code == "insufficient_quota"
+        or "insufficient_quota" in error_text
+        or "exceeded your current quota" in error_text
+    ):
+        return RagDemoError(
+            503,
+            "openai_insufficient_quota",
+            "The RAG demo is unavailable because the OpenAI account quota is exhausted.",
+        )
+
+    if status_code in {401, 403} or "authentication" in error_type or "permissiondenied" in error_type:
+        return RagDemoError(
+            503,
+            "openai_auth_error",
+            "The RAG demo is unavailable because OpenAI authentication failed.",
+        )
+
+    if (
+        status_code == 429
+        or "ratelimit" in error_type
+        or "timeout" in error_type
+        or "connection" in error_type
+        or "temporarily unavailable" in error_text
+    ):
+        return RagDemoError(
+            503,
+            "openai_unavailable",
+            "The RAG demo is unavailable because OpenAI is temporarily unavailable.",
+        )
+
+    return RagDemoError(
+        503,
+        "openai_unavailable",
+        "The RAG demo is unavailable because OpenAI returned an unexpected error.",
+    )
+
+
 def _get_client():
     global _CLIENT
 
     if _CLIENT is not _UNINITIALIZED:
+        if _CLIENT is None:
+            raise _dependency_unavailable()
         return _CLIENT
 
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not api_key or OpenAI is None:
+    if not api_key:
         _CLIENT = None
-        return _CLIENT
+        raise _dependency_unavailable(
+            "The RAG demo is unavailable because the OpenAI API key is not configured."
+        )
+
+    if OpenAI is None:
+        _CLIENT = None
+        raise _dependency_unavailable(
+            "The RAG demo is unavailable because the OpenAI SDK is not available."
+        )
 
     _CLIENT = OpenAI(api_key=api_key)
     return _CLIENT
@@ -263,14 +329,15 @@ def _build_policy_chunks(documents: Sequence[Tuple[Optional[int], str]]) -> List
 
 def _embed_texts(texts: Sequence[str]) -> List[List[float]]:
     client = _get_client()
-    if client is None:
-        return []
 
     vectors: List[List[float]] = []
     batch_size = 96
     for idx in range(0, len(texts), batch_size):
         batch = list(texts[idx : idx + batch_size])
-        response = client.embeddings.create(model=EMBEDDING_MODEL, input=batch)
+        try:
+            response = client.embeddings.create(model=EMBEDDING_MODEL, input=batch)
+        except Exception as error:  # noqa: BLE001
+            raise _map_openai_error(error) from error
         vectors.extend(item.embedding for item in response.data)
 
     return vectors
@@ -331,10 +398,15 @@ def _lexical_retrieval(question: str, chunks: Sequence[PolicyChunk], k: int) -> 
 
 def _vector_retrieval(question: str, knowledge: KnowledgeBase, k: int) -> List[RetrievalHit]:
     client = _get_client()
-    if client is None or not knowledge.embeddings:
+    if not knowledge.embeddings:
         return []
 
-    question_embedding = client.embeddings.create(model=EMBEDDING_MODEL, input=question).data[0].embedding
+    try:
+        question_embedding = (
+            client.embeddings.create(model=EMBEDDING_MODEL, input=question).data[0].embedding
+        )
+    except Exception as error:  # noqa: BLE001
+        raise _map_openai_error(error) from error
 
     if knowledge.index is not None and faiss is not None and np is not None:
         vector = np.asarray([question_embedding], dtype="float32")
@@ -470,25 +542,8 @@ def _truncate_words(text: str, max_words: int = 65) -> str:
     return f"{truncated}..."
 
 
-def _offline_answer(retrieved_context: Sequence[RetrievalHit]) -> str:
-    if not retrieved_context:
-        return NOT_FOUND_MESSAGE
-
-    best_context = _strip_page_prefix(retrieved_context[0].text)
-    answer = _clip_to_two_sentences(best_context)
-    answer = _truncate_words(answer, max_words=65)
-    answer = answer or NOT_FOUND_MESSAGE
-    return _append_page_citation(answer, retrieved_context[:1])
-
-
 def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
     client = _get_client()
-    if client is None:
-        return _offline_answer(retrieved_context), {
-            "promptTokens": 0,
-            "completionTokens": 0,
-            "totalTokens": 0,
-        }
 
     if not retrieved_context:
         return NOT_FOUND_MESSAGE, {
@@ -526,13 +581,16 @@ def _generate_answer(question: str, retrieved_context: Sequence[RetrievalHit]):
         "Answer in one or two short sentences. Include page citation in parentheses when available."
     )
 
-    response = client.responses.create(
-        model=CHAT_MODEL,
-        instructions=instructions,
-        input=prompt,
-        temperature=0.1,
-        max_output_tokens=140,
-    )
+    try:
+        response = client.responses.create(
+            model=CHAT_MODEL,
+            instructions=instructions,
+            input=prompt,
+            temperature=0.1,
+            max_output_tokens=140,
+        )
+    except Exception as error:  # noqa: BLE001
+        raise _map_openai_error(error) from error
 
     answer_text = getattr(response, "output_text", "") or ""
     answer_text = _clip_to_two_sentences(answer_text)
